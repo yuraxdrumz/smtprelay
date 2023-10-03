@@ -15,9 +15,11 @@
 // Some external packages provide more functionality. See:
 //
 //	https://godoc.org/?q=smtp
-package main
+package smtp
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/tls"
 	"encoding/base64"
 	"errors"
@@ -26,7 +28,15 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
+	"os"
 	"strings"
+	"time"
+
+	"github.com/decke/smtprelay/internal/app/processors"
+	"github.com/decke/smtprelay/internal/app/processors/bodyprocessors"
+	"github.com/decke/smtprelay/internal/pkg/metrics"
+	"github.com/decke/smtprelay/internal/pkg/scanner"
+	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 )
 
 // A Client represents a client connection to an SMTP server.
@@ -47,12 +57,13 @@ type Client struct {
 	localName  string // the name to use in HELO/EHLO
 	didHello   bool   // whether we've said HELO/EHLO
 	helloError error  // the error from the hello
+	tmpBuffer  *bytes.Buffer
 }
 
 // Dial returns a new Client connected to an SMTP server at addr.
 // The addr must include a port, as in "mail.example.com:smtp".
-func Dial(addr string) (*Client, error) {
-	conn, err := net.Dial("tcp", addr)
+func Dial(addr string, timeout time.Duration) (*Client, error) {
+	conn, err := net.DialTimeout("tcp", addr, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +80,13 @@ func NewClient(conn net.Conn, host string) (*Client, error) {
 		text.Close()
 		return nil, err
 	}
-	c := &Client{Text: text, conn: conn, serverName: host, localName: *hostName}
+	c := &Client{
+		Text:       text,
+		conn:       conn,
+		serverName: host,
+		localName:  *hostName,
+		tmpBuffer:  bytes.NewBuffer([]byte{}),
+	}
 	_, c.tls = conn.(*tls.Conn)
 	return c, nil
 }
@@ -320,7 +337,15 @@ var testHookStartTLS func(*tls.Config) // nil, except for tests
 // attachments (see the mime/multipart package), or other mail
 // functionality. Higher-level packages exist outside of the standard
 // library.
-func SendMail(r *Remote, from string, to []string, msg []byte) error {
+func SendMail(
+	r *Remote,
+	from string,
+	to []string,
+	msg []byte,
+	metrics *metrics.Metrics,
+	scanner scanner.Scanner,
+	urlReplacer urlreplacer.UrlReplacerActions,
+) error {
 	if r.Sender != "" {
 		from = r.Sender
 	}
@@ -340,7 +365,8 @@ func SendMail(r *Remote, from string, to []string, msg []byte) error {
 			ServerName:         r.Hostname,
 			InsecureSkipVerify: r.SkipVerify,
 		}
-		conn, err := tls.Dial("tcp", r.Addr, config)
+		d := &net.Dialer{Timeout: time.Second * 5}
+		conn, err := tls.DialWithDialer(d, "tcp", r.Addr, config)
 		if err != nil {
 			return err
 		}
@@ -353,7 +379,7 @@ func SendMail(r *Remote, from string, to []string, msg []byte) error {
 			return err
 		}
 	} else {
-		c, err = Dial(r.Addr)
+		c, err = Dial(r.Addr, time.Second*5)
 		if err != nil {
 			return err
 		}
@@ -396,7 +422,25 @@ func SendMail(r *Remote, from string, to []string, msg []byte) error {
 	if err != nil {
 		return err
 	}
-	_, err = w.Write(msg)
+
+	err = os.WriteFile("./before.txt", msg, 0644)
+	if err != nil {
+		return err
+	}
+
+	replacedBody, links := c.rewriteBody(string(msg), urlReplacer)
+	log.Debugf("found the following links=%+v", links)
+	shouldMark := c.shouldMarkEmailByLinks(scanner, links, replacedBody)
+	if shouldMark {
+		replacedBody = c.addHeader(replacedBody, "x-cynet-action", "junk")
+	}
+
+	err = os.WriteFile("./after.txt", []byte(replacedBody), 0644)
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write([]byte(replacedBody))
 	if err != nil {
 		return err
 	}
@@ -405,6 +449,90 @@ func SendMail(r *Remote, from string, to []string, msg []byte) error {
 		return err
 	}
 	return c.Quit()
+}
+
+func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[string]bool, body string) bool {
+	shouldMarkEmail := false
+	for link := range links {
+		res, err := scanner.ScanURL(link)
+		if err != nil {
+			log.Errorf("errored while scanning url=%s, err=%s", link, err)
+		}
+		log.Debugf("received response for link=%s, resp=%+v", link, res[0])
+		if res[0].StatusCode != 0 {
+			log.Warnf("found a malicious link, marking email, link=%s", link)
+			shouldMarkEmail = true
+			break
+		}
+	}
+	return shouldMarkEmail
+}
+
+func (c *Client) addHeader(body string, key string, value string) string {
+	headerFinishIndex := strings.Index(body, "\n\n")
+	var builder strings.Builder
+	builder.WriteString(body[:headerFinishIndex])
+	builder.WriteString("\n")
+	builder.WriteString(fmt.Sprintf("%s: %s", key, value))
+	log.Debugf("adding header %s: %s", key, value)
+	builder.WriteString(body[headerFinishIndex:])
+	return builder.String()
+}
+
+func (c *Client) writeNewLine() {
+	_, err := c.tmpBuffer.WriteString("\n")
+	if err != nil {
+		log.Errorf("error in writing new line, err=%s", err)
+		return
+	}
+}
+
+func (c *Client) writeLine(line string) {
+	_, err := c.tmpBuffer.WriteString(line)
+	if err != nil {
+		log.Errorf("error in writing line=%s, err=%s", line, err)
+		return
+	}
+	c.writeNewLine()
+}
+
+func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerActions) (string, map[string]bool) {
+	defaultProcessor := bodyprocessors.NewDefaultBodyProcessor(c.tmpBuffer, urlReplacer)
+	base64Processor := bodyprocessors.NewBase64Processor(c.tmpBuffer, urlReplacer)
+	quotedPrintableProcessor := bodyprocessors.NewQuotedPrintableProcessor(c.tmpBuffer, urlReplacer)
+	// order matters, default should be last, if one processor processed line, it wont continue to second one
+	bodyProcessor := processors.NewBodyProcessors(base64Processor, quotedPrintableProcessor, defaultProcessor)
+	bodyReader := strings.NewReader(body)
+	scanner := bufio.NewScanner(bodyReader)
+	// 8MB max token size, which can be a file encoded in base64
+	scanner.Buffer([]byte{}, 8*1024*1024)
+	scanner.Split(bufio.ScanLines)
+	reachedBody := false
+	linksMap := map[string]bool{}
+	for scanner.Scan() {
+		line := scanner
+		lineString := line.Text()
+		if lineString == "" && !reachedBody {
+			log.Debug("reached body")
+			reachedBody = true
+		}
+
+		if !reachedBody {
+			c.writeLine(lineString)
+			continue
+		}
+		links := bodyProcessor.ProcessBody(lineString)
+		for _, link := range links {
+			linksMap[link] = true
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Errorf("error in scanner, err=%s", err)
+		return body, nil
+	}
+	// log.Debugf("quotedString=%s", quotedPrintableString)
+	return c.tmpBuffer.String(), linksMap
 }
 
 // Extension reports whether an extension is support by the server.

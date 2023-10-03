@@ -1,4 +1,4 @@
-package main
+package smtp
 
 import (
 	"bufio"
@@ -29,7 +29,7 @@ var (
 	logLevel         = flagset.String("log_level", "info", "Minimum log level to output")
 	hostName         = flagset.String("hostname", "localhost.localdomain", "Server hostname")
 	welcomeMsg       = flagset.String("welcome_msg", "", "Welcome message for SMTP session")
-	listenStr        = flagset.String("listen", "127.0.0.1:25 [::1]:25", "Address and port to listen for incoming SMTP")
+	listenStr        = flagset.String("listen", "127.0.0.1:2525 [::1]:2525", "Address and port to listen for incoming SMTP")
 	localCert        = flagset.String("local_cert", "", "SSL certificate for STARTTLS/TLS")
 	localKey         = flagset.String("local_key", "", "SSL private key for STARTTLS/TLS")
 	localForceTLS    = flagset.Bool("local_forcetls", false, "Force STARTTLS (needs local_cert and local_key)")
@@ -45,7 +45,8 @@ var (
 	allowedUsers     = flagset.String("allowed_users", "", "Path to file with valid users/passwords")
 	command          = flagset.String("command", "", "Path to pipe command")
 	remotesStr       = flagset.String("remotes", "", "Outgoing SMTP servers")
-	strictSender     = flagset.Bool("strict_sender", false, "Use only SMTP servers with Sender matches to From")
+	scannerUrl       = flagset.String("scanner_url", "", "scanner url for checking links")
+	scannerClientID  = flagset.String("scanner_client_id", "", "auth for scanner url")
 
 	// additional flags
 	_           = flagset.String("config", "", "Path to config file (ini format)")
@@ -225,9 +226,9 @@ func ConfigLoad() {
 		os.Exit(0)
 	}
 
-	if *remotesStr == "" && *command == "" {
-		log.Warn("no remotes or command set; mail will not be forwarded!")
-	}
+	// if *remotesStr == "" && *command == "" {
+	// 	log.Warn("no remotes or command set; mail will not be forwarded!")
+	// }
 
 	setupAllowedNetworks()
 	setupAllowedPatterns()
