@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/amalfra/maildir/v3"
+	"github.com/decke/smtprelay/internal/pkg/encoder"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/golang/mock/gomock"
@@ -16,7 +18,8 @@ import (
 func TestMultipleImagesBase64(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/multiple_images.txt")
 	if err != nil {
@@ -27,10 +30,31 @@ func TestMultipleImagesBase64(t *testing.T) {
 	assert.Len(t, links, 0)
 }
 
+func TestSaveMailToMailDir(t *testing.T) {
+	c := Client{}
+	md := maildir.NewMaildir("../../../examples/maildir")
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/links.txt")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+	}
+	str := string(body)
+	_, links := c.rewriteBody(str, urlReplacer)
+	m, _ := md.Add(str)
+	assert.NotEmpty(t, m.Key())
+	assert.Len(t, links, 67)
+	md.Delete(m.Key())
+	os.RemoveAll("../../../examples/maildir")
+}
+
 func TestEmailWithRewriteBodyLinksDedup(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/links.txt")
 	if err != nil {
@@ -45,7 +69,8 @@ func TestEmailWithRewriteBodyLinksDedup(t *testing.T) {
 func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/base64.txt")
 	if err != nil {
@@ -76,7 +101,8 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 func TestQuotedStringWithReplaceInlineNoLinkDedup(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	str := `<div dir="ltr">look look<div><br></div><div><a href="http://google.com">http://google.com</a></div><div><br></div><div><a href="http://google.com">http://google.com</a><br></div><div><a href="http://google.com">http://google.com</a> <a href="http://google.com">http://google.com</a> <br></div><div><a href="http://google.com">http://google.com</a><br></div><div><a href="http://google.com">http://google.com</a><br></div><div><a href="http://google.com">http://google.com</a><br></div></div>`
 	replacedLine, links, err := urlReplacer.Replace(str)
@@ -95,7 +121,8 @@ func TestInjectHeaders(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	setupLogger()
-	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	body, err := os.ReadFile("../../../examples/links.txt")
 	if err != nil {
 		log.Fatalf("unable to read file: %v", err)
@@ -124,7 +151,8 @@ func TestDoNotInjectHeaders(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	setupLogger()
-	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	body, err := os.ReadFile("../../../examples/links.txt")
 	if err != nil {
 		log.Fatalf("unable to read file: %v", err)

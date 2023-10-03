@@ -14,7 +14,9 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/amalfra/maildir/v3"
 	"github.com/chrj/smtpd"
+	"github.com/decke/smtprelay/internal/pkg/encoder"
 	"github.com/decke/smtprelay/internal/pkg/httpgetter"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
@@ -158,7 +160,7 @@ func authChecker(peer smtpd.Peer, username string, password string) error {
 	return nil
 }
 
-func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlReplacer urlreplacer.UrlReplacerActions) func(peer smtpd.Peer, env smtpd.Envelope) error {
+func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlReplacer urlreplacer.UrlReplacerActions, md *maildir.Maildir) func(peer smtpd.Peer, env smtpd.Envelope) error {
 	return func(peer smtpd.Peer, env smtpd.Envelope) error {
 		peerIP := ""
 		if addr, ok := peer.Addr.(*net.TCPAddr); ok {
@@ -242,7 +244,7 @@ func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlRe
 		}
 
 		cynetID := ""
-		cynetTenantIDHeaderRegex := regexp.MustCompile(`.*x-cynet-tenant-token:(.*)`)
+		cynetTenantIDHeaderRegex := regexp.MustCompile(fmt.Sprintf(`.*%s:(.*)`, *cynetTenantHeader))
 		cynetIDMatchList := cynetTenantIDHeaderRegex.FindAllStringSubmatch(string(env.Data), 1)
 		if len(cynetIDMatchList) > 0 {
 			matchGroup := cynetIDMatchList[0]
@@ -252,7 +254,7 @@ func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlRe
 			}
 		}
 
-		logger.WithField("x-cynet-id", cynetID).Debug("extracted cynet id")
+		logger.WithField(*cynetTenantHeader, cynetID).Debug("extracted cynet tenant header")
 		// for _, remote := range envRemotes {
 		logger = logger.WithField("host", remote.Addr)
 		err = SendMail(
@@ -263,6 +265,7 @@ func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlRe
 			metrics,
 			scanner,
 			urlReplacer,
+			md,
 		)
 		if err != nil {
 			var smtpError smtpd.Error
@@ -361,7 +364,9 @@ func Smtp() {
 
 	metrics := metrics.NewPrometheusMetrics(prometheus.DefaultRegisterer)
 	httpGetter := httpgetter.NewHTTPGetter(&http.Client{})
-	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer(*cynetProtectionUrl, aes256Encoder)
+	md := maildir.NewMaildir(*mailDir)
 	// scanner := scanner.NewNimbusScanner(httpGetter, env.ENVVARS.ScannerURL, env.ENVVARS.ScannerClientID)
 	scanner := scanner.NewWebFilter(httpGetter, *scannerUrl, *scannerClientID)
 	var servers []*smtpd.Server
@@ -382,7 +387,7 @@ func Smtp() {
 			ConnectionChecker: connectionChecker,
 			SenderChecker:     senderChecker,
 			RecipientChecker:  recipientChecker,
-			Handler:           mailHandlerWrapper(metrics, scanner, urlReplacer),
+			Handler:           mailHandlerWrapper(metrics, scanner, urlReplacer, md),
 		}
 
 		if localAuthRequired() {

@@ -28,15 +28,16 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
-	"os"
 	"strings"
 	"time"
 
+	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
 	"github.com/decke/smtprelay/internal/app/processors/bodyprocessors"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
+	"github.com/sirupsen/logrus"
 )
 
 // A Client represents a client connection to an SMTP server.
@@ -345,6 +346,7 @@ func SendMail(
 	metrics *metrics.Metrics,
 	scanner scanner.Scanner,
 	urlReplacer urlreplacer.UrlReplacerActions,
+	md *maildir.Maildir,
 ) error {
 	if r.Sender != "" {
 		from = r.Sender
@@ -423,22 +425,38 @@ func SendMail(
 		return err
 	}
 
-	err = os.WriteFile("./before.txt", msg, 0644)
+	// before
+	beforeMsg, err := md.Add(string(msg))
 	if err != nil {
+		log.Warnf("failed to save message before processing, err=%s", err)
 		return err
 	}
+
+	log.WithFields(logrus.Fields{
+		"from": from,
+		"to":   to,
+		"addr": r.Addr,
+		"key":  beforeMsg.Key(),
+	}).Info("saved before msg")
 
 	replacedBody, links := c.rewriteBody(string(msg), urlReplacer)
 	log.Debugf("found the following links=%+v", links)
 	shouldMark := c.shouldMarkEmailByLinks(scanner, links, replacedBody)
 	if shouldMark {
-		replacedBody = c.addHeader(replacedBody, "x-cynet-action", "junk")
+		replacedBody = c.addHeader(replacedBody, *cynetActionHeader, "junk")
 	}
 
-	err = os.WriteFile("./after.txt", []byte(replacedBody), 0644)
+	afterMsg, err := md.Add(replacedBody)
 	if err != nil {
+		log.Warnf("failed to save message after processing, err=%s", err)
 		return err
 	}
+	log.WithFields(logrus.Fields{
+		"from": from,
+		"to":   to,
+		"addr": r.Addr,
+		"key":  afterMsg.Key(),
+	}).Info("saved before msg")
 
 	_, err = w.Write([]byte(replacedBody))
 	if err != nil {

@@ -1,6 +1,7 @@
 module github.com/decke/smtprelay
 
 require (
+	github.com/amalfra/maildir/v3 v3.0.0
 	github.com/chrj/smtpd v0.3.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.1
