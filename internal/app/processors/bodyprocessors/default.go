@@ -36,7 +36,7 @@ func (d *defaultBody) writeLine(line string) {
 	d.writeNewLine()
 }
 
-func (d *defaultBody) Process(lineString string, didReachBoundary bool, boundary string) (didProcess bool, links []string) {
+func (d *defaultBody) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int) (didProcess bool, links []string) {
 	// if no quoted printable, replace line as usual
 	replacedLine, foundLinks, err := d.urlReplacer.Replace(lineString)
 	if err != nil {

@@ -43,7 +43,7 @@ func (q *quotedPrintable) writeLine(line string) {
 	q.writeNewLine()
 }
 
-func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string) (didProcess bool, links []string) {
+func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int) (didProcess bool, links []string) {
 	if strings.Contains(lineString, "Content-Transfer-Encoding: quoted-printable") {
 		q.writeLine(lineString)
 		q.isQuotedPrintable = true

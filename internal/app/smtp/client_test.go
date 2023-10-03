@@ -13,6 +13,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMultipleImagesBase64(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	urlReplacer := urlreplacer.NewRegexUrlReplacer()
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/multiple_images.txt")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+	}
+	str := string(body)
+	_, links := c.rewriteBody(str, urlReplacer)
+	assert.Len(t, links, 0)
+}
+
 func TestEmailWithRewriteBodyLinksDedup(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
