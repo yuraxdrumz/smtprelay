@@ -30,21 +30,6 @@ func TestMultipleImagesBase64(t *testing.T) {
 	assert.Len(t, links, 0)
 }
 
-func TestDoNotReplaceForwardedMailFromAndTo(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	aes256Encoder := encoder.NewAES256Encoder()
-	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
-	setupLogger()
-	body, err := os.ReadFile("../../../examples/email_split.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
-	str := string(body)
-	rewrittenBody, _ := c.rewriteBody(str, urlReplacer)
-	os.WriteFile("../../../examples/forward_after.txt", []byte(rewrittenBody), 0644)
-}
-
 func TestSaveMailToMailDir(t *testing.T) {
 	c := Client{}
 	md := maildir.NewMaildir("../../../examples/maildir")
