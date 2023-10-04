@@ -45,14 +45,6 @@ func (q *quotedPrintable) writeLine(line string) {
 	q.writeNewLine()
 }
 
-func (q *quotedPrintable) writeLineNoNewLine(line string) {
-	_, err := q.lineWriter.WriteString(line)
-	if err != nil {
-		logrus.Errorf("error in writing line=%s, err=%s", line, err)
-		return
-	}
-}
-
 func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int) (didProcess bool, links []string) {
 	if strings.Contains(lineString, "Content-Transfer-Encoding: quoted-printable") {
 		q.writeLine(lineString)
@@ -65,7 +57,7 @@ func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boun
 		accumulated := q.buf.String()
 		q.writeNewLine()
 		if accumulated != "" {
-			q.writeLineNoNewLine(accumulated)
+			q.writeLine(accumulated)
 			q.buf.Reset()
 		}
 		// q.writeNewLine()

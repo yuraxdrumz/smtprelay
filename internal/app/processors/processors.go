@@ -1,6 +1,9 @@
 package processors
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type BodyProcessor interface {
 	Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int) (didProcess bool, links []string)
@@ -18,15 +21,16 @@ func NewBodyProcessors(processors ...BodyProcessor) *bodyProcessors {
 	}
 }
 
-func (b *bodyProcessors) ProcessBody(line string) (links []string) {
-	boundaryStart := strings.HasPrefix(line, "--")
-	if boundaryStart {
+func (b *bodyProcessors) ProcessBody(line string, boundary string) (links []string) {
+	boundaryStart := fmt.Sprintf("--%s", boundary)
+	didHitBoundary := strings.HasPrefix(line, boundaryStart)
+	if didHitBoundary {
 		if b.boundary == "" {
-			b.boundary = line
+			b.boundary = boundary
 		}
 		b.boundaryNum += 1
 	}
-	return b.processOneOf(line, boundaryStart, b.boundary, b.boundaryNum)
+	return b.processOneOf(line, didHitBoundary, b.boundary, b.boundaryNum)
 }
 
 func (b *bodyProcessors) processOneOf(line string, boundaryStart bool, boundary string, boundaryNum int) (links []string) {

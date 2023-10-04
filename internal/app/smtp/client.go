@@ -528,6 +528,8 @@ func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerAct
 	scanner.Split(bufio.ScanLines)
 	reachedBody := false
 	linksMap := map[string]bool{}
+	boundary := ""
+	headers := strings.Builder{}
 	for scanner.Scan() {
 		line := scanner
 		lineString := line.Text()
@@ -537,10 +539,21 @@ func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerAct
 		}
 
 		if !reachedBody {
+			headers.WriteString(lineString)
+			if strings.Contains(lineString, `boundary=`) {
+				splitBoundary := strings.Split(lineString, "boundary=")
+				boundary = strings.ReplaceAll(splitBoundary[1], `"`, "")
+				logrus.Debugf("found boundary=%s", boundary)
+			}
 			c.writeLine(lineString)
 			continue
 		}
-		links := bodyProcessor.ProcessBody(lineString)
+
+		if boundary == "" {
+			logrus.Fatalf("no boundary found in headers=%s", headers.String())
+		}
+
+		links := bodyProcessor.ProcessBody(lineString, boundary)
 		for _, link := range links {
 			linksMap[link] = true
 		}
