@@ -515,6 +515,7 @@ func (c *Client) writeLine(line string) {
 }
 
 func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerActions) (string, map[string]bool) {
+	// forwardedProcessor := bodyprocessors.NewForwardedProcessor(c.tmpBuffer, urlReplacer)
 	defaultProcessor := bodyprocessors.NewDefaultBodyProcessor(c.tmpBuffer, urlReplacer)
 	base64Processor := bodyprocessors.NewBase64Processor(c.tmpBuffer, urlReplacer)
 	quotedPrintableProcessor := bodyprocessors.NewQuotedPrintableProcessor(c.tmpBuffer, urlReplacer)

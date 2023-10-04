@@ -37,6 +37,9 @@ func (r *regexUrlReplacer) Replace(str string) (replaced string, links []string,
 	replacedLine := str
 	links = []string{}
 	for _, link := range foundLinks {
+		if strings.Contains(string(link), "@") && !strings.Contains(string(link), "://") {
+			continue
+		}
 		links = append(links, string(link))
 		bytes := []byte("passphrasewhichneedstobe32bytes!")
 		key := hex.EncodeToString(bytes)

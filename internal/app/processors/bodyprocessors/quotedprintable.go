@@ -15,6 +15,7 @@ type quotedPrintable struct {
 	isQuotedPrintable bool
 	lineWriter        *bytes.Buffer
 	urlReplacer       urlreplacer.UrlReplacerActions
+	isForwarded       bool
 }
 
 func NewQuotedPrintableProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions) *quotedPrintable {
@@ -23,6 +24,7 @@ func NewQuotedPrintableProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplac
 		isQuotedPrintable: false,
 		lineWriter:        lineWriter,
 		urlReplacer:       urlReplacer,
+		isForwarded:       false,
 	}
 }
 
@@ -43,16 +45,48 @@ func (q *quotedPrintable) writeLine(line string) {
 	q.writeNewLine()
 }
 
+func (q *quotedPrintable) writeLineNoNewLine(line string) {
+	_, err := q.lineWriter.WriteString(line)
+	if err != nil {
+		logrus.Errorf("error in writing line=%s, err=%s", line, err)
+		return
+	}
+}
+
 func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int) (didProcess bool, links []string) {
 	if strings.Contains(lineString, "Content-Transfer-Encoding: quoted-printable") {
 		q.writeLine(lineString)
 		q.isQuotedPrintable = true
 		return true, nil
 	}
+
+	if strings.Contains(lineString, "---------- Forwarded message ---------") {
+		// we may have accumulated quoted printable data in buffer, flush
+		accumulated := q.buf.String()
+		q.writeNewLine()
+		if accumulated != "" {
+			q.writeLineNoNewLine(accumulated)
+			q.buf.Reset()
+		}
+		// q.writeNewLine()
+		q.writeLine(lineString)
+		q.isForwarded = true
+		return true, nil
+	}
+
+	if q.isForwarded {
+		if lineString == "" {
+			q.isForwarded = false
+		}
+		q.writeLine(lineString)
+		return true, nil
+	}
+
 	// flush
 	if didReachBoundary && q.buf.Len() > 0 {
 		logrus.Debug("found start of another boundary, flushing as quotedPrintable to rest of body")
 		q.writeNewLine()
+		// check if we have forwarded string
 		qpBuf, foundLinks := q.parseQuotedPrintable()
 		q.writeLine(qpBuf)
 		q.writeNewLine()

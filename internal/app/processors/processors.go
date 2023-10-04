@@ -9,15 +9,12 @@ type BodyProcessor interface {
 type bodyProcessors struct {
 	bodyProcessors []BodyProcessor
 	boundary       string
-	links          []string
 	boundaryNum    int
 }
 
 func NewBodyProcessors(processors ...BodyProcessor) *bodyProcessors {
 	return &bodyProcessors{
 		bodyProcessors: processors,
-		boundary:       "",
-		boundaryNum:    0,
 	}
 }
 

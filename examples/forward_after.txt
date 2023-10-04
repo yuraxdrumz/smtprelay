@@ -1,0 +1,505 @@
+Received: from EUR01-DB5-obe.outbound.protection.outlook.com ([104.47.2.57]) by
+        localhost.localdomain with ESMTP;
+        Wed, 04 Oct 2023 11:53:00 +0000 (UTC)
+Received: from DB9PR06CA0030.eurprd06.prod.outlook.com (2603:10a6:10:1db::35)
+ by PAXP192MB1487.EURP192.PROD.OUTLOOK.COM (2603:10a6:102:288::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.33; Wed, 4 Oct
+ 2023 11:52:58 +0000
+Received: from DB8EUR05FT049.eop-eur05.prod.protection.outlook.com
+ (2603:10a6:10:1db:cafe::8e) by DB9PR06CA0030.outlook.office365.com
+ (2603:10a6:10:1db::35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6863.26 via Frontend
+ Transport; Wed, 4 Oct 2023 11:52:57 +0000
+Authentication-Results: spf=pass (sender IP is 209.85.221.177)
+ smtp.mailfrom=gmail.com; dkim=pass (signature was verified)
+ header.d=gmail.com;dmarc=pass action=none header.from=gmail.com;compauth=pass
+ reason=100
+Received-SPF: Pass (protection.outlook.com: domain of gmail.com designates
+ 209.85.221.177 as permitted sender) receiver=protection.outlook.com;
+ client-ip=209.85.221.177; helo=mail-vk1-f177.google.com; pr=C
+Received: from mail-vk1-f177.google.com (209.85.221.177) by
+ DB8EUR05FT049.mail.protection.outlook.com (10.233.239.197) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6863.26 via Frontend Transport; Wed, 4 Oct 2023 11:52:57 +0000
+Received: by mail-vk1-f177.google.com with SMTP id 71dfb90a1353d-499e2dd41ccso846519e0c.1
+        for <eyaltest@cynetint.onmicrosoft.com>; Wed, 04 Oct 2023 04:52:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1696420376; x=1697025176; darn=cynetint.onmicrosoft.com;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=5P+rgyyOr0Pxcmgg9YHnm2nDnLw+xd+peRASq7J2eR0=;
+        b=QUcD77QjVskeL5V3xfeBLFFcIf/YydUVaEUg36IxIB3k5IGQthZHrJ6NidP42wAtbt
+         NK5qAFM/GLyLF9Wwps+gC/ydNPUazNC8+5e4geVYaTkISR0hlpdgZmznhrqRv1FVyHV4
+         Ydk0GisOE839aOlzrUkCmBBW6Ef7uwYnlWC8DU6vmCCfLb6X37QYYkhifflNKMHYdtML
+         rhNVk5359BAhic12DdjmhOwOiCVefCfr3jvjpzFR48vh1YnHjOoHL5Dee2zQCTPnZWWQ
+         c6fQM2xQx4Sw6UZfVzcg50jE3QcDnJ1d22fE6KCS1MD624TwA5YOSFiwxYcVVCSZ6Fs0
+         am5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696420376; x=1697025176;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=5P+rgyyOr0Pxcmgg9YHnm2nDnLw+xd+peRASq7J2eR0=;
+        b=dcEE66Z2q0VsHI2rCqMu7Q1/Ps0cdWy7w1P/xaH3/wK8R41KK0R1fnmvQ1FCCdX127
+         4GV4cy7CZUjsCO6HxKR4W9Jec6exFAOIXccfz2ZeZX0pf2sP24u8PlGFzX8CvLu3zp0A
+         OKCFLHmWdJ9SY+CN0KoBA0zAbVPWFjtGLDffZ29PBGlVfSd7JOqk4kRfuu7/Xf4NEXrJ
+         EFc87r5HxJnvCsYX553z2wC3UK7RXpnobubEi11TVmrheWbQcDbw4twDFDeEcfBQM1VB
+         JKolHN/kKmyhRtJoJ//gK33vshQhZrNnz0m8uCWd8ldfs/9v4EOTzg1QP+y19nh5roEP
+         OdoA==
+X-Gm-Message-State: AOJu0YxNPW2GtXhz0qrmSRYuuGiqpvI8pTfE35l8GPwL3C9GpicLDjBo
+        8q3g0X/6NslX/v2+7+J8sE9o8ot5j+tqe3cxg/2O2fEus2JKMg==
+X-Google-Smtp-Source: AGHT+IGrbH2If58mYyfK8OghGmUX7OAOu5SGokiMn/o31URN7i3/AOpuKKmvj7OzWSXLsaCwpcXSYFvwAqZXnB907n0=
+X-Received: by 2002:a1f:ed41:0:b0:499:e671:1682 with SMTP id
+ l62-20020a1fed41000000b00499e6711682mr1720166vkh.3.1696420375632; Wed, 04 Oct
+ 2023 04:52:55 -0700 (PDT)
+MIME-Version: 1.0
+References: <e37bc822131765c05326d2850.023f1fe8a9.20230927210639.71e3ecbdb5.6a64c9ac@mail57.wdc01.mcdlv.net>
+In-Reply-To: <e37bc822131765c05326d2850.023f1fe8a9.20230927210639.71e3ecbdb5.6a64c9ac@mail57.wdc01.mcdlv.net>
+From: Yuri Khomyakov <yurik1776@gmail.com>
+Date: Wed, 4 Oct 2023 14:52:44 +0300
+Message-ID: <CADrc17C21EHV9JKj99e3RTVG86WykoJACJSQUcnL4kUG2dgw3w@mail.gmail.com>
+Subject: Fwd: Important Update: Clarification on Recent Terms of Service Communication
+To: eyaltest@cynetint.onmicrosoft.com
+Content-Type: multipart/alternative; boundary="000000000000e124500606e2a50b"
+Return-Path: yurik1776@gmail.com
+X-EOPAttributedMessage: 0
+X-EOPTenantAttributedMessage: a84d933a-e471-4128-99c6-d3652501a6a6:0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DB8EUR05FT049:EE_|PAXP192MB1487:EE_
+X-MS-Office365-Filtering-Correlation-Id: 02dd444a-4cf8-4e18-c74f-08dbc4d073ba
+X-MS-Exchange-AtpMessageProperties: SA|SL
+X-Cynet-Tenant-Token: ea0859f9-f30a-4a54-beaf-669eb9eff12e
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+        =?utf-8?B?Yit0K2puRHZHSjVkZHpiQXNSa2JwdDFVOW13OEVFeU5zeC8yK3lQeDJDREtl?=
+ =?utf-8?B?NjlxbHZXcDFQMFlRc0dJcGtsanRRVGZrZkdLS2svazk4VVhpcUxabFZmZnVV?=
+ =?utf-8?B?TFBEL2s0bVVRZmVYU20xKzRsK2tQdkQ4Mk5zWHBzSWVRdVEyK2VGb1hBY3JJ?=
+ =?utf-8?B?b29OcjR4SjEvK2xILzd3VUlQVS9OcWQwK0VDdmEwVDcvZWdzY2pnNmdYNXJq?=
+ =?utf-8?B?ZFBjUlNzaDNWTW9uaEFDWUtiYmZZbzg5OVRtWnkxNWNOUlNINENIUjVIM0px?=
+ =?utf-8?B?NXdqaXk3MHdYclVraDJkZGczRGRUN0xIUmRmcHJKREF6R21rOVp1RDhnSVN5?=
+ =?utf-8?B?MndIY3lxSkxVQmhZS3NwRS9Ldis2bktucHF1NTQwQm4rK1FPbVFmbUF0dFlY?=
+ =?utf-8?B?ZHFPU3lyRFZRR0M1Z2FJdlZscmJoTkNXQThiRXZBU3BQNERVWU55Y2E3emU4?=
+ =?utf-8?B?Q1NBbWlnRXg0MEUzZ0RsTVJRbElTcmEwaWEra3AwTlRuWjlSRFc1UFFyWVVm?=
+ =?utf-8?B?MjNIMUtqemRyYTROL2JoZWFXaStjL2l1dzJ2aHIzT3NNb2JrbkhZYUFlaldT?=
+ =?utf-8?B?c3p4dkdqVlNFM3ZYTnJqMGZZMFdjTi96eXlEdnpjN0IzKzUzZmxzemJrSnBV?=
+ =?utf-8?B?TGduRlJDWWRoQjhFTE03QU9KK2VpS2hBVjVZOEZ4V01vbUpWaFFnQzM3QWJD?=
+ =?utf-8?B?Q1FSaXhZZUFyU3pNSkZ5eDl0elg2UDA1c2wzeXRQR3ViVG56dHhWUXZwRS80?=
+ =?utf-8?B?S2hqTmI4VTAxNWtRYTRHOUI2L2d4NXpBa2NxRTRKc1BneDQzd2dOZHRjbE9D?=
+ =?utf-8?B?WTlKMWZKb1gyZHJjT0Z0a1RWNXNqMktxNDAwUkNHK1FseVVCaU9JcExBRTI4?=
+ =?utf-8?B?K1Fzb1VPRVNpTFlyc1QyYnFHMzBkZmZVMGlSZXRZdUVBMExTZG5velVQS3Ro?=
+ =?utf-8?B?dmNwSGdkR3h4UGYvdlhLT1dVSXdyRkJVK1YrbHZyY05YWTA2OHNJUnFsTFhK?=
+ =?utf-8?B?RzJpZXY0aWFZKzlGa1RDdlMvQk5tQS94enRuRWQ5Umh5YTYyT2xvTDUvUEhC?=
+ =?utf-8?B?alE2SEVEK0dCLzdkczJoRVBRRjRWRVhvRVJzcTdYTXkrTjNGRHh5SDZxcm9u?=
+ =?utf-8?B?eWV6SFBzdlJnbnlQUmhpQUVmWU1ndTk0K2UrZk5QN2UxM2tYRkpqdnQ1YTdr?=
+ =?utf-8?B?czE2clRHMUNicHhQc0JKRFRaTnIrbk5FS0Z5ZVZLb2RaU0dZUWRUQVhRQ2NT?=
+ =?utf-8?B?UmRncmtONzBuYlJjM3dXb1djb0RJeWRuL2MyeEwxUUJNVXA1WE5reitKVWlR?=
+ =?utf-8?B?aDk1Tm02STZyRWxoZjlXNm00bU5ham1ienJrZHAwbUlERnNzUU1LeEFkN1li?=
+ =?utf-8?B?OTZVKzM0SDM4NmI5dlhzQ091bnltdzdwTGQ3dy80MlJrRkMzNG1ib3R5V3NM?=
+ =?utf-8?B?N1dIMUFkVytDNnB3Z3BPaWkxVTFUVWxtWDNYOWNwRE93bitjTU9mUEZIVkVi?=
+ =?utf-8?B?NjIvV1RGbTB3UnBSTkk0RnYrWnUyZjhwWURUSTN6QlNCWVhQV1UxckNYVVQ0?=
+ =?utf-8?B?dkFQLzRqNGpVRGVCdWN4NlVRYWhXaUNiRHRYZnRwcjU1RmZ3bER1Q3VpY1Jz?=
+ =?utf-8?B?dE1JOHg3bXVRV0J0cU9XWVNLUFVhVy9FWGt1UmR3d0NUYUJaT29vSmJ1RTVz?=
+ =?utf-8?B?OW0vbERMT1A5aGdOb1VVY2FyQTlDOE5QZ1lVTk5YcGQ1enZUQWlFd3JHQzFG?=
+ =?utf-8?B?eUNBbEJGYk1NR2p2SHpLMmJpODFuQTNGdTM1SmdUSXl4VjVJQ2FObkRtRTB2?=
+ =?utf-8?B?S3F2QkpLS3BXVWtyRUJ3N1JOMXhZc25xYWw5Rm4yTzc5NmdtQzV5d1I0UlpU?=
+ =?utf-8?B?Y0ZzeC9LM3RSUG45Y3FlL0F0YytjQXRuNXF3anN6aUlTaXlmc0Q2YTBWa1ho?=
+ =?utf-8?B?Z3VmRytBSW1nSWRxYmV5eks0WFJkOHdza0h0YlZMandodklZL0g2Sko2NTAr?=
+ =?utf-8?B?Y0ZrY3RZOEJVZ3FNd0hDQ1JOVm5qUVNZK3dic0loU0VKSll4VENwdGhrOGdk?=
+ =?utf-8?B?ZkVBa04xM2ZqYncxbEFPVUJrME5UZUVvUkgwZUxQQ3k0dUlNa3AyZHBHTk9x?=
+ =?utf-8?B?eGIrdkprNVBBaCtvZTgvNkhLWVIwSzd1MkszS0tvU3pPV2pFWEFYWXl4NUdm?=
+ =?utf-8?B?eDRzeE9yOE9uL3dNS3NBbWJXZVltZm4wY3c1U2F6RzM4RGRaalVWS3RTYnBL?=
+ =?utf-8?B?Skxzd2tQdnhLcGpVK3BHU0xGQXF0M3JnTHlCOXBJd2pjNUhzZy9xZkNhVGY5?=
+ =?utf-8?B?NFhjM2VQaHkzdTJHaGFSVTYyZ3dtaVByUHpoS2hXeTN4TXpUM0gwZmxleXU0?=
+ =?utf-8?Q?Omg9cOTTAas3qn7ao2cx0j7y7+kK2CSlvrwa9?=
+X-Forefront-Antispam-Report:
+        CIP:209.85.221.177;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail-vk1-f177.google.com;PTR:mail-vk1-f177.google.com;CAT:NONE;SFS:(13230031)(4636009)(1690799017)(451199024)(83380400001)(66899024)(76236004)(53546011)(33964004)(15650500001)(8676002)(5660300002)(76482006)(1096003)(42186006)(45080400002)(7596003)(336012)(356005)(73392003)(6916009)(6666004)(26005)(55446002)(86362001)(166002)(16799955002)(66574015)(82202003)(7636003)(57042007);DIR:INB;
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+        fZejlljpJeg8XWZvR4YP0cshFmGJoPf8CSBTeqQBdG1ovKSXyoxTGpKvmgdutAWVGapb5dXRKsyrFQZ/SA/Ly2GxyvL4fRAQmJH0K+BRc13pVQunspRgLfQgVB43RkxYPQq4jCjlBOYCvaqGp5izdIp2uj6v5TMt3muGhjWJ/+6Y/0+3g06+CutVysuJLFK7lhppzsfsel2J1F85MMIJt11TBuV9UcBhVLyJuHESKfHIfWKxq0Zu3uIyxyvLPJIj563hw+YBs/7k1SG8k1veP0TcTSWxCGpQ4hFKrSow8M5uvEzvXfF18FDBt5vz7DLs4puXIz4YPcn0+X+YpNIauWjvg10erQb6XywrpQELNUggUmxFgrD5U0zxa44OG2XrX18bE5XnWu4NIjGuJevIB1rd0K+ZYEVEqaGgPyBuA3dU625H9E+ltIKRRrYJr3oHbNkqmKMnFg8E3+qrN18vvhzhqlNjTwGFhMWMp4xUg2zgZ7Fje3CZr9B+VSNUix53933mQkhpWSJLm0lryegiHE5T3ootCljXhT80owaIA8cNBmNYRFRWbvYWwe7nBQVGg5FYgv2OLTpvUqLWWvfgTGvQDDh1c88nre9GhqzB8wVPutimrw1EAHFvm33/gNObWM3d2sL7qSlkTIT6yv88j7zDw+pR+LLIHlRSKINZlKUZ29CdOwHYEAJ2T05+JIyzks+UqbsJMHZrXsqAqdQSLI1/cYOZUoXZNVBIgtXGT2NUg9WGnz5Puhx0Wa6Asuyx5LJwhWearKwsVzOQfwakqQ==
+X-OriginatorOrg: cynetint.onmicrosoft.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Oct 2023 11:52:57.6450
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 02dd444a-4cf8-4e18-c74f-08dbc4d073ba
+X-MS-Exchange-CrossTenant-Id: a84d933a-e471-4128-99c6-d3652501a6a6
+X-MS-Exchange-CrossTenant-AuthSource:
+        DB8EUR05FT049.eop-eur05.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: Internet
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAXP192MB1487
+
+--000000000000e124500606e2a50b
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+---------- Forwarded message ---------
+From: Team Lens <noreply@k8slens.dev>
+Date: Thu, Sep 28, 2023 at 12:07=E2=80=AFAM
+Subject: Important Update: Clarification on Recent Terms of Service
+Communication
+To: <yurik1776@gmail.com>
+
+
+View this email in your browser<localhost:1333?u=3DOWY4NDczZjRjM2ZjMTljNzY0=
+NmUxNTc5Mzc3MzZmZjIyNGE1ZTkyODFjNmQ4Y2JiY2VkODc1M2FiMWM1NGY2M2NjZTlmOGZkNmI=
+4ZTQ0ZTM1ZDgxYWE4NjcyYWZhMzI0MDcxNjBmNDkzNDUzOTJkYThlZGNlMDllMjFmOWYzODAyMz=
+kyMzk1OGFjMTc2ZDQ3OTU3NDczZDVkMWRjM2Y0MWE5M2U3ODE3OGZkMjBlODI1MjEwYWJhYTg5Z=
+TBmMmRmNzBkNmJmNDY4YzE4NTA0MTcwYmUyMGM0NjMzNmY0OTQ2MDE4NTNkZWU0ZGY=3D><loca=
+lhost:1333?u=3DYTZlODhkNWI1NGI1YmE1OTU2Y2I3YmY4NGYwMzQxMzgzOWRjOGNlNGQxMzFi=
+NGNkZTBiNGQ0YWM0ZWNjMDA3OGJkNzg3MzA5ZGFkMzlhNjRiNTI2OTY3MWZkNmFlZDJhNzVlMjV=
+kZjdhMTczZWJmZTA3NGMyZjA2ZWU3NmUwN2RmMzBhOWZlMTFjMTY4MjBkNzg4YWRiM2ZlNTgzZD=
+U5YmI5MjQ5Yjg5N2NkZjFhMDk5MjI1Y2M1OWZjZTQxMGI0MzdhMGI2NmZkMzA5MjNiZWE1NGY2N=
+jZjOTE2M2Q1OTEwMDBkN2ViOTQ2NmU0ZTI5NTU1NWVlYTViZjgyZmQ=3D>Dear Yuri,It has =
+come to our attention that not all users were notified of ourchanges to our=
+ Terms of Services and some received notice later thanothers. Transparency,=
+ communication and trust are important values forMirantis and the Team Lens=
+.We deeply regret the inconvenience and confusion caused by the delay incom=
+municating our updated Terms of Service.  While we reached out directlythro=
+ugh in-app communications, Lens forums, and email prior to the changetaking=
+ effect, it was not done in a sufficiently unified manner.Unfortunately, we=
+ made a mistake in our communications process, and wesincerely apologize fo=
+r this oversight.*We have decided to revert back to the previous Terms of S=
+ervice that tookeffect on July 28th 2022<localhost:1333?u=3DMmM5OTNkNGNjNDJ=
+lNzQ2NTVhMzY2M2FiYWQxZDUyN2FkYWQyNjIwMmY0ZTcyZDIwZjAyOTExM2NlZjBhM2YwYWJlYz=
+cwZWM1MjVhYzdkMjcwM2UyZGMyODYyZjNkZWFkYTVhYjg0MDI3MmU4ZjIxNTJhNmY2NmRmYjIwM=
+jJlZDY3ZDA2NmEzMzQyZTYzN2M4NzcyMTczZGE5YmFmY2I5ZTgxNzdmNDdlZmRmYTk4MzY4MTZk=
+YmQxMDFjODhlMDQwMWMzNTI5YzVjOGYyZjJiOTk4ZDJlNGFmNDY2MGU3YWU2N2VjZmY3NGExNGY=
+wNDgzMTU1OWZmMDM1OThhMGM=3D>.We will communicate our updated Terms of Servi=
+ce in the next coming days,prior to any changes taking effect. We understan=
+d the challenges andapologize for the confusion this might have created for=
+ you.*We are dedicated to providing you with the utmost transparency and we=
+ aretaking this as an opportunity to learn from our mistakes. In order topr=
+ovide you with the best experience possible whenever interacting andworking=
+ with Lens.Please contact us at support@k8slens.dev<support@k8slens.dev?sub=
+ject=3DQuestion%20regarding%20the%20new%20Terms%20of%20Service>if you have =
+any questions.Sincerely,Team LensCopyright =C2=A9 2=EF=BB=BF023 Mirantis, I=
+nc. - All rights reserved.  [image: twitter]<localhost:1333?u=3DMWNhMmEzNGU=
+yZWVlZjg4ZDUyZWVkM2ExNmRkYTViMzhkMzBmN2Y2ZDk3N2M4NWUxY2IzYzI3ZWNlOGYxM2E0Mz=
+Q5MTVmNjJiYWRjMGI3ZDZkYTQ1ZDkwZDFmOTcxOGU4YzcyYWIzZjk1ZTUxODI4YmY4MzU3N2JmM=
+mMyMWE3NTkzYmI0MDZlYTAzM2Y3Mzg4YjkyMDQ4NDNkZmM1OGExOTJiN2Y0ZDEwOWQyNjY2ZTdj=
+NzZhNGJlNjE3OTk0OWIzNmJiZDc5ZjA3MjJlNTA2MTJjYjQxNjU5YTExMzk2NGEzMzU2ZjA5OGF=
+lYzI0MDc3N2QwZjlkYTYzMzQyNDc=3D>  [image: facebook]<localhost:1333?u=3DYzJl=
+OGQwNzI1NTk2ZWYwNjQxZmJiZjY0NGU3YWIyYmYwYjc5NzNkMTQ0YmMwY2JhMGQ1OTVlMmI4OTM=
+2Njk5MDVlODE3ZTQzYmJjYWUzZDQ3NjNlNTAxZWViMzlmOTk5YWFiMjJlYWI1ZTI0MWMwMWVkZm=
+RjZTRhMDE2ZDBjODkwNTY4MmMzZGQzMjNhMDY3ZGEyODcxZWZkOWJjOGJkM2E0ODA1YWU0NTU0M=
+GM4OTU2YjkyYmNkYTM4ZWU5ZGY2Mjk4NTE1YjI1MzRjYmFjNGNkNzZlY2I1YjA0MmMxOWZkNDM5=
+OWQ1N2Y4MDRhMWJiMjE5NzM3MzA2NmM5ZTQ=3D>  [image: youtube]<localhost:1333?u=
+=3DZWRiMTRkNmQzMzEwNDkzMWExMjMwODVhNmVmZDQ3Y2NmNGZhOGJmZDE4MDhkY2YxYzA0YTA1=
+OTI5Nzk1YTA2MmEzNWI3ZDBjODdhN2ExMWMzOWYxYWNhNDk5MjMzNDBlNDFiMTY5ZjhjNjRkNzd=
+hNWMyMDkzNTRlNzY2ZjdlNjcxN2M3MmMwNmMyZDc0Y2MwNGE2ZmNiY2RjYmZiODM4NjVhZjU5Mj=
+EwMmY4NjA3NDdhN2Y0ODU0ZDkzY2Y1ODBkZGZmYWE5MTFhZWVkOGIwMjczNTBjZWMxMDBjZTZhM=
+jg0NTBlNTdiMTdjNWIxNmIxNzg2MmYxMWQ2NGM3YjA=3D><localhost:1333?u=3DY2RkN2RhN=
+zM1MDQ3ZTkxMzM4NGEwMzdiOTc4Yzc3ZjQxYTgyNzMyNWVhOWM4ZmFjMmFiN2RmZWY0ODQzZTJm=
+N2VhMGFhNGVkOWU1MzE4ODZiMGJmMzI0MWNhZjc5Mjg1OTU4MWUyNTI4OTM3MjAyMzQyZTc4ZjV=
+hM2Y2YzNhYTA2MGU2NWRhOTQzNDY3NDhkNDE3YzNlMDRjZGE1ODNkNDNiNWQxMzcxODg1NmQ3Y2=
+Y2ZDA2ODkyMjQ0ZDgyOThkZDYwZmI4ZTVhMmJkNmRlOGMxZDk2Yjc0Y2IwY2E5MjIzYWNjZGFiY=
+zc3MDJiNmIzN2YyZWJjMjc3OWE4NzY=3D>  [image: linkedin]<localhost:1333?u=3DND=
+AyOGI4OWJlNTFlYTM3NmFkNGI2MjM0YzI0ZDhiNWZiNzZlYmNkZWY5MGNlNzU2MTE3MzY5YTliN=
+jc3ZGVkM2E2MjU0ZTk0OTU2M2E3NDkyZWQ3OTQwOGQyY2ZlZGMyYTVjYjQwZjljMDFkZWFmMTlm=
+Mzc5OGQ3MTc4YzY0Nzc0NmVmYTU5MjYzZTc2Y2M1NzJmYTY2NmVjYzU4ODQzOTE4NzM5YmFjZDE=
+5NWNkNjY2MThhNmMzMTBjNTE0MDI5MzRkNDhmOTg1NGM0NjQxMWRiZTY4N2FjYWU5M2E2OGYxMT=
+cxMGQ5Y2Q0YTdiN2Q2ZGQ2YTBlMzE0MWE4MTg=3D>This email was sent to yurik1776@g=
+mail.com*why did I get this?*<localhost:1333?u=3DODNjMGM1MWIyMWViYzcwNjY3NT=
+Y4ZWIyM2NjNTc3ZGE1Mzk5MzEyOGNiZmMwNzJlMjA5NGJlMTE0M2YxZTFkYjgxNmU1ZDRkNWFkO=
+Tc3ZTJkZTZhMzYzOGQzN2FiNzAzMDYwZDA5ZjQ1OGExMmYzNWE1MjI2NmMwMjE3YjkzYWE3NmUw=
+NzE3MGI3NWUxYjM5YzIyNGI1MGIyMmMyMTFhZjk5MTQyNWM1MjNjNWE3MmZmNWYzYmQwNDZmOTU=
+4YmEzNTg4ZTE1YjFkNTE1ZjJiYzA3MDU4OGQwMGVhNTU3ZjBhYmRmM2Y5ZGJhNmMzYjQ5Mjc1ZW=
+ZlYzI2MjMyOTQwZTMwZjliNjM2MDdiOA=3D=3D>    unsubscribe from this list<local=
+host:1333?u=3DZjliMmI1NDVmYTNkNzkyYWU5YjkxMWMwZDU2OTc0ZTU1MWUzNDZhMDJkYjllZ=
+mFlMTk5ZDc1ZDdmMWFjN2I3YjllMjI3YTE2YTE1N2U0ZTU4OTA0ZTBhNzU3YTY5OTk2N2EzZDI0=
+NmI2NWI1OTM2Y2QwNWJhMjllNjY2ODA0N2ZhYWExODEzOThiMGU0OGI3NTQ1NGE1MmZkOGIxOGY=
+4ZDY4YmU0MzFmNTQ2ZTJiYTk2MjA2ZmJiYmY3ODhiMzA4YTdkMWNjNDVhMGQ0NjkzODI1OGY0Mz=
+FhMzk3ZDRlYmZjMmQwYzZlNmY3ZTA5YTNiYTNkNzhmMGE3ZTc1MjA0MjZlYjQ5NmMyOGNhYTBjY=
+zc2OGNhNmU2Mw=3D=3D>    update subscription preferences<localhost:1333?u=3D=
+MmJlZTRkOGNiMWQzMjMzNzM3ZGUyN2I2N2QxZGM3YjEwYTU1OGZlYjg2ZjY1YTllYTQ5ZmMyMTc=
+2MzdlZjhkNjE0MmRlMjlmNmRkZjgyMzYzY2U5Y2E3YWE1OGUxMzZkZWVkMDJiNDYxODU3OGFlYW=
+U2ZmJhYmQ2NzdhNTdmMTQzNzFlN2YwZWJjMzIyNTEzMGEwMzFlNjQ4NmYwNmJmYTJlZTYwMjdjN=
+jI2MWY2M2FkYzg3ZTY5ZWZhMTEwN2ZjM2RjOTY1MTM3M2UzZWQzMWZiZTc5YmU3ZGYxODM2ZjFk=
+NWE0MDY4ZmI1NDIzM2NkMmYyNGI1ZjFlZTljZmQzMjUzZDkwMDM4YzFkZDQ2Y2E=3D>Lens Kub=
+ernetes =C2=B7 900 E Hamilton Ave =C2=B7 Campbell, CA 95008-0664 =C2=B7 USA
+
+--000000000000e124500606e2a50b
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir="ltr"><br><br><div class="gmail_quote"><div dir="ltr" class=3D"gmail_attr">---------- Forwarded message ---------<br>From: <strong cla=
+ss=3D"gmail_sendername" dir=3D"auto">Team Lens</strong> <span dir=3D"auto">=
+&lt;<a href=3D"mailto:noreply@k8slens.dev">noreply@k8slens.dev</a>&gt;</spa=
+n><br>Date: Thu, Sep 28, 2023 at 12:07=E2=80=AFAM<br>Subject: Important Upd=
+ate: Clarification on Recent Terms of Service Communication<br>To:  &lt;<a =
+href=3D"mailto:yurik1776@gmail.com">yurik1776@gmail.com</a>&gt;<br></div><b=
+r><br><div class=3D"msg-8827141584004693721"><u></u>
+
+
+                                                            <div style=3D"h=
+eight:100%;margin:0;padding:0;width:100%;background-color:#fafafa">        =
+        <center>            <table align=3D"center" border=3D"0" cellpaddin=
+g=3D"0" cellspacing=3D"0" height=3D"100%" width=3D"100%" id=3D"m_-882714158=
+4004693721bodyTable" style=3D"border-collapse:collapse;height:100%;margin:0=
+;padding:0;width:100%;background-color:#fafafa">                <tbody><tr>=
+                    <td align=3D"center" valign=3D"top" id=3D"m_-8827141584=
+004693721bodyCell" style=3D"height:100%;margin:0;padding:10px;width:100%;bo=
+rder-top:0">                                                               =
+         <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"1=
+00%" class=3D"m_-8827141584004693721templateContainer" style=3D"border-coll=
+apse:collapse;border:0;max-width:600px!important">                         =
+   <tbody><tr>                                <td valign=3D"top" id=3D"m_-8=
+827141584004693721templatePreheader" style=3D"background:#fafafa none no-re=
+peat center/cover;background-color:#fafafa;background-image:none;background=
+-repeat:no-repeat;background-position:center;background-size:cover;border-t=
+op:0;border-bottom:0;padding-top:9px;padding-bottom:9px"><table border=3D"0=
+" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"min-width:100=
+%;border-collapse:collapse">    <tbody>        <tr>            <td valign=
+=3D"top" style=3D"padding-top:9px">              	                	        =
+                	                <table align=3D"left" border=3D"0" cellpad=
+ding=3D"0" cellspacing=3D"0" style=3D"max-width:100%;min-width:100%;border-=
+collapse:collapse" width=3D"100%" class=3D"m_-8827141584004693721mcnTextCon=
+tentContainer">                    <tbody><tr>                        <td v=
+align=3D"top" class=3D"m_-8827141584004693721mcnTextContent" style=3D"paddi=
+ng:0px 18px 9px;text-align:center;word-break:break-word;color:#656565;font-=
+family:Helvetica;font-size:12px;line-height:150%">                         =
+   <a href=3D"localhost:1333?u=3DYTczMTVjOWJhMDVmYzE1MzhjOTM1ZGFhZjg1N2QyM2=
+YzYTJkMDI2NDQ2ZjEzN2ZlMjk1MDVlZWFhODMwMzRlYjllMzMwZTIzMjVhN2JjNWRjNjhmMDc1M=
+GU0N2U5YTdjNWE1MjdiM2FlMDA5M2IwYThlMGMxMDgyMTNiNDY2OTFkNmQzN2Q3MThiZDA1OTdl=
+NGFkNTA4NWMzNmQyZWFmMjM2ZWQ1MDliMmNjMDRkZjY3MDAwYWNlYTczYjFjMTBhMjFiZGZhZjA=
+3YWVlN2ZiOTQxNjg1ODg3ZmYyMzU2MWU4YWExMWJjZjQxZTE=3D" style=3D"color:#656565=
+;font-weight:normal;text-decoration:underline" target=3D"_blank">View this =
+email in your browser</a>                        </td>                    <=
+/tr>                </tbody></table>                        	              =
+          	            </td>        </tr>    </tbody></table></td>         =
+                   </tr>                            <tr>                   =
+             <td valign=3D"top" id=3D"m_-8827141584004693721templateHeader"=
+ style=3D"background:#ffffff none no-repeat center/cover;background-color:#=
+ffffff;background-image:none;background-repeat:no-repeat;background-positio=
+n:center;background-size:cover;border-top:0;border-bottom:0;padding-top:9px=
+;padding-bottom:0"><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+width=3D"100%" style=3D"min-width:100%;border-collapse:collapse">    <tbody=
+>            <tr>                <td valign=3D"top" style=3D"padding:9px"> =
+                   <table align=3D"left" width=3D"100%" border=3D"0" cellpa=
+dding=3D"0" cellspacing=3D"0" style=3D"min-width:100%;border-collapse:colla=
+pse">                        <tbody><tr>                            <td val=
+ign=3D"top" style=3D"padding-right:9px;padding-left:9px;padding-top:0;paddi=
+ng-bottom:0">                                    <a href=3D"localhost:1333?=
+u=3DYzA4NDk1YzFjZGI4ZjFjNmUwN2EzZWE0ZjdiMjg3NDEyNzY0YTA1MTA0ZjE1MWFlNjNkZDM=
+1MTUwZmU2YzZkYTE5OGVjODVkMmRjNWE5NTE0NmQ4ZWYyNzUyM2Y1MWIzNmQwZWFlNDkzZjliMD=
+hmZWI4MjAxMmJhNGQ2YWUzYTNjZTMzMzM5OGI1YTAwOTMxMjIxYjdkYTVlM2JmMDNmYTUyMzdiY=
+TcyNWQ2ZmNlZmNjZTA0YzhiMWJjZTBlOTdlZGJlOGNkNDQ2OTBiZWZjOGU0YWI3MzA0NmNlZTc0=
+MWQ4NzNiYTk5ZWY1ODY5ODA3MTgxMzVmM2M0NGM5ZTI1MmYwZmYxODcyZWEwYjNj" title=3D"=
+" target=3D"_blank">                                        <img align=3D"l=
+eft" alt=3D"" src=3D"localhost:1333?u=3DZTIwMTI2NmUzNDk0NTA5YmQ5ZWFhZjViZTM=
+4ZDY3Yzk5ZDNhZmJlMzJiMzgxMTliYWExZDRlY2UzZjE5ZjNmYzYxY2E5ZmM3YWMxYmZjMmQ3NW=
+U1ZGUyNzFmMDQ4OWMzNzBjMjljYWFiZGVkZTYwMDFmMzAwMWYyNDc0MDAxYTdmOTIxYmM1MGRlY=
+mM0MjIyMGMzZTVhOGFiYTk4ZGYwZDc5NWFmZWM0Y2ZkMjA4ZjAxMzlmNjc4N2YwMmYwNTAwYTM2=
+ZjJkMzUxOTJiMzg0MDk2MmU2MDMxMzIxODU0MmQ1YmE3MzQ2ZDM5ZjMwMmJjOWJjOWU2NWM1MDA=
+zYzI=3D" width=3D"152.28" style=3D"max-width:2000px;padding-bottom:0px;disp=
+lay:inline!important;vertical-align:bottom;border-radius:0%;border:0;height=
+:auto;outline:none;text-decoration:none" class=3D"m_-8827141584004693721mcn=
+Image">                                    </a>                            =
+</td>                        </tr>                    </tbody></table>     =
+           </td>            </tr>    </tbody></table></td>                 =
+           </tr>                            <tr>                           =
+     <td valign=3D"top" id=3D"m_-8827141584004693721templateBody" style=3D"=
+background:#ffffff none no-repeat center/cover;background-color:#ffffff;bac=
+kground-image:none;background-repeat:no-repeat;background-position:center;b=
+ackground-size:cover;border-top:0;border-bottom:2px solid #eaeaea;padding-t=
+op:0;padding-bottom:9px"><table border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"min-width:100%;border-collapse:collapse">   =
+ <tbody>        <tr>            <td valign=3D"top" style=3D"padding-top:9px=
+">              	                	                        	                =
+<table align=3D"left" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" styl=
+e=3D"max-width:100%;min-width:100%;border-collapse:collapse" width=3D"100%"=
+ class=3D"m_-8827141584004693721mcnTextContentContainer">                  =
+  <tbody><tr>                        <td valign=3D"top" class=3D"m_-8827141=
+584004693721mcnTextContent" style=3D"padding-top:0;padding-right:18px;paddi=
+ng-bottom:9px;padding-left:18px;word-break:break-word;color:#202020;font-fa=
+mily:Helvetica;font-size:16px;line-height:150%;text-align:left">           =
+                 Dear Yuri,<br><br>It has come to our attention that not al=
+l users were notified of our changes to our Terms of Services and some rece=
+ived notice later than others. Transparency, communication and trust are im=
+portant values for Mirantis and the Team Lens.<br><br>We deeply regret the =
+inconvenience and confusion caused by the delay in communicating our update=
+d Terms of Service.=C2=A0 While we reached out directly through in-app comm=
+unications, Lens forums, and email prior to the change taking effect, it wa=
+s not done in a sufficiently unified manner. Unfortunately, we made a mista=
+ke in our communications process, and we sincerely apologize for this overs=
+ight.<br><br><strong>We have decided to revert back to the previous <a href=
+=3D"localhost:1333?u=3DZDg0NWIwNjM0NzllN2YyNmQ3M2U0Nzg3N2ZhOTA2ZWY0OTY2MDE0=
+ZmM1ODA0MzljNDU0OWNkYWNmYWY0MTgwYzk5OTQyZTI0MjFiY2MwYzhkNGI2YzFmZGZmNmVkNzI=
+3ZmQ3Yjg3MTVlNWM5ZDAyZGVmNTVmYThiNjljZTI0ZmZhYWU3NDBjOTMwN2ZmNzU2ZTNhZDBkZm=
+JiOThlN2Y0MjU5MTYzMGYzZjFkNDhiYmUzNDIwNDQyZTMxMTMyMmVhNTBhZDY3MjIzMDBiNDY5Z=
+DMyZWVmNGJhNzRhODNmMjNhNjk4ZmMwZWU2ZjJiOTE4MWFmMzczZDRiNGJkNzA0MTBhNTczMWIy=
+NTVjMjE1" style=3D"color:#007c89;font-weight:normal;text-decoration:underli=
+ne" target=3D"_blank">Terms of Service that took effect on July 28th 2022</=
+a>. We will communicate our updated Terms of Service in the next coming day=
+s, prior to any changes taking effect. We understand the challenges and apo=
+logize for the confusion this might have created for you.</strong><br><br>W=
+e are dedicated to providing you with the utmost transparency and we are ta=
+king this as an opportunity to learn from our mistakes. In order to provide=
+ you with the best experience possible whenever interacting and working wit=
+h Lens.=C2=A0<br><br>Please contact us at <a href=3D"mailto:support@k8slens=
+.dev?subject=3DQuestion%20regarding%20the%20new%20Terms%20of%20Service" sty=
+le=3D"color:#007c89;font-weight:normal;text-decoration:underline" target=3D=
+"_blank">support@k8slens.dev</a> if you have any questions.<br><br>Sincerel=
+y,=C2=A0<br>Team Lens                        </td>                    </tr>=
+                </tbody></table>                        	                  =
+      	            </td>        </tr>    </tbody></table><table border=3D"0=
+" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D"min-width:100=
+%;border-collapse:collapse">    <tbody>        <tr>            <td valign=
+=3D"top" style=3D"padding-top:9px">              	                	        =
+                	                <table align=3D"left" border=3D"0" cellpad=
+ding=3D"0" cellspacing=3D"0" style=3D"max-width:100%;min-width:100%;border-=
+collapse:collapse" width=3D"100%" class=3D"m_-8827141584004693721mcnTextCon=
+tentContainer">                    <tbody><tr>                        <td v=
+align=3D"top" class=3D"m_-8827141584004693721mcnTextContent" style=3D"paddi=
+ng-top:0;padding-right:18px;padding-bottom:9px;padding-left:18px;word-break=
+:break-word;color:#202020;font-family:Helvetica;font-size:16px;line-height:=
+150%;text-align:left">                            <table align=3D"center" c=
+ellpadding=3D"0" cellspacing=3D"0" style=3D"max-width:454px;border-collapse=
+:collapse" width=3D"100%">        <tbody>                <tr>              =
+          <td align=3D"center" style=3D"font:12px/22px Arial,Helvetica,sans=
+-serif,OpenSans;color:#7d7d7d">Copyright =C2=A9 2=EF=BB=BF023 Mirantis, Inc=
+. - All=C2=A0rights=C2=A0reserved.</td>                </tr>               =
+ <tr>                        <td style=3D"padding:24px 0 0">               =
+         <table align=3D"center" cellpadding=3D"0" cellspacing=3D"0" style=
+=3D"border-collapse:collapse">                                <tbody>      =
+                                  <tr>                                     =
+           <td>                                                <table align=
+=3D"center" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-collapse:co=
+llapse">                                                        <tbody>    =
+                                                            <tr>           =
+                                                             <td>=C2=A0</td=
+>                                                                        <t=
+d width=3D"16"><a href=3D"localhost:1333?u=3DMWEwYTMxYWU2NDg2ZDRkMzFlMjFiN2=
+E2NGZiZTY5MjE5M2IwOTNiZWI4MGE0NGZhOTMwMThmMjI4YzU1NGY3MjdhOTFiNDVjZjUwODk4O=
+TdjNWJiYmU0NjFlZDc2NGI0MTQ0ZjM4NTc1OWQ0ODE2MGI4NTVmOTc1ZTc3MjE3YjAwMzZkMDYx=
+ZWFjY2Y5YWUxMDA4ZGEyYjZlMGJiOGMwNGYzNzg4MWEzYzU2NjkxZDlmMzZjMDQwMmJlMzgyOWY=
+5MTU1ZjZjZWZmNmU3YjgyZjg2ZGYxN2QyODk0MGM0ZWExYzIyMDEzZDc3MDMyMjdmYzVmYzY1OT=
+U5ZGE1YmY4MWY5YWRlM2Q4NDQ0ODBj" style=3D"text-decoration:none;color:#007c89=
+;font-weight:normal" target=3D"_blank"><span><img alt=3D"twitter" src=3D"lo=
+calhost:1333?u=3DNDJmYWRmMmE0YjQ2NjNlZjlmZDFlMjFmYWI2YWEzZDA1YzEyNmNjZjJhZT=
+gwOGFlODU1MzFjMjNhZDk0MzYwMzU5YmIyYmM4MGU3MDIzMGY2YTBmNDFjZjI2MzJiM2FlYWU0N=
+zFmYzFmYWMyNDNiYTA3YTJlOTI4MzVmM2JlMTUwMmZkZmFiOWM4YjdlMTlmZjk3ZmQ1MTU3YTZj=
+MjQ1YTU4YzEwNmM3NTZjYzA1MjMzMWE5MjUwNjlhNmNmMGNh" style=3D"width:24px;font:=
+700 14px/18px Arial,Helvetica,sans-serif,OpenSans;color:#fff;vertical-align=
+:top;border:0;height:auto!important;outline:none;text-decoration:none" widt=
+h=3D"24"></span></a></td>                                                  =
+              </tr>                                                        =
+</tbody>                                                </table>           =
+                                     </td>                                 =
+               <td width=3D"16">=C2=A0</td>                                =
+                <td><a href=3D"localhost:1333?u=3DODIzY2RiY2ExYjYzMDcyMTVmM=
+GZlMmM2OWE0OTI2N2UwZWVmYmZkOGNiNzhlMjNkMTAyOGUzMTFjNzMxZmY2MTg3ZTA2MDdkNDBk=
+ZTA1NWZlZDY3N2YzMTZlNTRiODU2M2NlZjY4Yzk1NjE1NmYyYTc3ZTJkNGFhZjcwOWM3M2ZmYzU=
+wMjY2YTU2NWYzYzhiYzQwN2EwNmU0ODdlMDE0ODJiMmNhMmFlYzkwMWFlMDRlOTExZTEzNWMyMW=
+MxZjQ3NWFhYjliYmM1M2QzNWYxNWIzODBiYjU2MmNkYWYzZmU5MzZiYTBhYWIwMmZkMDQwNmU5M=
+zZmMDQ0ZGU1N2M2ZWY4MzJiNmRiOWRkZmJl" style=3D"text-decoration:none;color:#0=
+07c89;font-weight:normal" target=3D"_blank"><span><img alt=3D"facebook" src=
+=3D"localhost:1333?u=3DMDdjMGU2YjM0MzQ5MTlkZDQ0OWRlMWRjNjUwYWI2YmNlZjhjNjM0=
+YjU2YTRkZWMwZDg2ZmFhZjQ4ZGVjODdmNTI0MGY1ZDk0ZTRkY2FhYTMwODU2Y2E3MzQ0MTBiZmY=
+xYzk3ZjlkODI0M2EyNmZkNTIzZDI3OTA2ZDFkZWEwZDUyMGM1MWFlYzI4N2U0YjMyMjczODc5NW=
+M3OTUwMDRjMmZkNjk1ODk0YjliMzBhZDRhNDk1MDFhNjU2NTI5MzZkZjA=3D" style=3D"widt=
+h:24px;font:700 14px/18px Arial,Helvetica,sans-serif,OpenSans;color:#fff;ve=
+rtical-align:top;border:0;height:auto!important;outline:none;text-decoratio=
+n:none" width=3D"24"></span> </a></td>                                     =
+           <td width=3D"16">=C2=A0</td>                                    =
+            <td><a href=3D"localhost:1333?u=3DMmVkMmFmYzVkN2IwNWE1YTkzNmM0Z=
+WE5ZGY3OTk3ZTI3ZGI3MjFjZjU4N2NjN2RhOWJlNTNiY2RkZDYwNDkwMDE5NGVhMjhhMGZiY2Y2=
+YzliNDIxMWFlNGU3YmI2ZTM1Njc1ZjY0MTI0NmJhMmYyODI5YWFkN2FhNDUzODEwOWMzOWEwNDY=
+3MTUwNzI5Y2Y0MDAwNDU3OTAwMWNlMjAxOWUxMDA3Nzc2ZTFjMGEzNzM4MWFmZDE3NjZhOTFlZW=
+FmZWZhODc3ZTIwZjJiMjY1ZDFiOGRlZmEyODVkOWVmODdiODZhNmJmNzY5ZTdmMTdjYzViZjIxY=
+mQwNzQ1YzFkODAxNzE5ZmNjYzZkMDcy" style=3D"text-decoration:none;color:#007c8=
+9;font-weight:normal" target=3D"_blank"><span><img alt=3D"youtube" src=3D"l=
+ocalhost:1333?u=3DMjg5NTY5MmI0MTBkMThiZGE0ZDIxODUzMzMxN2Y4MmViYWNiOWM3NmFkO=
+WViYjMyYjQ5MWNiZmE0MDFmNjMxOWIzNjUzZDRlOGUyYWVjMzIyZmZmZGUyMzliZDUxMjgwNWQz=
+MDk2YTQyMzFlYTFjY2E4OGYyMmEzZjZkM2YwN2YwY2E5MWQwZTU4ZDg3MzUwZTIxYWUyNjUxYWI=
+2MWNkN2ViNzY2NzQ5MmJlNmVhNTAyNmJmMDRlNjg0NDAxNTgx" style=3D"width:24px;font=
+:700 14px/18px Arial,Helvetica,sans-serif,OpenSans;color:#fff;vertical-alig=
+n:top;border:0;height:auto!important;outline:none;text-decoration:none" wid=
+th=3D"24"></span></a><a href=3D"localhost:1333?u=3DMjM0ZDE1MWUzOTI2MWMzNmFk=
+ZjEyM2YxOTAwMTI3OTQzNDg0Y2M4NGI4ZjYwYTg0NmJjYjdmNzBkMDQ5OWNmZDM4MDllMzBmODA=
+3NjU4NGQ5Y2Y0ZjU3MDhlZTE5ZmVjNWUyNjEzOTM3MWZmNzgwNmE0MmQ2ZWM2YTMxY2FkNWE4OD=
+AzMmJiYTA1YTg0MDBhNjNjYzUzYjMyZDg3MDA0NDM0ZDMzMmZjMGQ4MWNiY2RhMmFhY2FiY2QzN=
+zhlZjkyZWZmNWU0YzU3YTcxYmI2ZWVkMTFhMmRlOTY1MDQ4NTVhMDdmZTkxZTBlMjc0YzFiYjA1=
+ZDZiYmRjYTNiMzZhZDZkNGNiZTAxN2NjMmYy" style=3D"text-decoration:none;color:#=
+007c89;font-weight:normal" target=3D"_blank">=C2=A0</a></td>               =
+                                 <td width=3D"16">=C2=A0</td>              =
+                                  <td><a href=3D"localhost:1333?u=3DMjY3ZjU=
+wMzUzZWNmNThmODkzMWU0ZWFjNWY2MWY1NTRhNDdjMTlhNTJiZTMwOWFiNjAwMjFkNTUwZDkwMm=
+VlMDE0OWVhNDlkMWNiYmQ5YmQzZWRmM2U0MGE3MzRiM2QyMjg5YmU3OWYxMzE0NGNkMzQ0YWU5Z=
+TFjY2RkY2NmZDRhZmZjNjkzZTRhNTQ4ZmI3ZDcxZmFhMjNmZThjOGRiNWY0M2YzMjBlODEzZDVi=
+Y2RjNWVkNDQzM2RhYjdjYzkxZGExOTcwMDNhZmNmMTJhNzhjODM0ZjM4MDE1NmU1OWU0YzE1MjZ=
+iMWVmOGRhZmUwNWQxMGU3OTUyM2Q0ZTY4MjczMGQ0YzcyODdhM2Y4" style=3D"text-decora=
+tion:none;color:#007c89;font-weight:normal" target=3D"_blank"><span><img al=
+t=3D"linkedin" src=3D"localhost:1333?u=3DMTQ2NjA1MWNmODA0M2FhNzIwZGM4ZWMwYj=
+FhMWIxNmFiMGU1MmU4OTM4YTM2OWM2ZWU5OGRhZmM0NTE3OTk0NTNhZWQxNTQzMDUzYTQxOWU0N=
+zdkMzZkZjA1NjdkMTA3NTNlZGZmZGViYzRiYTNhNTlmYWQzMTE3ZjlhOGM5YWUwNGUyZDRhM2Zi=
+MGZlNjZjMzViYzA1OWU0NzQ2OTUzMDcwZThjNzFhMmI4OGYyOTYwYTJkNDA5MDc1ZTQyMmYwMTc=
+=3D" style=3D"width:24px;font:700 14px/18px Arial,Helvetica,sans-serif,Open=
+Sans;color:#fff;vertical-align:top;border:0;height:auto!important;outline:n=
+one;text-decoration:none" width=3D"24"></span></a></td>                    =
+                            <td width=3D"16">=C2=A0</td>                   =
+                             <td>=C2=A0</td>                               =
+         </tr>                                </tbody>                     =
+   </table>                        </td>                </tr>        </tbod=
+y></table>                        </td>                    </tr>           =
+     </tbody></table>                        	                        	    =
+        </td>        </tr>    </tbody></table></td>                        =
+    </tr>                            <tr>                                <t=
+d valign=3D"top" id=3D"m_-8827141584004693721templateFooter" style=3D"backg=
+round:#fafafa none no-repeat center/cover;background-color:#fafafa;backgrou=
+nd-image:none;background-repeat:no-repeat;background-position:center;backgr=
+ound-size:cover;border-top:0;border-bottom:0;padding-top:9px;padding-bottom=
+:9px"></td>                            </tr>                        </tbody=
+></table>                                                                  =
+  </td>                </tr>            </tbody></table>        </center>  =
+              <center>                <br>                <br>             =
+   <br>                <br>                <br>                <br>        =
+        <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"10=
+0%" id=3D"m_-8827141584004693721canspamBarWrapper" style=3D"background-colo=
+r:#ffffff;border-top:1px solid #e5e5e5">                    <tbody><tr>    =
+                    <td align=3D"center" valign=3D"top" style=3D"padding-to=
+p:20px;padding-bottom:20px">                            <table border=3D"0"=
+ cellpadding=3D"0" cellspacing=3D"0" id=3D"m_-8827141584004693721canspamBar=
+">                                <tbody><tr>                              =
+      <td align=3D"center" valign=3D"top" style=3D"color:#606060;font-famil=
+y:Helvetica,Arial,sans-serif;font-size:11px;line-height:150%;padding-right:=
+20px;padding-bottom:5px;padding-left:20px;text-align:center">              =
+                          This email was sent to <a href=3D"mailto:yurik177=
+6@gmail.com" style=3D"color:#404040!important" target=3D"_blank">yurik1776@=
+gmail.com</a>                                        <br>                  =
+                      <a href=3D"localhost:1333?u=3DMGY1MWY0MDI2NjM5ZWI4ZWF=
+kZDE1ODRlN2JjMWFlM2QyZDAwNWYxNzcxNTE0OWNmMzJkNTc0ZGUxYzY5ZTIxZTY0MGQ3MDNhYW=
+I2MmQ4OTRhNTYwMGRmNzg1YjhiMjA2YTc3MDE4YjMxZWQyMjUzMjJlZDc4OTBhNDVlZmE3ZDY3N=
+mVkYmE1YjNjZDZjODkxYWZmZWIwM2M1ZTM4NmRkYWUxOTljYmZjZGEzODM2NzQ0NzkzNmYxM2Iy=
+Mjk2YjgwZTgwMGI3ZDkzODczYmRkMDNmNjJiMjYwMmY0YWNhMDA2NTI1ZTNlNzZiNDRjNTZhNDM=
+1YmViMzIwODliMDNlOGUyMWUzZmZmOTRhOWEyZGIzNDRlN2IzOTc0YTAzZWQwNjkwMA=3D=3D" =
+style=3D"color:#404040!important" target=3D"_blank"><em>why did I get this?=
+</em></a>=C2=A0=C2=A0=C2=A0=C2=A0<a href=3D"localhost:1333?u=3DMmI3MjdlNDNm=
+MmMwZTZkNWUyZjNlZWU4YjIwYmMyODQ5ZWQ1ZTQ3ZTJhYWE4ZDY2MTQ5YzI2NjViODM4ZWFiMTQ=
+2ZjFiZGY2NDlkZThjYjllODZhZjIxYTNlYTgxZTMxMzAwMjQ2Y2I0ZmFjMTIyMTM1MmZjMTU2Mm=
+NkYmNhOGExOTNhMTQxYWYwNTQ0NGFhYzNlODIyZDc3MGYxODVkYjNmZGQ1MWIwMmJhYjYzMjZhY=
+jM4YmE5Y2JiZGZlNDlhMTI0ZjY5YzY0YmNmMDE3ZWU0NDgyNWU0YmM5ZDBkZDk5MGY1ODVmZjg5=
+Mzk0MTllYThkYjgwZTg5OWJiOGQ1MDdkMjNiMWFiYTQ0NzkyMThhZTk3NDc1NzE1NTMyNjNmNjh=
+iNjUwZGE3ODhmZDA1MQ=3D=3D" style=3D"color:#404040!important" target=3D"_bla=
+nk">unsubscribe from this list</a>=C2=A0=C2=A0=C2=A0=C2=A0<a href=3D"localh=
+ost:1333?u=3DOWM0ZTBlZjhiNmFhNTBjZWE3ZDYyZDU3Yzc3YTE5MjAxZjMwNTlmNmJiNTQ3YW=
+RhMGFmNjZhZjdjYzUyZDgwZDYxYzdkMzA2M2IzOTUzM2M3NjFjY2NmY2NhYTY0MmZjZDcxYWFkY=
+zAwMjdiZDg0ZDcxYzZlNDcxNjA2OThlYWRiOTIwODQ2YzcyMDE4N2MyODQyZmUzZTIxYjg5ZTE1=
+NjRkNDY3ODI3NjdhMjUxZGQ3NmFjM2ZjMjg3YTg1YjJkMjQwN2U2MzVmNjkwYjM5YjJhNGY5ZWJ=
+lNTM2OGJmZTYxYjU1ZjQ5ZTUxNTE1MDE2YjM2NWY0ZDRiODAyZTVkNTkxNmQzMjJhNGE5MTg2ZW=
+M2MjQ0YmQ5MWY3OTNjZDNhMWY5NmVjZWY=3D" style=3D"color:#404040!important" tar=
+get=3D"_blank">update subscription preferences</a>                         =
+               <br>                                        Lens Kubernetes =
+=C2=B7 900 E Hamilton Ave =C2=B7 Campbell, CA 95008-0664 =C2=B7 USA        =
+                                <br>                                       =
+ <br>                                    </td>                             =
+   </tr>                            </tbody></table>                       =
+ </td>                    </tr>                </tbody></table>            =
+                </center><img src=3D"localhost:1333?u=3DYTY0ZjRiNWYwZjUwNTB=
+kNGZiOGVkNmRhYzcwYTkzMjhmNzQ4OTY2YTg1MWJmMDZhYzgyYTI5NDU0ODczZTM3YjRlOTUyMD=
+U1OWJkZTAyZjA3ZDc3ZTE0NTgzMWE0ZjExZWZkODgyMDlhOWZmMjU5ZWJiM2U2OTRhMmNhZTgwY=
+jIzNmRiZTI2ZDE4MGI2YWFmYTEzY2I0MzVhMDBhMzY3YjU1MmY1YWQ3ODFkODJkMDQxNjkxYjVi=
+ZmQwNDNhM2I5ZGQ4ZjE3NjhlMDBmN2QzODU4Yjk2ZWU5MTE4ZDYyZmRlMzRkMDJhOTJhMWEwODY=
+4YmM4NDRjOTg4ZmNiMTllYmU1YWE2YmQzMWY2OGI2MDczNDRk" height=3D"1" width=3D"1"=
+ alt=3D""></div></div></div></div>
+
+--000000000000e124500606e2a50b--
