@@ -22,9 +22,7 @@ func TestImagesShouldNotBeProcessed(t *testing.T) {
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/multiple_images.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	_, headers, links := c.rewriteBody(str, urlReplacer)
 	assert.NotContains(t, headers.String(), "\n\n", "contains only headers")
@@ -39,9 +37,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/links.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	_, _, links := c.rewriteBody(str, urlReplacer)
 	m, _ := md.Add(str)
@@ -51,6 +47,20 @@ func TestSaveMailToMailDir(t *testing.T) {
 	os.RemoveAll("../../../examples/maildir")
 }
 
+func TestDoNotReplaceImageSrcs(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/only_change_hrefs.txt")
+	assert.NoError(t, err)
+	str := string(body)
+	rewrittenBody, _, links := c.rewriteBody(str, urlReplacer)
+	assert.Contains(t, rewrittenBody, "src=3D\"https://image.properties")
+	assert.NotContains(t, links, "https://image.properties.emaarinfo.com/lib/fe3811717564047c741d76/m/1/99c40832-90df-4138-b786-d70bd1ed119b.jpg")
+}
+
 func TestGetLinksDeduplicated(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
@@ -58,9 +68,7 @@ func TestGetLinksDeduplicated(t *testing.T) {
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/links.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	rewrittenBody, _, links := c.rewriteBody(str, urlReplacer)
 	assert.True(t, strings.HasSuffix(rewrittenBody, "</div></div>\n\n--0000000000008dfe8706066a3fbb--\n"))
@@ -74,9 +82,7 @@ func TestBase64InnerBoundary(t *testing.T) {
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/multiple_boundaries.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	rewrittenBody, headers, _ := c.rewriteBody(str, urlReplacer)
 
@@ -97,9 +103,7 @@ func TestBase64SplitAfter76Chars(t *testing.T) {
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/base64_body_multi_boundary.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	rewrittenBody, headers, _ := c.rewriteBody(str, urlReplacer)
 
@@ -124,9 +128,7 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/base64.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	rewrittenBody, headers, links := c.rewriteBody(str, urlReplacer)
 	ctrl := gomock.NewController(t)
@@ -175,9 +177,7 @@ func TestInjectHeaders(t *testing.T) {
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	body, err := os.ReadFile("../../../examples/links.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
@@ -205,9 +205,7 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	body, err := os.ReadFile("../../../examples/links.txt")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
+	assert.NoError(t, err)
 	str := string(body)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)

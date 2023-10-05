@@ -37,7 +37,15 @@ func (r *regexUrlReplacer) Replace(str string) (replaced string, links []string,
 	replacedLine := str
 	links = []string{}
 	for _, link := range foundLinks {
+		// skip emails
 		if strings.Contains(string(link), "@") && !strings.Contains(string(link), "://") {
+			continue
+		}
+		// if link has 3 chars before src=, its image source, ignore
+		linkIdx := strings.Index(replacedLine, string(link))
+		stringBeforeLink := replacedLine[linkIdx-5 : linkIdx-1]
+		if stringBeforeLink == "src=" {
+			// do not replace src link
 			continue
 		}
 		links = append(links, string(link))

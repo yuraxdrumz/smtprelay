@@ -98,7 +98,8 @@ func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boun
 }
 
 func (q *quotedPrintable) parseQuotedPrintable() (string, []string) {
-	replacedLine, foundLinks, err := q.urlReplacer.Replace(q.buf.String())
+	rawHTML := q.buf.String()
+	replacedLine, foundLinks, err := q.urlReplacer.Replace(rawHTML)
 	if err != nil {
 		logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
 		return "", nil
