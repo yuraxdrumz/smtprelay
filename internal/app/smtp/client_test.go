@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMultipleImagesBase64(t *testing.T) {
+func TestImagesShouldNotBeProcessed(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
@@ -26,7 +26,8 @@ func TestMultipleImagesBase64(t *testing.T) {
 		log.Fatalf("unable to read file: %v", err)
 	}
 	str := string(body)
-	_, links := c.rewriteBody(str, urlReplacer)
+	_, headers, links := c.rewriteBody(str, urlReplacer)
+	assert.NotContains(t, headers.String(), "\n\n", "contains only headers")
 	assert.Len(t, links, 0)
 }
 
@@ -42,7 +43,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 		log.Fatalf("unable to read file: %v", err)
 	}
 	str := string(body)
-	_, links := c.rewriteBody(str, urlReplacer)
+	_, _, links := c.rewriteBody(str, urlReplacer)
 	m, _ := md.Add(str)
 	assert.NotEmpty(t, m.Key())
 	assert.Len(t, links, 67)
@@ -50,7 +51,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 	os.RemoveAll("../../../examples/maildir")
 }
 
-func TestEmailWithRewriteBodyLinksDedup(t *testing.T) {
+func TestGetLinksDeduplicated(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
@@ -61,9 +62,32 @@ func TestEmailWithRewriteBodyLinksDedup(t *testing.T) {
 		log.Fatalf("unable to read file: %v", err)
 	}
 	str := string(body)
-	rewrittenBody, links := c.rewriteBody(str, urlReplacer)
+	rewrittenBody, _, links := c.rewriteBody(str, urlReplacer)
 	assert.True(t, strings.HasSuffix(rewrittenBody, "</div></div>\n\n--0000000000008dfe8706066a3fbb--\n"))
 	assert.Len(t, links, 67)
+}
+
+func TestBase64InnerBoundary(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/multiple_boundaries.txt")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+	}
+	str := string(body)
+	rewrittenBody, headers, _ := c.rewriteBody(str, urlReplacer)
+
+	newBody := &strings.Builder{}
+	newBody.WriteString(headers.String())
+	newBody.WriteString(rewrittenBody)
+
+	assert.Contains(t, newBody.String(), "--0000000000004d683d0606f56319")
+	assert.Contains(t, newBody.String(), "--0000000000004d683d0606f56319--")
+	assert.Contains(t, newBody.String(), "--0000000000004d683a0606f56317")
+	assert.Contains(t, newBody.String(), "--0000000000004d683a0606f56317--")
 }
 
 func TestEmailBase64WithMaliciousLink(t *testing.T) {
@@ -77,7 +101,7 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 		log.Fatalf("unable to read file: %v", err)
 	}
 	str := string(body)
-	rewrittenBody, links := c.rewriteBody(str, urlReplacer)
+	rewrittenBody, headers, links := c.rewriteBody(str, urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 
@@ -93,9 +117,9 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 
 	shouldMark := c.shouldMarkEmailByLinks(sc, links, rewrittenBody)
 	if shouldMark {
-		rewrittenBody = c.addHeader(rewrittenBody, "key", "value")
+		headers = c.addHeader(headers, "key", "value")
 	}
-	assert.Contains(t, rewrittenBody, "key: value")
+	assert.Contains(t, headers.String(), "key: value")
 }
 
 func TestQuotedStringWithReplaceInlineNoLinkDedup(t *testing.T) {
@@ -130,7 +154,7 @@ func TestInjectHeaders(t *testing.T) {
 	str := string(body)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
-	_, links := c.rewriteBody(str, urlReplacer)
+	_, headers, links := c.rewriteBody(str, urlReplacer)
 
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
@@ -142,12 +166,12 @@ func TestInjectHeaders(t *testing.T) {
 
 	shouldMark := c.shouldMarkEmailByLinks(sc, links, str)
 	if shouldMark {
-		str = c.addHeader(str, "key", "value")
+		headers = c.addHeader(headers, "key", "value")
 	}
-	assert.Contains(t, str, "key: value")
+	assert.Contains(t, headers.String(), "key: value")
 }
 
-func TestDoNotInjectHeaders(t *testing.T) {
+func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	setupLogger()
@@ -160,7 +184,7 @@ func TestDoNotInjectHeaders(t *testing.T) {
 	str := string(body)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
-	_, links := c.rewriteBody(str, urlReplacer)
+	_, headers, links := c.rewriteBody(str, urlReplacer)
 
 	for link := range links {
 		sc.EXPECT().ScanURL(link).Return([]*scanner.ScanResult{
@@ -174,7 +198,7 @@ func TestDoNotInjectHeaders(t *testing.T) {
 
 	shouldMark := c.shouldMarkEmailByLinks(sc, links, str)
 	if shouldMark {
-		str = c.addHeader(str, "key", "value")
+		headers = c.addHeader(headers, "key", "value")
 	}
-	assert.NotContains(t, str, "key: value")
+	assert.NotContains(t, headers.String(), "key: value")
 }

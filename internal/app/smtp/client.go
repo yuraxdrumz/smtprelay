@@ -33,7 +33,6 @@ import (
 
 	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
-	"github.com/decke/smtprelay/internal/app/processors/bodyprocessors"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
@@ -439,14 +438,19 @@ func SendMail(
 		"key":  beforeMsg.Key(),
 	}).Info("saved before msg")
 
-	replacedBody, links := c.rewriteBody(string(msg), urlReplacer)
+	replacedBody, headers, links := c.rewriteBody(string(msg), urlReplacer)
 	log.Debugf("found the following links=%+v", links)
 	shouldMark := c.shouldMarkEmailByLinks(scanner, links, replacedBody)
 	if shouldMark {
-		replacedBody = c.addHeader(replacedBody, *cynetActionHeader, "junk")
+		headers = c.addHeader(headers, *cynetActionHeader, "junk")
 	}
 
-	afterMsg, err := md.Add(replacedBody)
+	newBody := &strings.Builder{}
+	newBody.WriteString(headers.String())
+	newBody.WriteString(replacedBody)
+	newBodyString := newBody.String()
+
+	afterMsg, err := md.Add(newBodyString)
 	if err != nil {
 		log.Warnf("failed to save message after processing, err=%s", err)
 		return err
@@ -458,7 +462,7 @@ func SendMail(
 		"key":  afterMsg.Key(),
 	}).Info("saved before msg")
 
-	_, err = w.Write([]byte(replacedBody))
+	_, err = w.Write([]byte(newBodyString))
 	if err != nil {
 		return err
 	}
@@ -486,15 +490,10 @@ func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[strin
 	return shouldMarkEmail
 }
 
-func (c *Client) addHeader(body string, key string, value string) string {
-	headerFinishIndex := strings.Index(body, "\n\n")
-	var builder strings.Builder
-	builder.WriteString(body[:headerFinishIndex])
-	builder.WriteString("\n")
-	builder.WriteString(fmt.Sprintf("%s: %s", key, value))
+func (c *Client) addHeader(headers *strings.Builder, key string, value string) *strings.Builder {
+	headers.WriteString(fmt.Sprintf("%s: %s", key, value))
 	log.Debugf("adding header %s: %s", key, value)
-	builder.WriteString(body[headerFinishIndex:])
-	return builder.String()
+	return headers
 }
 
 func (c *Client) writeNewLine() {
@@ -514,14 +513,9 @@ func (c *Client) writeLine(line string) {
 	c.writeNewLine()
 }
 
-func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerActions) (string, map[string]bool) {
-	// forwardedProcessor := bodyprocessors.NewForwardedProcessor(c.tmpBuffer, urlReplacer)
-	defaultProcessor := bodyprocessors.NewDefaultBodyProcessor(c.tmpBuffer, urlReplacer)
-	base64Processor := bodyprocessors.NewBase64Processor(c.tmpBuffer, urlReplacer)
-	quotedPrintableProcessor := bodyprocessors.NewQuotedPrintableProcessor(c.tmpBuffer, urlReplacer)
-	// order matters, default should be last, if one processor processed line, it wont continue to second one
-	bodyProcessor := processors.NewBodyProcessors(base64Processor, quotedPrintableProcessor, defaultProcessor)
-	bodyReader := strings.NewReader(body)
+func (c *Client) rewriteBody(msg string, urlReplacer urlreplacer.UrlReplacerActions) (string, *strings.Builder, map[string]bool) {
+	bodyProcessor := processors.NewBodyProcessor(c.tmpBuffer, urlReplacer)
+	bodyReader := strings.NewReader(msg)
 	scanner := bufio.NewScanner(bodyReader)
 	// 8MB max token size, which can be a file encoded in base64
 	scanner.Buffer([]byte{}, 8*1024*1024)
@@ -529,7 +523,7 @@ func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerAct
 	reachedBody := false
 	linksMap := map[string]bool{}
 	boundary := ""
-	headers := strings.Builder{}
+	headers := &strings.Builder{}
 	for scanner.Scan() {
 		line := scanner
 		lineString := line.Text()
@@ -540,12 +534,13 @@ func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerAct
 
 		if !reachedBody {
 			headers.WriteString(lineString)
+			headers.WriteString("\n")
 			if strings.Contains(lineString, `boundary=`) {
 				splitBoundary := strings.Split(lineString, "boundary=")
 				boundary = strings.ReplaceAll(splitBoundary[1], `"`, "")
+				bodyProcessor.SetBoundary(boundary)
 				logrus.Debugf("found boundary=%s", boundary)
 			}
-			c.writeLine(lineString)
 			continue
 		}
 
@@ -553,18 +548,22 @@ func (c *Client) rewriteBody(body string, urlReplacer urlreplacer.UrlReplacerAct
 			logrus.Fatalf("no boundary found in headers=%s", headers.String())
 		}
 
-		links := bodyProcessor.ProcessBody(lineString, boundary)
+		links, err := bodyProcessor.ProcessBody(lineString)
 		for _, link := range links {
 			linksMap[link] = true
+		}
+
+		if err != nil {
+			logrus.Error(err)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Errorf("error in scanner, err=%s", err)
-		return body, nil
+		return msg, nil, nil
 	}
 	// log.Debugf("quotedString=%s", quotedPrintableString)
-	return c.tmpBuffer.String(), linksMap
+	return c.tmpBuffer.String(), headers, linksMap
 }
 
 // Extension reports whether an extension is support by the server.

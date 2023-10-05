@@ -1,8 +1,9 @@
-package bodyprocessors
+package contenttransferencoding
 
 import (
 	"bytes"
 
+	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
@@ -17,6 +18,10 @@ func NewDefaultBodyProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.U
 		lineWriter:  lineWriter,
 		urlReplacer: urlReplacer,
 	}
+}
+
+func (b *defaultBody) Name() processortypes.ContentTransferEncoding {
+	return processortypes.Default
 }
 
 func (d *defaultBody) writeNewLine() {
@@ -36,7 +41,11 @@ func (d *defaultBody) writeLine(line string) {
 	d.writeNewLine()
 }
 
-func (d *defaultBody) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int) (didProcess bool, links []string) {
+func (d *defaultBody) Flush() []string {
+	return nil
+}
+
+func (d *defaultBody) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
 	// if no quoted printable, replace line as usual
 	replacedLine, foundLinks, err := d.urlReplacer.Replace(lineString)
 	if err != nil {

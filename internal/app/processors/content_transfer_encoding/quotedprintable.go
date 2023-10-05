@@ -1,4 +1,4 @@
-package bodyprocessors
+package contenttransferencoding
 
 import (
 	"bytes"
@@ -6,26 +6,29 @@ import (
 	"mime/quotedprintable"
 	"strings"
 
+	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
 
 type quotedPrintable struct {
-	buf               *strings.Builder
-	isQuotedPrintable bool
-	lineWriter        *bytes.Buffer
-	urlReplacer       urlreplacer.UrlReplacerActions
-	isForwarded       bool
+	buf         *strings.Builder
+	lineWriter  *bytes.Buffer
+	urlReplacer urlreplacer.UrlReplacerActions
+	isForwarded bool
 }
 
 func NewQuotedPrintableProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions) *quotedPrintable {
 	return &quotedPrintable{
-		buf:               &strings.Builder{},
-		isQuotedPrintable: false,
-		lineWriter:        lineWriter,
-		urlReplacer:       urlReplacer,
-		isForwarded:       false,
+		buf:         &strings.Builder{},
+		lineWriter:  lineWriter,
+		urlReplacer: urlReplacer,
+		isForwarded: false,
 	}
+}
+
+func (b *quotedPrintable) Name() processortypes.ContentTransferEncoding {
+	return processortypes.Quotedprintable
 }
 
 func (q *quotedPrintable) writeNewLine() {
@@ -45,13 +48,17 @@ func (q *quotedPrintable) writeLine(line string) {
 	q.writeNewLine()
 }
 
-func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int) (didProcess bool, links []string) {
-	if strings.Contains(lineString, "Content-Transfer-Encoding: quoted-printable") {
-		q.writeLine(lineString)
-		q.isQuotedPrintable = true
-		return true, nil
-	}
+func (q *quotedPrintable) Flush() []string {
+	logrus.Debug("flushing as quotedPrintable to rest of body")
+	q.writeNewLine()
+	qpBuf, foundLinks := q.parseQuotedPrintable()
+	q.writeLine(qpBuf)
+	q.writeNewLine()
+	q.buf.Reset()
+	return foundLinks
+}
 
+func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
 	if strings.Contains(lineString, "---------- Forwarded message ---------") {
 		// we may have accumulated quoted printable data in buffer, flush
 		accumulated := q.buf.String()
@@ -67,39 +74,27 @@ func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boun
 	}
 
 	if q.isForwarded {
-		if lineString == "" {
-			q.isForwarded = false
+		gmailForwardingEnding := "<u></u>"
+		for _, char := range strings.Split(gmailForwardingEnding, "") {
+			if strings.HasPrefix(lineString, char) {
+				q.isForwarded = false
+			}
 		}
+		// if lineString == "" {
+		// 	q.isForwarded = false
+		// }
 		q.writeLine(lineString)
 		return true, nil
 	}
 
-	// flush
-	if didReachBoundary && q.buf.Len() > 0 {
-		logrus.Debug("found start of another boundary, flushing as quotedPrintable to rest of body")
-		q.writeNewLine()
-		// check if we have forwarded string
-		qpBuf, foundLinks := q.parseQuotedPrintable()
-		q.writeLine(qpBuf)
-		q.writeNewLine()
-		q.writeLine(lineString)
-		q.buf.Reset()
-		q.isQuotedPrintable = false
-		return true, foundLinks
-	}
-
-	if q.isQuotedPrintable {
-		logrus.Debugf("got to quoted printable, boundary=%s, line=%s", boundary, lineString)
-		r := strings.NewReader(lineString)
-		qpReader := quotedprintable.NewReader(r)
-		decodedString, _ := io.ReadAll(qpReader)
-		decoded := string(decodedString)
-		logrus.Debugf("decoded quote string=%s", decoded)
-		q.buf.WriteString(decoded)
-		return true, nil
-	}
-
-	return false, nil
+	logrus.Debugf("got to quoted printable, boundary=%s, line=%s", boundary, lineString)
+	r := strings.NewReader(lineString)
+	qpReader := quotedprintable.NewReader(r)
+	decodedString, _ := io.ReadAll(qpReader)
+	decoded := string(decodedString)
+	logrus.Debugf("decoded quote string=%s", decoded)
+	q.buf.WriteString(decoded)
+	return true, nil
 }
 
 func (q *quotedPrintable) parseQuotedPrintable() (string, []string) {
