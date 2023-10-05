@@ -492,6 +492,7 @@ func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[strin
 
 func (c *Client) addHeader(headers *strings.Builder, key string, value string) *strings.Builder {
 	headers.WriteString(fmt.Sprintf("%s: %s", key, value))
+	headers.WriteString("\n")
 	log.Debugf("adding header %s: %s", key, value)
 	return headers
 }

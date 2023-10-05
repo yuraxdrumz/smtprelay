@@ -90,6 +90,25 @@ func TestBase64InnerBoundary(t *testing.T) {
 	assert.Contains(t, newBody.String(), "--0000000000004d683a0606f56317--")
 }
 
+func TestMissingBody(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/missing_body.txt")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+	}
+	str := string(body)
+	rewrittenBody, headers, _ := c.rewriteBody(str, urlReplacer)
+
+	newBody := &strings.Builder{}
+	newBody.WriteString(headers.String())
+	newBody.WriteString(rewrittenBody)
+	os.WriteFile("../../../examples/missing_body_p.txt", []byte(newBody.String()), 0644)
+}
+
 func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
