@@ -49,25 +49,26 @@ func (q *Forwarded) generatePossibleGmailEndings() []string {
 func (q *Forwarded) CheckForwardingFinishGmail(lineString string, contentType processortypes.ContentType) {
 	switch contentType {
 	case processortypes.TextHTML:
-		allEndings := q.generatePossibleGmailEndings()
-		for _, ending := range allEndings {
-			if strings.HasSuffix(lineString, ending) {
-				logrus.Infof("hit gmail forwarded end with content type: text/html")
-				q.isForwarded = false
-				break
-			}
+		// allEndings := q.generatePossibleGmailEndings()
+		allEndings := "<u></u>"
+		// for _, ending := range allEndings {
+		if strings.Contains(lineString, allEndings) {
+			logrus.Infof("hit gmail forwarded end with content type: text/html, ending=%s", allEndings)
+			q.isForwarded = false
+			break
 		}
+		// }
 
 		divEndings := "</div></div>"
-		if strings.HasSuffix(lineString, divEndings) {
-			logrus.Infof("hit gmail forwarded end with content type: text/html")
+		if strings.Contains(lineString, divEndings) {
+			logrus.Infof("hit gmail forwarded end with content type: text/html, ending=%s", divEndings)
 			q.isForwarded = false
 			break
 		}
 
 		brEndings := "<br><br>"
-		if strings.HasSuffix(lineString, brEndings) {
-			logrus.Infof("hit gmail forwarded end with content type: text/html")
+		if strings.Contains(lineString, brEndings) {
+			logrus.Infof("hit gmail forwarded end with content type: text/html, ending=%s", brEndings)
 			q.isForwarded = false
 			break
 		}

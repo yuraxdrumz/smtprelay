@@ -71,18 +71,53 @@ func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boun
 		// we may have accumulated quoted printable data in buffer, flush
 		accumulated := q.buf.String()
 		q.writeNewLine()
-		q.writeLine(lineString)
-		if accumulated != "" {
+		// if context type is text html, we need to write to buf + check replace
+		// if content type is text plain, we need to check replace
+		switch {
+		case contentType == processortypes.TextPlain && accumulated != "":
+			accumulated = q.buf.String()
 			replacedLine, foundLinks, err := q.urlReplacer.Replace(accumulated)
 			if err != nil {
 				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
 				return false, nil
 			}
 			q.writeLine(replacedLine)
+			q.writeNewLine()
+			q.writeLine(lineString)
 			q.buf.Reset()
 			return true, foundLinks
+		case contentType == processortypes.TextHTML && accumulated != "":
+			r := strings.NewReader(lineString)
+			qpReader := quotedprintable.NewReader(r)
+			decodedString, _ := io.ReadAll(qpReader)
+			decoded := string(decodedString)
+			logrus.Debugf("decoded quote string=%s", decoded)
+			q.buf.WriteString(decoded)
+			accumulated := q.buf.String()
+			replacedLine, foundLinks, err := q.urlReplacer.Replace(accumulated)
+			if err != nil {
+				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+				return false, nil
+			}
+			qpBuf := new(bytes.Buffer)
+			qp := quotedprintable.NewWriter(qpBuf)
+			_, err = qp.Write([]byte(replacedLine))
+			if err != nil {
+				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+				return false, nil
+			}
+			err = qp.Close()
+			if err != nil {
+				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+				return false, nil
+			}
+			q.writeLine(qpBuf.String())
+			q.buf.Reset()
+			return true, foundLinks
+		default:
+			q.writeLine(lineString)
+			return true, nil
 		}
-		return true, nil
 	}
 
 	logrus.Debugf("got to quoted printable, boundary=%s, line=%s", boundary, lineString)
