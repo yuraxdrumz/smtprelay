@@ -6,24 +6,25 @@ import (
 	"mime/quotedprintable"
 	"strings"
 
+	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
 
 type quotedPrintable struct {
-	buf         *strings.Builder
-	lineWriter  *bytes.Buffer
-	urlReplacer urlreplacer.UrlReplacerActions
-	isForwarded bool
+	buf              *strings.Builder
+	lineWriter       *bytes.Buffer
+	urlReplacer      urlreplacer.UrlReplacerActions
+	forwardProcessor *forwarded.Forwarded
 }
 
-func NewQuotedPrintableProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions) *quotedPrintable {
+func NewQuotedPrintableProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *quotedPrintable {
 	return &quotedPrintable{
-		buf:         &strings.Builder{},
-		lineWriter:  lineWriter,
-		urlReplacer: urlReplacer,
-		isForwarded: false,
+		buf:              &strings.Builder{},
+		lineWriter:       lineWriter,
+		urlReplacer:      urlReplacer,
+		forwardProcessor: forwardProcessor,
 	}
 }
 
@@ -48,7 +49,7 @@ func (q *quotedPrintable) writeLine(line string) {
 	q.writeNewLine()
 }
 
-func (q *quotedPrintable) Flush() []string {
+func (q *quotedPrintable) Flush(contentType processortypes.ContentType) []string {
 	logrus.Debug("flushing as quotedPrintable to rest of body")
 	q.writeNewLine()
 	qpBuf, foundLinks := q.parseQuotedPrintable()
@@ -58,16 +59,15 @@ func (q *quotedPrintable) Flush() []string {
 	return foundLinks
 }
 
-// outlook only adds From, Date, To and Subject
-// From: Yuri Khomyakov <yurik@cynet.com>
-// Date: Sunday, 8 October 2023 at 12:41
-// To: eyaltest@cynetint.onmicrosoft.com <eyaltest@cynetint.onmicrosoft.com>
-// Subject: Find forward headers in outlook
-// TODO: see if we need to identify forward in outlook
-func (q *quotedPrintable) checkForwardedStartGmail(lineString string, contentType processortypes.ContentType) (isForwarded bool) {
-	// gmail adds forwarded message
-	if strings.Contains(lineString, "---------- Forwarded message ---------") {
-		logrus.Infof("hit gmail forwarded start")
+func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
+	if q.forwardProcessor.IsForwarded() {
+		q.forwardProcessor.CheckForwardingFinishGmail(lineString, contentType)
+		q.writeLine(lineString)
+		return true, nil
+	}
+
+	isForwarded := q.forwardProcessor.CheckForwardedStartGmail(lineString, contentType)
+	if isForwarded {
 		// we may have accumulated quoted printable data in buffer, flush
 		accumulated := q.buf.String()
 		q.writeNewLine()
@@ -76,49 +76,6 @@ func (q *quotedPrintable) checkForwardedStartGmail(lineString string, contentTyp
 			q.buf.Reset()
 		}
 		q.writeLine(lineString)
-		q.isForwarded = true
-		return true
-	}
-	return false
-}
-
-func (q *quotedPrintable) generatePossibleGmailEndings() []string {
-	gmailForwardingEnding := "<u></u>"
-	endingPossibilities := []string{}
-	for idx, _ := range gmailForwardingEnding {
-		endingPossibilities = append(endingPossibilities, gmailForwardingEnding[idx:])
-	}
-	return endingPossibilities
-}
-
-func (q *quotedPrintable) checkForwardingFinishGmail(lineString string, contentType processortypes.ContentType) {
-	switch contentType {
-	case processortypes.TextHTML:
-		allEndings := q.generatePossibleGmailEndings()
-		for _, ending := range allEndings {
-			if lineString == ending {
-				logrus.Infof("hit gmail forwarded end with content type: text/html")
-				q.isForwarded = false
-			}
-		}
-	case processortypes.TextPlain:
-		if lineString == "" {
-			logrus.Infof("hit gmail forwarded end with content type: text/plain")
-			q.isForwarded = false
-		}
-	}
-
-}
-
-func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
-	if q.isForwarded {
-		q.checkForwardingFinishGmail(lineString, contentType)
-		q.writeLine(lineString)
-		return true, nil
-	}
-
-	isForwarded := q.checkForwardedStartGmail(lineString, contentType)
-	if isForwarded {
 		return true, nil
 	}
 

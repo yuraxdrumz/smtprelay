@@ -47,7 +47,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 	os.RemoveAll("../../../examples/maildir")
 }
 
-func TestNoDoubleForward(t *testing.T) {
+func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
@@ -60,12 +60,12 @@ func TestNoDoubleForward(t *testing.T) {
 	split := strings.Split(rewrittenBody, "\n")
 	timesSeenForwarded := 0
 	for _, line := range split {
-		if line == "---------- Forwarded message ---------" {
+		if strings.Contains(line, "---------- Forwarded message ---------") {
 			timesSeenForwarded += 1
 		}
 	}
 
-	assert.EqualValuesf(t, 2, timesSeenForwarded, "should have been only two forwards in processed body")
+	assert.EqualValuesf(t, 4, timesSeenForwarded, "should have been only two forwards in processed body")
 }
 
 func TestDoNotReplaceImageSrcs(t *testing.T) {
@@ -117,7 +117,7 @@ func TestBase64InnerBoundary(t *testing.T) {
 	assert.Contains(t, newBody.String(), "--0000000000004d683a0606f56317--")
 }
 
-func TestBase64SplitAfter76Chars(t *testing.T) {
+func TestBase64Equals76Chars(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
@@ -133,7 +133,7 @@ func TestBase64SplitAfter76Chars(t *testing.T) {
 	newBody.WriteString(rewrittenBody)
 	split := strings.Split(newBody.String(), "\n")
 	for _, line := range split {
-		if line == "Y2hlY2sgaXQNCg0KLS0tLS0tLS0tLSBGb3J3YXJkZWQgbWVzc2FnZSAtLS0tLS0tLS0NCkZyb206" {
+		if line == "Y2hlY2sgaXQKCi0tLS0tLS0tLS0gRm9yd2FyZGVkIG1lc3NhZ2UgLS0tLS0tLS0tCkZyb206IFl1" {
 			assert.True(t, true)
 			return
 		}

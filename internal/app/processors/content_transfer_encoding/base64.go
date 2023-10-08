@@ -1,29 +1,33 @@
 package contenttransferencoding
 
 import (
+	"bufio"
 	"bytes"
 	"strings"
 
 	b64Enc "encoding/base64"
 
+	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
 
 type base64 struct {
-	buf             *strings.Builder
-	gotToBase64Body bool
-	lineWriter      *bytes.Buffer
-	urlReplacer     urlreplacer.UrlReplacerActions
+	buf              *strings.Builder
+	gotToBase64Body  bool
+	lineWriter       *bytes.Buffer
+	urlReplacer      urlreplacer.UrlReplacerActions
+	forwardProcessor *forwarded.Forwarded
 }
 
-func NewBase64Processor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions) *base64 {
+func NewBase64Processor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *base64 {
 	return &base64{
-		buf:             &strings.Builder{},
-		gotToBase64Body: false,
-		lineWriter:      lineWriter,
-		urlReplacer:     urlReplacer,
+		buf:              &strings.Builder{},
+		gotToBase64Body:  false,
+		lineWriter:       lineWriter,
+		urlReplacer:      urlReplacer,
+		forwardProcessor: forwardProcessor,
 	}
 }
 
@@ -48,8 +52,8 @@ func (b *base64) writeLine(line string) {
 	b.writeNewLine()
 }
 
-func (b *base64) Flush() []string {
-	qpBuf, foundLinks := b.parseBase64()
+func (b *base64) Flush(contentType processortypes.ContentType) []string {
+	qpBuf, foundLinks := b.parseBase64(contentType)
 	emailBase64 := b.insertNth(qpBuf, 76)
 	b.writeLine(emailBase64)
 	b.buf.Reset()
@@ -84,7 +88,7 @@ func (b *base64) Process(lineString string, didReachBoundary bool, boundary stri
 	}
 }
 
-func (b *base64) parseBase64() (string, []string) {
+func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []string) {
 	base64DecodedBytes, err := b64Enc.StdEncoding.DecodeString(b.buf.String())
 	if err != nil {
 		logrus.Errorf("error in writing base64 buffer, err=%s", err)
@@ -92,11 +96,34 @@ func (b *base64) parseBase64() (string, []string) {
 	}
 
 	base64String := string(base64DecodedBytes)
-	base64String, foundLinks, err := b.urlReplacer.Replace(base64String)
-	if err != nil {
-		logrus.Errorf("error in writing base64 buffer, err=%s", err)
-		return "", nil
+	checkedBase64String := &strings.Builder{}
+	allLinks := []string{}
+	bodyReader := strings.NewReader(base64String)
+	scanner := bufio.NewScanner(bodyReader)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := scanner
+		if !b.forwardProcessor.IsForwarded() {
+			b.forwardProcessor.CheckForwardedStartGmail(line.Text(), contentType)
+		}
+
+		if b.forwardProcessor.IsForwarded() {
+			b.forwardProcessor.CheckForwardingFinishGmail(line.Text(), contentType)
+			checkedBase64String.WriteString(line.Text())
+			checkedBase64String.WriteString("\n")
+			continue
+		}
+
+		replacedLine, foundLinks, err := b.urlReplacer.Replace(line.Text())
+		if err != nil {
+			logrus.Errorf("error in writing base64 buffer, err=%s", err)
+			return "", nil
+		}
+		allLinks = append(allLinks, foundLinks...)
+		checkedBase64String.WriteString(replacedLine)
+		checkedBase64String.WriteString("\n")
 	}
-	base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(base64String))
-	return base64ReplacedString, foundLinks
+
+	base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(checkedBase64String.String()))
+	return base64ReplacedString, allLinks
 }

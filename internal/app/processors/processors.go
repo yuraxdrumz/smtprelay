@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	contenttransferencoding "github.com/decke/smtprelay/internal/app/processors/content_transfer_encoding"
+	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
@@ -13,7 +14,7 @@ import (
 
 type ContentTransferProcessor interface {
 	Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string)
-	Flush() []string
+	Flush(contentType processortypes.ContentType) []string
 	Name() processortypes.ContentTransferEncoding
 }
 
@@ -27,11 +28,11 @@ type bodyProcessor struct {
 	currentContentType              processortypes.ContentType
 }
 
-func NewBodyProcessor(tmpBuffer *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions) *bodyProcessor {
+func NewBodyProcessor(tmpBuffer *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *bodyProcessor {
 	processorMap := map[processortypes.ContentTransferEncoding]ContentTransferProcessor{}
-	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(tmpBuffer, urlReplacer)
-	base64Processor := contenttransferencoding.NewBase64Processor(tmpBuffer, urlReplacer)
-	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(tmpBuffer, urlReplacer)
+	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(tmpBuffer, urlReplacer, forwardProcessor)
+	base64Processor := contenttransferencoding.NewBase64Processor(tmpBuffer, urlReplacer, forwardProcessor)
+	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(tmpBuffer, urlReplacer, forwardProcessor)
 	processorMap[defaultProcessor.Name()] = defaultProcessor
 	processorMap[base64Processor.Name()] = base64Processor
 	processorMap[quotedPrintableProcessor.Name()] = quotedPrintableProcessor
@@ -67,7 +68,7 @@ func (b *bodyProcessor) ProcessBody(line string) (links []string, err error) {
 			b.currentBoundary = b.boundaries[len(b.boundaries)-1]
 			logrus.Infof("setting boundary to=%s", b.currentBoundary)
 		}
-		foundLinks := b.bodyProcessors[b.currentTransferEncoding].Flush()
+		foundLinks := b.bodyProcessors[b.currentTransferEncoding].Flush(b.currentContentType)
 		links = append(links, foundLinks...)
 		b.currentBoundaryAppearanceNumber += 1
 		b.currentContentType = processortypes.DefaultContentType

@@ -33,6 +33,7 @@ import (
 
 	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
+	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
@@ -515,7 +516,8 @@ func (c *Client) writeLine(line string) {
 }
 
 func (c *Client) rewriteBody(msg string, urlReplacer urlreplacer.UrlReplacerActions) (string, *strings.Builder, map[string]bool) {
-	bodyProcessor := processors.NewBodyProcessor(c.tmpBuffer, urlReplacer)
+	forwardedProcessor := forwarded.New()
+	bodyProcessor := processors.NewBodyProcessor(c.tmpBuffer, urlReplacer, forwardedProcessor)
 	bodyReader := strings.NewReader(msg)
 	scanner := bufio.NewScanner(bodyReader)
 	// 8MB max token size, which can be a file encoded in base64

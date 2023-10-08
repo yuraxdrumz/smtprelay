@@ -3,20 +3,23 @@ package contenttransferencoding
 import (
 	"bytes"
 
+	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
 
 type defaultBody struct {
-	lineWriter  *bytes.Buffer
-	urlReplacer urlreplacer.UrlReplacerActions
+	lineWriter       *bytes.Buffer
+	urlReplacer      urlreplacer.UrlReplacerActions
+	forwardProcessor *forwarded.Forwarded
 }
 
-func NewDefaultBodyProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions) *defaultBody {
+func NewDefaultBodyProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *defaultBody {
 	return &defaultBody{
-		lineWriter:  lineWriter,
-		urlReplacer: urlReplacer,
+		lineWriter:       lineWriter,
+		urlReplacer:      urlReplacer,
+		forwardProcessor: forwardProcessor,
 	}
 }
 
@@ -41,7 +44,7 @@ func (d *defaultBody) writeLine(line string) {
 	d.writeNewLine()
 }
 
-func (d *defaultBody) Flush() []string {
+func (d *defaultBody) Flush(contentType processortypes.ContentType) []string {
 	return nil
 }
 
