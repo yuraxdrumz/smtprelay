@@ -58,7 +58,14 @@ func (q *quotedPrintable) Flush() []string {
 	return foundLinks
 }
 
-func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
+// outlook only adds From, Date, To and Subject
+// From: Yuri Khomyakov <yurik@cynet.com>
+// Date: Sunday, 8 October 2023 at 12:41
+// To: eyaltest@cynetint.onmicrosoft.com <eyaltest@cynetint.onmicrosoft.com>
+// Subject: Find forward headers in outlook
+// TODO: see if we need to identify forward in outlook
+func (q *quotedPrintable) checkForwardedStartGmail(lineString string) {
+	// gmail adds forwarded message
 	if strings.Contains(lineString, "---------- Forwarded message ---------") {
 		// we may have accumulated quoted printable data in buffer, flush
 		accumulated := q.buf.String()
@@ -67,22 +74,24 @@ func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boun
 			q.writeLine(accumulated)
 			q.buf.Reset()
 		}
-		// q.writeNewLine()
 		q.writeLine(lineString)
 		q.isForwarded = true
-		return true, nil
 	}
+}
 
-	if q.isForwarded {
-		gmailForwardingEnding := "<u></u>"
-		for _, char := range strings.Split(gmailForwardingEnding, "") {
-			if strings.HasPrefix(lineString, char) {
-				q.isForwarded = false
-			}
+func (q *quotedPrintable) checkForwardingFinishGmail(lineString string) {
+	gmailForwardingEnding := "<u></u>"
+	for _, char := range strings.Split(gmailForwardingEnding, "") {
+		if strings.HasPrefix(lineString, char) {
+			q.isForwarded = false
 		}
-		// if lineString == "" {
-		// 	q.isForwarded = false
-		// }
+	}
+}
+
+func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
+	q.checkForwardedStartGmail(lineString)
+	if q.isForwarded {
+		q.checkForwardingFinishGmail(lineString)
 		q.writeLine(lineString)
 		return true, nil
 	}

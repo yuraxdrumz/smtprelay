@@ -1,0 +1,815 @@
+Received: from EUR01-VE1-obe.outbound.protection.outlook.com ([104.47.1.55]) by
+	localhost.localdomain with ESMTP;
+	Sun, 08 Oct 2023 09:45:00 +0000 (UTC)
+ARC-Seal: i=2; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=pass;
+ b=bMBPvYk/MqHIqLh4XlDOtQEDzhg1saOqvLoAhKLase9hsCA+UwmRYc9+7H0J1ivM+bV+P/RlfJvusY32jum6e3XQ8JjzNrI6nkW9tBhS6wx+ygfWMLC+OSIjiqgSCGdcQ9JUNKo7o0YqZOG3P//LAsC783aRt3sr0TvBsdQy2kctHMv1H3fI5IxTUvGIMNfyCiI/+cD8IH9S74vpLPax5/SXf+xcQ41ABjBcTZMGDArqQnqr3N7tNprcuS5deZBmNejNRAEjITO7UlrcKc01picITueuFeMewQWJNDeOM57IXeCPlv0wsoFUrz5b4PS74B977uTxW7c8RmV5kttzjg==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=gogAS3zIjt4dwpZQEwoZcsezoMFlHijY7QRkVCXxS8k=;
+ b=DVttbcfZSpuVmLShd9wfjVov2eSvJisr5lYcgAVm5pTL9xqu/ybsPsRen+iy3RsiXYrG44DwkTlvi3RrNu/iIWEN9F7urnxyNQNRUaKKGm25ZUwDeS54sADHs2U/FvpwD0X3NFUHlHHB1CQ8E4fD+gT6vdnoyP84Os80D6HX+/qa1L4/O3tG8s7iGg19U0lyvmMVrRYp0beGgvEOCEA3bgCJbNnMn4OB7yftN0T3XxGu+pAE8Hrsxvc8UgOPyEVZ14VyqjAvKui7KtyTtz14rU1GpM1GCvxLEwhONIhnpssG93YCqwNKFUVs7oQYWPWr+w6BSLNMSiZQNX/I2pCBeA==
+ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
+ 40.107.8.81) smtp.rcpttodomain=cynetint.onmicrosoft.com
+ smtp.mailfrom=cynet.com; dmarc=pass (p=quarantine sp=quarantine pct=100)
+ action=none header.from=cynet.com; dkim=pass (signature was verified)
+ header.d=cynet.com; arc=pass (0 oda=1 ltdi=1
+ spf=[1,1,smtp.mailfrom=cynet.com] dkim=[1,1,header.d=cynet.com]
+ dmarc=[1,1,header.from=cynet.com])
+Received: from DU2PR04CA0255.eurprd04.prod.outlook.com (2603:10a6:10:28e::20)
+ by PAVP192MB2086.EURP192.PROD.OUTLOOK.COM (2603:10a6:102:2ff::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.43; Sun, 8 Oct
+ 2023 09:44:21 +0000
+Received: from DB8EUR05FT027.eop-eur05.prod.protection.outlook.com
+ (2603:10a6:10:28e:cafe::b8) by DU2PR04CA0255.outlook.office365.com
+ (2603:10a6:10:28e::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6863.36 via Frontend
+ Transport; Sun, 8 Oct 2023 09:44:21 +0000
+Authentication-Results: spf=pass (sender IP is 40.107.8.81)
+ smtp.mailfrom=cynet.com; dkim=pass (signature was verified)
+ header.d=cynet.com;dmarc=pass action=none header.from=cynet.com;compauth=pass
+ reason=100
+Received-SPF: Pass (protection.outlook.com: domain of cynet.com designates
+ 40.107.8.81 as permitted sender) receiver=protection.outlook.com;
+ client-ip=40.107.8.81; helo=EUR04-VI1-obe.outbound.protection.outlook.com;
+ pr=C
+Received: from EUR04-VI1-obe.outbound.protection.outlook.com (40.107.8.81) by
+ DB8EUR05FT027.mail.protection.outlook.com (10.233.239.192) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6886.20 via Frontend Transport; Sun, 8 Oct 2023 09:44:21 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=duPyCZdTCTTlC5J0BlR6tECsnQTRsm0c+Le8ul1SlOa8gqfsyrymluQBwcuniWZjnLtjwTS+YMv/UscNasb2WHi0Xr7tZp6av7FWGIm5i3PowtitVkXHG8A1gIyR/BbFjChG62KM2ZNsyOTQsuyckmA3cF+RHANtvhjwKkThQ7OQYnUyJ7UEB4tGpMaSnq2be9Ux37t78TCj5p2OnXK38hRBe4SRKrmCj3MnfUjPtIbNEMaCWgpk4Aigfaoxbh/TTBWV7Ma1XvTi/ez0OwPo/JeEcKbYK4pIbPhsLCukacXe+LcVQd+ACBbDvm8fxyCfFYoFRVbj21xJ76Ql9unU4w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=gogAS3zIjt4dwpZQEwoZcsezoMFlHijY7QRkVCXxS8k=;
+ b=dA8Vur01aFwNFdYQ8NwUwBKoojTI90Tr+zCQI/2FpCOGjEcsBBDvL5FbWLTP88BFBTZ4jqQ8EXMVFTtfxlRgaMYXHoMVt7xCvGQ6XNszFOYzUtGl9h/9StU5KRrCEyyhnnGX3CP0AifxQlieAn8wbfIjcIwPGV32KXI7guxp9vi9iUXx1UPM2K8ckqYysBoMAq4ZUMZQkNgMPPrTRBKMPbnkBO2EwoyQbP7UlNhh2OUhNJDAp9HnMiyBF4qh5tUjjba2MSew8xOJ8N2suDE67GndFNjV2ElfC7o81jn0g3+m3FWp3msc841gEpt17VplfRWqVWvz6iX21Ff5BAJO0w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=cynet.com; dmarc=pass action=none header.from=cynet.com;
+ dkim=pass header.d=cynet.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cynet.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=gogAS3zIjt4dwpZQEwoZcsezoMFlHijY7QRkVCXxS8k=;
+ b=Y76suedc0dnD+VfnYuc1WRzARIuyaH7gMP2PXvvSOUbxpznYkG0dz/xmBup+2LWnCTs474ArGcmxKNTD3aR3GK2HDghtO4RVOMEd0ETmOIQG8gmweMcKu8rBYIGUPU+40Fr7uUJfDQuUWQjT/F4+fYnLh/ED6aJb5+5+1lMfmr8=
+Received: from DB9PR01MB7323.eurprd01.prod.exchangelabs.com
+ (2603:10a6:10:218::22) by AS8PR01MB7878.eurprd01.prod.exchangelabs.com
+ (2603:10a6:20b:359::19) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.28; Sun, 8 Oct
+ 2023 09:44:19 +0000
+Received: from DB9PR01MB7323.eurprd01.prod.exchangelabs.com
+ ([fe80::24ca:26ca:f1ff:f1db]) by DB9PR01MB7323.eurprd01.prod.exchangelabs.com
+ ([fe80::24ca:26ca:f1ff:f1db%4]) with mapi id 15.20.6863.032; Sun, 8 Oct 2023
+ 09:44:19 +0000
+From: Yuri Khomyakov <yurik@cynet.com>
+To: "eyaltest@cynetint.onmicrosoft.com" <eyaltest@cynetint.onmicrosoft.com>
+Subject: FW: Find forward headers in outlook
+Thread-Topic: Find forward headers in outlook
+Thread-Index: AQHZ+cubouvkO2bftkWVdQlo3OyYW7A/pGat
+Date: Sun, 8 Oct 2023 09:44:19 +0000
+Message-ID:
+ <DB9PR01MB73235E8D018C4ADA7D420A15ACCFA@DB9PR01MB7323.eurprd01.prod.exchangelabs.com>
+References:
+ <DB9PR01MB7323F828DDC31C683577D291ACCFA@DB9PR01MB7323.eurprd01.prod.exchangelabs.com>
+In-Reply-To:
+ <DB9PR01MB7323F828DDC31C683577D291ACCFA@DB9PR01MB7323.eurprd01.prod.exchangelabs.com>
+Accept-Language: en-US
+Content-Language: en-GB
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Authentication-Results-Original: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=cynet.com;
+x-ms-traffictypediagnostic:
+	DB9PR01MB7323:EE_|AS8PR01MB7878:EE_|DB8EUR05FT027:EE_|PAVP192MB2086:EE_
+X-MS-Office365-Filtering-Correlation-Id: ece85b1e-2135-4b03-74f4-08dbc7e32604
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+X-Microsoft-Antispam-Untrusted: BCL:0;
+X-Microsoft-Antispam-Message-Info-Original:
+ wiHPuw/193jwqalAc/i+9iEtf6ywnK9Ek16Ive0qPmGVFVUkJzO+ubFf7uYOQDO2itE6CJ7xOndjFojlDJsa5fnkgQyIzDCWN8IYRHu/jHUWmqx11mmx2dd6V7wOGNJ7WIq8getT3ovBOKUm9IvAXw3wT9AhDXE7s1m8zXIlnSFSowKlnA0AsGPFdAwAiNGrzPqhkNPnx9tKsv5KOo/AHtmOErM99vdP1nb3WJnaZM4q9aBvGoD7i7daygYBcFMxrjIaN/lkn1YUb4mSZ6JnjxdYLfHsUqgckjnTg4fINddvhm2exTW7viX3ZECPMftQLjXQGwxkPDA248mu/XIIyOx4EQ0KNN70TeIldZ0zStcDA0tGNW+JAKyAalln3rHSQf6+aA2lAC6Gv5Bh/WQJcG832zHjdiF67vuq7owYK0D3zfJCZvTPDmyD+87qdJZppBlJdhRTK0PYjxtjYMR31C330miT6rRISRDA9mbMpsxn17y0kiwsytgTZHxv5LRuF9U11y/0saBB8rILTViPGjGX7ppfCcmXUttSiv57cqVFqxYr/25c4mF6JvyuiAIB4PVDfk++mDWG3+Urv56BuMm5/KqNCqXmOlH+PIJrpSLeu9NcLMTvcynrQLXuQ70iObtv+vClFn13St5Go5LThEPxoEnAFuSs1zgeDE7WM+cZKjd/DvFLU+TLk45/5yBJXnN693K4wERgPJ7fZ4GM1QpLYHe8HA527IuY9ircUsc=
+X-Forefront-Antispam-Report-Untrusted:
+ CIP:255.255.255.255;CTRY:;LANG:la;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB9PR01MB7323.eurprd01.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230031)(6019001)(366004)(396003)(376002)(39840400004)(136003)(346002)(269900001)(47540400005)(230922051799003)(64100799003)(451199024)(186009)(1800799009)(71200400001)(2940100002)(53546011)(966005)(52230400001)(7696005)(41300700001)(6506007)(45080400002)(2906002)(83380400001)(8936002)(66556008)(296002)(66476007)(8676002)(64756008)(76116006)(66946007)(66446008)(21615005)(6916009)(52536014)(316002)(55016003)(33656002)(5660300002)(122000001)(166002)(38070700005)(38100700002)(86362001)(84970400001)(9686003)(478600001)(5930299018)(109320200003)(16940595002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-Original-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-Original-0:
+	=?koi8-r?Q?ZhhurYiE7fGkHPrld28CPYHaHrdGiGU9ca24yl1ubN57YwtfhQkAOw+vnqPgpa?=
+ =?koi8-r?Q?jQvD5ZI3fuBO3CommrYByzWKTkgvR/+vhw65x1L4zuyadIAcS5sFTJx1gMDWSb?=
+ =?koi8-r?Q?sOlbJQtEsQeSTKO+uRTcdnYafZ4sA+EdqObWJcFySnONFc3La92dJj5IRHsqbw?=
+ =?koi8-r?Q?opRQPTYNOEtzK0bqdjPAEGwOkSTlIEOqAb7mOowTjpLuDtJnfnsbctPfTHz5kG?=
+ =?koi8-r?Q?XppGyuSiEUKLiR44N0MSJ131DYxCfgbclpnG+vD0QZCkgNwtyuS/e0l1a6AUcB?=
+ =?koi8-r?Q?hAvl3dSHpqOlHjzaT3JNQUlIW/QuSlAO/oyhaVfyTLRSg9rKyc8nG962/ViJZu?=
+ =?koi8-r?Q?u2TVUpuDFefWR3c65yDNTT7ixyheCXSCxDKGdLu4LONcH/bUwefB6i/z9vdlwe?=
+ =?koi8-r?Q?TtbUYCOHkgd+utPjVX0lN4QB4a6CkKsTWs80g0V7saqk2sQbCs1xvrOAQ9vD0u?=
+ =?koi8-r?Q?R34JY1qE4MC21wHcqCTJa8vyWJDVdYYW9rTWmwW1mdvz8RaYaOspyGH7aqAq0B?=
+ =?koi8-r?Q?qjWNmNvUN0JejLjVcNxpCyYeU5Ey+RGMtPX67byBfB1pG3L0JRyJTflwKLlfnd?=
+ =?koi8-r?Q?E/nODM5P1N/tnvuEUX/MwkXWaA74yD4Wf6PlL74cfEjZuMpITs5GU2geJZM1Ql?=
+ =?koi8-r?Q?wp3BPlcsmS45K2fVNvwXMzcWM5NSc3yNXAMTDv892kaIa/7a969bjdipc5YhWB?=
+ =?koi8-r?Q?pruMsXu6pVLf2adfKKKzju2jae0mp2X08Bx3ic+zIM/SMccPDU9ONqW1bY4NmP?=
+ =?koi8-r?Q?Qj85QECkWJ48ETvMVj/pkLMeUYmEB1R/0xHxHHPTW34WG3JNHeWoxk6uAPdmtQ?=
+ =?koi8-r?Q?rsifb57LSiirG35qxc2BI4YG2KZ1KVcGfswEJHbIlO0u6ruh1FUjD4NgbXKyLk?=
+ =?koi8-r?Q?6/LYRecMfJzl0NsrjxtlNI1KTyQsMY47WXQ7YBEdnVhehG8Se4FWGAizffV5sZ?=
+ =?koi8-r?Q?2hCgE3uH4HGcZ97UY4ABZ74cYeM6ftno8tk0PPAdaGzAditk9xDoP//u2HjwGe?=
+ =?koi8-r?Q?fvzbe7QRxfKsP3at2oQamC9OEFscR/XzYZEp9qMp42VtrZposBypuGL9e2kTPd?=
+ =?koi8-r?Q?07KLcHOgBk7gJJVollrpQ8KQ7mxAguiZwNRbvAY/JOI3CRkDBGKWuYsEpYlfi5?=
+ =?koi8-r?Q?5FlrzXzLsnsOuTSnvmYMo6Jh0nFixLCgkXi5Bry58jJGLwAeKFakVQSpon/gbj?=
+ =?koi8-r?Q?USUteWeGH91MWJ4Y1Rx4/P+QprZtO/zpgv+Q6z0c2/Xpa61KshYVD+2O2Mn+x8?=
+ =?koi8-r?Q?bVyZLgUz0hNMjD8Eo6ks09lmC1lNeHjjsmf6vYlYiqhoRIgmqTnpufYa5QCYBO?=
+ =?koi8-r?Q?UBSQO1zfIQTxYndYeQn33RN/aiYKDm/ZCY3LmuddHRj3xoVGSGoM/dbSA2o3pt?=
+ =?koi8-r?Q?kapf6eRvugQpFQwIav9qo1sndjhY8AyRVQYYXKApwaBYDWBjsGbFINtpqBBYSd?=
+ =?koi8-r?Q?k5QehOIXxcjmyBSzEBebGmxSLllO6/1w65PDAc4b+Zp80q0sZjFSzKpIn5HmKL?=
+ =?koi8-r?Q?cxRtIkSmmq2xtAW+KC9hVBsODsuoW4r2o5m8JbNHWrnP5QgU86A48xo3W1ByLX?=
+ =?koi8-r?Q?yzGOgBkmYYopwOjOF6xW4X+1slamYUv2cyT3W3CEmWhEKZqyGZVs?=
+Content-Type: multipart/alternative;
+	boundary="_000_DB9PR01MB73235E8D018C4ADA7D420A15ACCFADB9PR01MB7323eurp_"
+MIME-Version: 1.0
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS8PR01MB7878
+Return-Path: yurik@cynet.com
+X-EOPAttributedMessage: 0
+X-EOPTenantAttributedMessage: a84d933a-e471-4128-99c6-d3652501a6a6:0
+X-MS-Exchange-Transport-CrossTenantHeadersStripped:
+ DB8EUR05FT027.eop-eur05.prod.protection.outlook.com
+X-MS-Exchange-Transport-CrossTenantHeadersPromoted:
+ DB8EUR05FT027.eop-eur05.prod.protection.outlook.com
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id-Prvs:
+	2ab4ed8e-daf8-446b-2ff1-08dbc7e324cc
+X-MS-Exchange-AtpMessageProperties: SA|SL
+X-Cynet-Tenant-Token: ea0859f9-f30a-4a54-beaf-669eb9eff12e
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	=?koi8-r?Q?0hCTCbDkNDi/XSHOnGfPI66GvSkYEXBghRMzM0vit6uHZ0FKmbLUMA3h2y3+15?=
+ =?koi8-r?Q?Ck53h4qJYpnz5XWTYJeTA05Bgl98WLXIuT1WRfnyz6H1iSU1FokRP6A/dBTc6g?=
+ =?koi8-r?Q?Uyc4gsYIZJ2zGc/oKlnvyYT3KrAC1N9cYmRjBev1+uj4cH83AlRvH177o9decw?=
+ =?koi8-r?Q?SHKcCTKViqSJl99fbH6Rr+Xcu7oVTpNMT7I1F/ndvDjC5cyalHTLze5rbc+7IP?=
+ =?koi8-r?Q?CAibR54UqbMNgh3LWeyg6LRfeGE9YZ62AjMjS4dRmjK8tUMMeLrJFRTm8aZeyp?=
+ =?koi8-r?Q?RuLEVSjlmc7t4nUhkzGVT8D8/gFccjVtT6UxMfUtEFDj/ITAn99vRKmJy0kX++?=
+ =?koi8-r?Q?cG101F6EtoKh6gQS25yF2QEwraoip9Na5r8zw76AYc1HYG563BWznfYEk8DhcJ?=
+ =?koi8-r?Q?haqVPHHURGqlVfRXSVsEuQLADdj9LBwmkvZ4iCI9JfBe5YDXYNI+KhzR3Sc6dK?=
+ =?koi8-r?Q?p0LkQQrX50SLuFlig4jp8hurnZEf6c1LEc/LwoCNBF3JNT10bAE79osiymHPpu?=
+ =?koi8-r?Q?OUDOc1jA6NPplPb6fj869p8WqLbZXSSORDeaLzfTRSnbnJc6Y6tkYe2xXpKCX9?=
+ =?koi8-r?Q?TKGNAPg2KhYNkKnXxMZCblSJeLcIYCJYBV3n19YcfroO7ICXccYSSH2kGWGMrY?=
+ =?koi8-r?Q?1SXk43PmJ51+a1z/jwhBpNYCgjjZZzqDwWll3UNlEg9Y8EVjHpxckMdjWn5hkR?=
+ =?koi8-r?Q?BU/qysYe8rzxTZ1uCQ3BtTVtyitA1e6r2eqP69xaIEvnybMyj7+bs6zRUckJo3?=
+ =?koi8-r?Q?XzoeLd61eAmF877upVnwIcFf9QnrPBLPwBqXuDdGWMmtrf1A3G0j7aKoN7qCCw?=
+ =?koi8-r?Q?9C+9z/2jUqDpqmC7jAOBRXMXsvwshvtaQFQ470/6wuuZjQo4wrcQPvf/QCTTBi?=
+ =?koi8-r?Q?uVQrxR6temZB3exXXWvbPWoCopTP1lHt7JhWpRmS25GpUcw/yNSHH+TGDnGiO5?=
+ =?koi8-r?Q?+eI+K5GBjxLm+c4D/ZBM8uPgYxN4488yqdkpygygUJTP6nGZX064ZV+P+IkfxJ?=
+ =?koi8-r?Q?bF10nq2RadminoFFn3mVK+lHFA0LCFbzQdVCc4B4XWaM3VsEuVtnCXTltRiq1p?=
+ =?koi8-r?Q?iwHoSKwvMZlmkZ2w0R/2SuCLw6Y+kF9LeIFQjqwkel4rGTlpzK+Q7XkqHRVlup?=
+ =?koi8-r?Q?hJws+kCbfR8707IOt7ZdtkcZpNGerXIQySdRveDQpm6CqYy7er+4Vbvn3Kudcu?=
+ =?koi8-r?Q?rmLCdu2g42lZUjQOWnmaPp6A0CPNA/30Y0msonaPKDnR7KtX/ZiyjcisdjBHz2?=
+ =?koi8-r?Q?/JhrM5CRMUunhsHA6s3VsVavnYFvO1FD7Syyjj6/MepAGwzndXQe0rJRTbOoXk?=
+ =?koi8-r?Q?8X8jdFBZjF/xaWJqpGIRpYyMLj5Yvfq5OjVtioz9wUCDhJORLUngVj+zHikxhy?=
+ =?koi8-r?Q?ue7mO7hKzN/Ue3/3wMH5b0Gbw1XmwGmDPa6GSaoRZ1kCwUNWaulEbTdYBF6Ok1?=
+ =?koi8-r?Q?iyJc5rM9H1IO3uMyJVq9ms9DxvEXkTSKAqHusoOxVSM2tK6vFa72E3bTlFfFfz?=
+ =?koi8-r?Q?rHOR8z/ELEhZ0ZMaHtwG8H8m1fqJjrbBt9HFBoM+nrTqNEZWT77XglFAdlddxy?=
+ =?koi8-r?Q?K5MEbMCcs4i+CB7wlRucA48q0GWqKcEwFhBEQlEJhPdkbPydsPzt1a5JGJxo89?=
+ =?koi8-r?Q?GgBdik0UotGViOHaaetz/Tlxy/IwXcYLVGfouAdSlzhOn2zCx8HqrAsis+Qdr+?=
+ =?koi8-r?Q?R3+bt2sKYv9mfLuQ3bqcSfKFBefgU64W7tndk1LMDMDx0salqGcz9Hfm?=
+X-Forefront-Antispam-Report:
+	CIP:40.107.8.81;CTRY:AT;LANG:la;SCL:-1;SRV:;IPV:NLI;SFV:SFE;H:EUR04-VI1-obe.outbound.protection.outlook.com;PTR:mail-vi1eur04on2081.outbound.protection.outlook.com;CAT:NONE;SFS:;DIR:INB;
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+	56L2CERjHBsx5eDlbJQr7BVC8HDMNBb7BbHAF7YSeNOeclJg9s2yCTVbRjXHwiQY5Hkkg0AxD8Y6Jti7cDKfrpJWMXxtnZk7Fa+xlm4XYXI1J5j8jUYB0Kuu+xsV9g9IerxhKO8qKlSDGIukdah1lLK7EkuQMus3J9I1dpgzmMxkD9aFkvULYmGTkOSIhDyLneRyXKVSMvXAmlogVLFx3vN+9mei89Us30qCkVC4aUzAcloDvyKuBxZYBAdt58qv6l2ck4iRHxQ6lQbKrPs4kauSTfU2sCKLvegnqpEMG3mPa1t6DcYEH97J1GtoqqbjjVEAGoenCcTAqqmGHhogqvMmuZFZN0ak6CR0DLtLDlHpia0PKS0PTacGB57f+nzF8BPKUVTDMLSI4kfFCR329Qbs8yjpJcy2D81lCc8ohjwKbwhTGLEWt+oY+B6Um5Y7Vko7q5pxywHt6DsmpTBQhH9xKRyiWnm7FMEMwf2Jm36Zfd5zWKM6tGBpaKfJL0tIoSEroKFDYr9oUiDnrWm9Fk6hcM4WeRyQK776kYNO0LcmW+aCmOs3rU9CbXqTnzr4Y8cnC9wCdVOcOJUzwiVKqMnsWpiSnla2o+nu+D4Sw2RVLRyObbOTxK1kWhiLjRbfh84Uijq0cAG/LxXlRDtpCsUKMcXT0OPa+gola032GtrBh4MLo6J3kK0Jnw3XZ5wUZKYQ+V6eRKRRutsUhRpF43O5X5vfKzyORtrcT+vEjCFCdpMhF8STzKPJnRnGR7BHY9hagiCEhsnjmmaeC9JRnw==
+X-OriginatorOrg: cynetint.onmicrosoft.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Oct 2023 09:44:21.1137
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: ece85b1e-2135-4b03-74f4-08dbc7e32604
+X-MS-Exchange-CrossTenant-Id: a84d933a-e471-4128-99c6-d3652501a6a6
+X-MS-Exchange-CrossTenant-AuthSource:
+	DB8EUR05FT027.eop-eur05.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: Internet
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAVP192MB2086
+
+--_000_DB9PR01MB73235E8D018C4ADA7D420A15ACCFADB9PR01MB7323eurp_
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+
+
+
+From: Yuri Khomyakov <yurik@cynet.com>
+Date: Sunday, 8 October 2023 at 12:41
+To: eyaltest@cynetint.onmicrosoft.com <eyaltest@cynetint.onmicrosoft.com>
+Subject: Find forward headers in outlook
+Hey man,
+
+The standard Lorem Ipsum passage, used since the 1500s
+
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod te=
+mpor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, =
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo con=
+sequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cill=
+um dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non p=
+roident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+
+Section 1.10.32 of "de Finibus Bonorum et Malorum", written by Cicero in 45=
+ BC
+
+"Sed  https://www.google.com.tr/admin/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Ds=
+ss3#Services
+https://google.com.tr/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Service=
+s
+http://google.com/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Services
+ftp://google.com/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Services
+www.google.com.tr/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Services<ht=
+tp://www.google.com.tr/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Servic=
+es>
+www.google.com/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Services<http:=
+//www.google.com/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Services>
+drive.google.com/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Services<htt=
+p://drive.google.com/test/subPage?qs1=3Dsss1&qs2=3Dsss2&qs3=3Dsss3#Services=
+>
+https://www.example.pl
+http://www.example.com
+www.example.pl<http://www.example.pl>
+example.com<http://example.com>
+http://blog.example.com
+http://www.example.com/product
+http://www.example.com/products?id=3D1&page=3D2
+http://www.example.com#up
+http://255.255.255.255
+255.255.255.255
+
+
+
+shop.facebook.org/derf.html<http://shop.facebook.org/derf.html> ut perspici=
+atis unde omnis iste natus error sit voluptatem accusantium doloremque laud=
+antium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et q=
+uasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptat=
+em quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur m=
+agni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisqua=
+m est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, =
+sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam =
+aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercita=
+tionem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi co=
+nsequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit =
+esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo=
+ voluptas nulla pariatur?"
+
+1914 translation by H. Rackham
+
+https://www.facebook.com
+https://app-1.number123.com
+http://facebook.com
+ftp://facebook.com
+http://localhost:3000
+localhost:3000/
+
+
+"But I must explain to you how all this mistaken idea of denouncing pleasur=
+e and praising pain was born and I will give you a complete account of the =
+system, and expound the actual teachings of the great explorer of the truth=
+, the master-builder of human happiness. No one rejects, dislikes, or avoid=
+s pleasure itself, because it is pleasure, but because those who do not kno=
+w how to pursue pleasure rationally encounter consequences that are extreme=
+ly painful. Nor again is there anyone who loves or pursues or desires to ob=
+tain pain of itself, because it is pain, but because occasionally circumsta=
+nces occur in which toil and pain can procure him some great pleasure. To t=
+ake a trivial example, which of us ever undertakes laborious physical exerc=
+ise, except to obtain some advantage from it? But who has any right to find=
+ fault with a man who chooses to enjoy a pleasure that has no annoying cons=
+equences, or one who avoids a pain that produces no resultant pleasure?"
+
+Section 1.10.33 of "de Finibus Bonorum et Malorum", written by Cicero in 45=
+ BC
+
+"At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis =
+praesentium voluptatum deleniti atque corrupti quos dolores et quas molesti=
+as excepturi sint occaecati https://www.facebook.com
+https://app-1.number123.com
+http://facebook.com
+ftp://facebook.com
+http://localhost:3000
+localhost:3000/
+unitedkingdomurl.co.uk<http://unitedkingdomurl.co.uk>
+this.is.a.url.com/its/still=3Dgoing?wow<http://this.is.a.url.com/its/still=
+=3Dgoing?wow>
+shop.facebook.org<http://shop.facebook.org>
+app.number123.com<http://app.number123.com>
+app1.number123.com<http://app1.number123.com>
+app-1.numbEr123.com<http://app-1.numbEr123.com>
+app.dashes-dash.com<http://app.dashes-dash.com>
+www.facebook.com<http://www.facebook.com>
+facebook.com<http://facebook.com>
+fb.com/hello_123<http://fb.com/hello_123>
+fb.com/hel-lo<http://fb.com/hel-lo>
+fb.com/hello/goodbye<http://fb.com/hello/goodbye>
+fb.com/hello/goodbye?okay<http://fb.com/hello/goodbye?okay>
+fb.com/hello/goodbye?okay=3Dalright<http://fb.com/hello/goodbye?okay=3Dalri=
+ght>
+
+
+
+Hello www.google.com<http://www.google.com> World http://yahoo.com cupidita=
+te non provident, similique sunt in culpa qui officia deserunt mollitia ani=
+mi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et ex=
+pedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio =
+cumque nihil impedit quo minus id quod maxime placeat facere possimus, omni=
+s voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusd=
+am et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et vol=
+uptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hi=
+c tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias=
+ consequatur aut perferendis doloribus asperiores repellat."
+
+
+
+try this
+
+
+
+=82=80dnsCache.host=80=83
+=81 scpxth.xyz<http://scpxth.xyz>    =81
+=84=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=85
+=82=80dnsCache.host=80=80=80=80=80=80=80=80=80=83
+=81 research.cynet.online =81
+=81 slb.cynet.com<http://slb.cynet.com>         =81
+=81 link.sbstck.com<http://link.sbstck.com>       =81
+=84=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=85
+=82=80dnsCache.host=80=80=80=80=80=80=80=80=80=80=80=80=83
+=81 act.qasimforcongress.org<http://act.qasimforcongress.org> =81
+
+
+
+Thanks
+
+
+--_000_DB9PR01MB73235E8D018C4ADA7D420A15ACCFADB9PR01MB7323eurp_
+Content-Type: text/html; charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" xmlns:w=3D"urn:sc=
+hemas-microsoft-com:office:word" xmlns:m=3D"http://schemas.microsoft.com/of=
+fice/2004/12/omml" xmlns=3D"http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dkoi8-r">
+<meta name=3D"Generator" content=3D"Microsoft Word 15 (filtered medium)">
+<style><!--
+/* Font Definitions */
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:"Open Sans";
+	panose-1:2 11 6 6 3 5 4 2 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	font-size:10.0pt;
+	font-family:"Calibri",sans-serif;}
+h3
+	{mso-style-priority:9;
+	mso-style-link:"Heading 3 Char";
+	mso-margin-top-alt:auto;
+	margin-right:0cm;
+	mso-margin-bottom-alt:auto;
+	margin-left:0cm;
+	font-size:13.5pt;
+	font-family:"Calibri",sans-serif;
+	font-weight:bold;}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:#0563C1;
+	text-decoration:underline;}
+span.Heading3Char
+	{mso-style-name:"Heading 3 Char";
+	mso-style-priority:9;
+	mso-style-link:"Heading 3";
+	font-family:"Calibri",sans-serif;
+	mso-ligatures:none;
+	font-weight:bold;}
+span.apple-converted-space
+	{mso-style-name:apple-converted-space;}
+span.EmailStyle22
+	{mso-style-type:personal-reply;
+	font-family:"Calibri",sans-serif;
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-size:10.0pt;
+	mso-ligatures:none;}
+@page WordSection1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
+div.WordSection1
+	{page:WordSection1;}
+--></style>
+</head>
+<body lang=3D"en-IL" link=3D"#0563C1" vlink=3D"#954F72" style=3D"word-wrap:=
+break-word">
+<div class=3D"WordSection1">
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt"><o:p>&nbsp;</o:p></=
+span></p>
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt"><o:p>&nbsp;</o:p></=
+span></p>
+<div id=3D"mail-editor-reference-message-container">
+<div>
+<div style=3D"border:none;border-top:solid #B5C4DF 1.0pt;padding:3.0pt 0cm =
+0cm 0cm">
+<p class=3D"MsoNormal" style=3D"margin-bottom:12.0pt"><b><span style=3D"fon=
+t-size:12.0pt;color:black">From:
+</span></b><span style=3D"font-size:12.0pt;color:black">Yuri Khomyakov &lt;=
+yurik@cynet.com&gt;<br>
+<b>Date: </b>Sunday, 8 October 2023 at 12:41<br>
+<b>To: </b>eyaltest@cynetint.onmicrosoft.com &lt;eyaltest@cynetint.onmicros=
+oft.com&gt;<br>
+<b>Subject: </b>Find forward headers in outlook<o:p></o:p></span></p>
+</div>
+<p class=3D"MsoNormal"><span lang=3D"EN-US" style=3D"font-size:11.0pt;mso-l=
+igatures:standardcontextual">Hey man,</span><span style=3D"font-size:11.0pt=
+;mso-ligatures:standardcontextual"><o:p></o:p></span></p>
+<p class=3D"MsoNormal"><span lang=3D"EN-US" style=3D"font-size:11.0pt;mso-l=
+igatures:standardcontextual">&nbsp;</span><span style=3D"font-size:11.0pt;m=
+so-ligatures:standardcontextual"><o:p></o:p></span></p>
+<h3 style=3D"mso-margin-top-alt:11.25pt;margin-right:0cm;margin-bottom:11.2=
+5pt;margin-left:0cm">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">The standard Lorem Ipsum passage, used since the 1500s</span=
+><o:p></o:p></h3>
+<p style=3D"mso-margin-top-alt:0cm;margin-right:0cm;margin-bottom:11.25pt;m=
+argin-left:0cm;text-align:justify;font-variant-caps: normal;orphans: auto;w=
+idows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">&quot;Lorem ipsum dolor sit amet, consectetur adipiscing eli=
+t, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut en=
+im ad minim veniam, quis nostrud exercitation ullamco
+ laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in =
+reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatu=
+r. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui offici=
+a deserunt mollit anim id est laborum.&quot;</span><o:p></o:p></p>
+<h3 style=3D"mso-margin-top-alt:11.25pt;margin-right:0cm;margin-bottom:11.2=
+5pt;margin-left:0cm;font-variant-caps: normal;orphans: auto;text-align:star=
+t;widows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">Section 1.10.32 of &quot;de Finibus Bonorum et Malorum&quot;=
+, written by Cicero in 45 BC</span><o:p></o:p></h3>
+<p style=3D"mso-margin-top-alt:0cm;margin-right:0cm;margin-bottom:11.25pt;m=
+argin-left:0cm;text-align:justify;font-variant-caps: normal;orphans: auto;w=
+idows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">&quot;Sed &nbsp;</span><span style=3D"font-size:12.0pt;font-=
+family:&quot;Arial&quot;,sans-serif;color:#222222"><a href=3D"https://www.g=
+oogle.com.tr/admin/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&amp;qs3=3Dsss3#Service=
+s" target=3D"_blank"><span style=3D"color:#1155CC">https://www.google.com.t=
+r/admin/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&amp;qs3=3Dsss3#Services</span></a=
+></span><o:p></o:p></p>
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt;mso-ligatures:standa=
+rdcontextual"><a href=3D"https://google.com.tr/test/subPage?qs1=3Dsss1&amp;=
+qs2=3Dsss2&amp;qs3=3Dsss3#Services" target=3D"_blank"><span style=3D"font-f=
+amily:&quot;Arial&quot;,sans-serif;color:#1155CC">https://google.com.tr/tes=
+t/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&amp;qs3=3Dsss3#Services</span></a></spa=
+n><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;=
+color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://google.com/test/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&amp;qs3=
+=3Dsss3#Services" target=3D"_blank"><span style=3D"font-family:&quot;Arial&=
+quot;,sans-serif;color:#1155CC">http://google.com/test/subPage?qs1=3Dsss1&a=
+mp;qs2=3Dsss2&amp;qs3=3Dsss3#Services</span></a></span><span style=3D"font-=
+size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#222222;mso-liga=
+tures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"ftp://google.com/test/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&amp;qs3=3D=
+sss3#Services" target=3D"_blank"><span style=3D"font-family:&quot;Arial&quo=
+t;,sans-serif;color:#1155CC">ftp://google.com/test/subPage?qs1=3Dsss1&amp;q=
+s2=3Dsss2&amp;qs3=3Dsss3#Services</span></a></span><span style=3D"font-size=
+:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#222222;mso-ligature=
+s:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.google.com.tr/test/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&am=
+p;qs3=3Dsss3#Services" target=3D"_blank"><span style=3D"font-family:&quot;A=
+rial&quot;,sans-serif;color:#1155CC">www.google.com.tr/test/subPage?qs1=3Ds=
+ss1&amp;qs2=3Dsss2&amp;qs3=3Dsss3#Services</span></a></span><span style=3D"=
+font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#222222;mso=
+-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.google.com/test/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&amp;q=
+s3=3Dsss3#Services" target=3D"_blank"><span style=3D"font-family:&quot;Aria=
+l&quot;,sans-serif;color:#1155CC">www.google.com/test/subPage?qs1=3Dsss1&am=
+p;qs2=3Dsss2&amp;qs3=3Dsss3#Services</span></a></span><span style=3D"font-s=
+ize:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#222222;mso-ligat=
+ures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://drive.google.com/test/subPage?qs1=3Dsss1&amp;qs2=3Dsss2&amp=
+;qs3=3Dsss3#Services" target=3D"_blank"><span style=3D"font-family:&quot;Ar=
+ial&quot;,sans-serif;color:#1155CC">drive.google.com/test/subPage?qs1=3Dsss=
+1&amp;qs2=3Dsss2&amp;qs3=3Dsss3#Services</span></a></span><span style=3D"fo=
+nt-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#222222;mso-l=
+igatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"https://www.example.pl" target=3D"_blank"><span style=3D"font-fami=
+ly:&quot;Arial&quot;,sans-serif;color:#1155CC">https://www.example.pl</span=
+></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,s=
+ans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.example.com" target=3D"_blank"><span style=3D"font-fami=
+ly:&quot;Arial&quot;,sans-serif;color:#1155CC">http://www.example.com</span=
+></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,s=
+ans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.example.pl" target=3D"_blank"><span style=3D"font-famil=
+y:&quot;Arial&quot;,sans-serif;color:#1155CC">www.example.pl</span></a></sp=
+an><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif=
+;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://example.com" target=3D"_blank"><span style=3D"font-family:&=
+quot;Arial&quot;,sans-serif;color:#1155CC">example.com</span></a></span><sp=
+an style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color=
+:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://blog.example.com" target=3D"_blank"><span style=3D"font-fam=
+ily:&quot;Arial&quot;,sans-serif;color:#1155CC">http://blog.example.com</sp=
+an></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;=
+,sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.example.com/product" target=3D"_blank"><span style=3D"f=
+ont-family:&quot;Arial&quot;,sans-serif;color:#1155CC">http://www.example.c=
+om/product</span></a></span><span style=3D"font-size:11.0pt;font-family:&qu=
+ot;Arial&quot;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><=
+br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.example.com/products?id=3D1&amp;page=3D2" target=3D"_bl=
+ank"><span style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#1155CC"=
+>http://www.example.com/products?id=3D1&amp;page=3D2</span></a></span><span=
+ style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#=
+222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.example.com#up" target=3D"_blank"><span style=3D"font-f=
+amily:&quot;Arial&quot;,sans-serif;color:#1155CC">http://www.example.com#up=
+</span></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&q=
+uot;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://255.255.255.255" target=3D"_blank"><span style=3D"font-fami=
+ly:&quot;Arial&quot;,sans-serif;color:#1155CC">http://255.255.255.255</span=
+></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,s=
+ans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:12.0pt;font-family:&quot;Arial&quot;,sans-s=
+erif;color:#222222;background:white;mso-ligatures:standardcontextual">255.2=
+55.255.255</span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&qu=
+ot;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+<br>
+<br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><o=
+:p></o:p></span></p>
+<p style=3D"mso-margin-top-alt:0cm;margin-right:0cm;margin-bottom:11.25pt;m=
+argin-left:0cm;text-align:justify">
+<span style=3D"font-size:12.0pt;font-family:&quot;Arial&quot;,sans-serif;co=
+lor:#222222"><a href=3D"http://shop.facebook.org/derf.html" target=3D"_blan=
+k"><span style=3D"color:#1155CC">shop.facebook.org/derf.html</span></a></sp=
+an><span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-s=
+erif;color:black">&nbsp;ut
+ perspiciatis unde omnis iste natus error sit voluptatem accusantium dolore=
+mque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore verit=
+atis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam=
+ voluptatem quia voluptas sit aspernatur
+ aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione vo=
+luptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia d=
+olor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi =
+tempora incidunt ut labore et dolore
+ magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum =
+exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea co=
+mmodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptat=
+e velit esse quam nihil molestiae
+ consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?=
+&quot;</span><o:p></o:p></p>
+<h3 style=3D"mso-margin-top-alt:11.25pt;margin-right:0cm;margin-bottom:11.2=
+5pt;margin-left:0cm;font-variant-caps: normal;orphans: auto;text-align:star=
+t;widows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">1914 translation by H. Rackham</span><o:p></o:p></h3>
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt;font-family:&quot;Ar=
+ial&quot;,sans-serif;color:#222222;mso-ligatures:standardcontextual">&nbsp;=
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><o=
+:p></o:p></span></p>
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt;font-family:&quot;Ar=
+ial&quot;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><a hre=
+f=3D"https://www.facebook.com" target=3D"_blank"><span style=3D"color:#1155=
+CC">https://www.facebook.com</span></a><br>
+<a href=3D"https://app-1.number123.com" target=3D"_blank"><span style=3D"co=
+lor:#1155CC">https://app-1.number123.com</span></a><br>
+<a href=3D"http://facebook.com" target=3D"_blank"><span style=3D"color:#115=
+5CC">http://facebook.com</span></a><br>
+<a href=3D"ftp://facebook.com" target=3D"_blank"><span style=3D"color:#1155=
+CC">ftp://facebook.com</span></a><br>
+<a href=3D"http://localhost:3000" target=3D"_blank"><span style=3D"color:#1=
+155CC">http://localhost:3000</span></a><br>
+localhost:3000/</span><span style=3D"font-size:11.0pt;mso-ligatures:standar=
+dcontextual"><o:p></o:p></span></p>
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt;font-family:&quot;Ar=
+ial&quot;,sans-serif;color:#222222;mso-ligatures:standardcontextual">&nbsp;=
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><o=
+:p></o:p></span></p>
+<p style=3D"mso-margin-top-alt:0cm;margin-right:0cm;margin-bottom:11.25pt;m=
+argin-left:0cm;text-align:justify;font-variant-caps: normal;orphans: auto;w=
+idows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">&quot;But I must explain to you how all this mistaken idea o=
+f denouncing pleasure and praising pain was born and I will give you a comp=
+lete account of the system, and expound the actual
+ teachings of the great explorer of the truth, the master-builder of human =
+happiness. No one rejects, dislikes, or avoids pleasure itself, because it =
+is pleasure, but because those who do not know how to pursue pleasure ratio=
+nally encounter consequences that
+ are extremely painful. Nor again is there anyone who loves or pursues or d=
+esires to obtain pain of itself, because it is pain, but because occasional=
+ly circumstances occur in which toil and pain can procure him some great pl=
+easure. To take a trivial example,
+ which of us ever undertakes laborious physical exercise, except to obtain =
+some advantage from it? But who has any right to find fault with a man who =
+chooses to enjoy a pleasure that has no annoying consequences, or one who a=
+voids a pain that produces no resultant
+ pleasure?&quot;</span><o:p></o:p></p>
+<h3 style=3D"mso-margin-top-alt:11.25pt;margin-right:0cm;margin-bottom:11.2=
+5pt;margin-left:0cm;font-variant-caps: normal;orphans: auto;text-align:star=
+t;widows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">Section 1.10.33 of &quot;de Finibus Bonorum et Malorum&quot;=
+, written by Cicero in 45 BC</span><o:p></o:p></h3>
+<p style=3D"mso-margin-top-alt:0cm;margin-right:0cm;margin-bottom:11.25pt;m=
+argin-left:0cm;text-align:justify;font-variant-caps: normal;orphans: auto;w=
+idows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">&quot;At vero eos et accusamus et iusto odio dignissimos duc=
+imus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dol=
+ores et quas molestias excepturi sint occaecati&nbsp;</span><span style=3D"=
+font-size:12.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#222222"><a=
+ href=3D"https://www.facebook.com" target=3D"_blank"><span style=3D"color:#=
+1155CC">https://www.facebook.com</span></a></span><o:p></o:p></p>
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt;mso-ligatures:standa=
+rdcontextual"><a href=3D"https://app-1.number123.com" target=3D"_blank"><sp=
+an style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#1155CC">https:/=
+/app-1.number123.com</span></a></span><span style=3D"font-size:11.0pt;font-=
+family:&quot;Arial&quot;,sans-serif;color:#222222;mso-ligatures:standardcon=
+textual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://facebook.com" target=3D"_blank"><span style=3D"font-family:=
+&quot;Arial&quot;,sans-serif;color:#1155CC">http://facebook.com</span></a><=
+/span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-se=
+rif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"ftp://facebook.com" target=3D"_blank"><span style=3D"font-family:&=
+quot;Arial&quot;,sans-serif;color:#1155CC">ftp://facebook.com</span></a></s=
+pan><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-seri=
+f;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://localhost:3000" target=3D"_blank"><span style=3D"font-famil=
+y:&quot;Arial&quot;,sans-serif;color:#1155CC">http://localhost:3000</span><=
+/a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,san=
+s-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:12.0pt;font-family:&quot;Arial&quot;,sans-s=
+erif;color:#222222;background:white;mso-ligatures:standardcontextual">local=
+host:3000/</span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&qu=
+ot;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://unitedkingdomurl.co.uk" target=3D"_blank"><span style=3D"fo=
+nt-family:&quot;Arial&quot;,sans-serif;color:#1155CC">unitedkingdomurl.co.u=
+k</span></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&=
+quot;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://this.is.a.url.com/its/still=3Dgoing?wow" target=3D"_blank">=
+<span style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#1155CC">this=
+.is.a.url.com/its/still=3Dgoing?wow</span></a></span><span style=3D"font-si=
+ze:11.0pt;font-family:&quot;Arial&quot;,sans-serif;color:#222222;mso-ligatu=
+res:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://shop.facebook.org" target=3D"_blank"><span style=3D"font-fa=
+mily:&quot;Arial&quot;,sans-serif;color:#1155CC">shop.facebook.org</span></=
+a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans=
+-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://app.number123.com" target=3D"_blank"><span style=3D"font-fa=
+mily:&quot;Arial&quot;,sans-serif;color:#1155CC">app.number123.com</span></=
+a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans=
+-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://app1.number123.com" target=3D"_blank"><span style=3D"font-f=
+amily:&quot;Arial&quot;,sans-serif;color:#1155CC">app1.number123.com</span>=
+</a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sa=
+ns-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://app-1.numbEr123.com" target=3D"_blank"><span style=3D"font-=
+family:&quot;Arial&quot;,sans-serif;color:#1155CC">app-1.numbEr123.com</spa=
+n></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,=
+sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://app.dashes-dash.com" target=3D"_blank"><span style=3D"font-=
+family:&quot;Arial&quot;,sans-serif;color:#1155CC">app.dashes-dash.com</spa=
+n></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,=
+sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://www.facebook.com" target=3D"_blank"><span style=3D"font-fam=
+ily:&quot;Arial&quot;,sans-serif;color:#1155CC">www.facebook.com</span></a>=
+</span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-s=
+erif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://facebook.com" target=3D"_blank"><span style=3D"font-family:=
+&quot;Arial&quot;,sans-serif;color:#1155CC">facebook.com</span></a></span><=
+span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;col=
+or:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://fb.com/hello_123" target=3D"_blank"><span style=3D"font-fam=
+ily:&quot;Arial&quot;,sans-serif;color:#1155CC">fb.com/hello_123</span></a>=
+</span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-s=
+erif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://fb.com/hel-lo" target=3D"_blank"><span style=3D"font-family=
+:&quot;Arial&quot;,sans-serif;color:#1155CC">fb.com/hel-lo</span></a></span=
+><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif;c=
+olor:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://fb.com/hello/goodbye" target=3D"_blank"><span style=3D"font=
+-family:&quot;Arial&quot;,sans-serif;color:#1155CC">fb.com/hello/goodbye</s=
+pan></a></span><span style=3D"font-size:11.0pt;font-family:&quot;Arial&quot=
+;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://fb.com/hello/goodbye?okay" target=3D"_blank"><span style=3D=
+"font-family:&quot;Arial&quot;,sans-serif;color:#1155CC">fb.com/hello/goodb=
+ye?okay</span></a></span><span style=3D"font-size:11.0pt;font-family:&quot;=
+Arial&quot;,sans-serif;color:#222222;mso-ligatures:standardcontextual"><br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><a=
+ href=3D"http://fb.com/hello/goodbye?okay=3Dalright" target=3D"_blank"><spa=
+n style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#1155CC">fb.com/h=
+ello/goodbye?okay=3Dalright</span></a></span><span style=3D"font-size:11.0p=
+t;font-family:&quot;Arial&quot;,sans-serif;color:#222222;mso-ligatures:stan=
+dardcontextual"><br>
+<br>
+<br>
+</span><span style=3D"font-size:11.0pt;mso-ligatures:standardcontextual"><o=
+:p></o:p></span></p>
+<p style=3D"mso-margin-top-alt:0cm;margin-right:0cm;margin-bottom:11.25pt;m=
+argin-left:0cm;text-align:justify">
+<span style=3D"font-size:12.0pt;font-family:&quot;Arial&quot;,sans-serif;co=
+lor:#222222">Hello&nbsp;<a href=3D"http://www.google.com" target=3D"_blank"=
+><span style=3D"color:#1155CC">www.google.com</span></a>&nbsp;World&nbsp;<a=
+ href=3D"http://yahoo.com" target=3D"_blank"><span style=3D"color:#1155CC">=
+http://yahoo.com</span></a></span><span style=3D"font-size:10.5pt;font-fami=
+ly:&quot;Open Sans&quot;,sans-serif;color:black">&nbsp;cupiditate
+ non provident, similique sunt in culpa qui officia deserunt mollitia animi=
+, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expe=
+dita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cu=
+mque nihil impedit quo minus id
+ quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis d=
+olor repellendus. Temporibus autem quibusdam et aut officiis debitis aut re=
+rum necessitatibus saepe eveniet ut et voluptates repudiandae sint et moles=
+tiae non recusandae. Itaque earum
+ rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maio=
+res alias consequatur aut perferendis doloribus asperiores repellat.&quot;<=
+/span><o:p></o:p></p>
+<p style=3D"mso-margin-top-alt:0cm;margin-right:0cm;margin-bottom:11.25pt;m=
+argin-left:0cm;text-align:justify;font-variant-caps: normal;orphans: auto;w=
+idows: auto;-webkit-text-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-size:10.5pt;font-family:&quot;Open Sans&quot;,sans-seri=
+f;color:black">&nbsp;</span><o:p></o:p></p>
+<p style=3D"caret-color: rgb(34, 34, 34);font-variant-caps: normal;orphans:=
+ auto;text-align:start;widows: auto;-webkit-text-stroke-width: 0px;word-spa=
+cing:0px">
+<span style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#222222">try =
+this</span><o:p></o:p></p>
+<p style=3D"font-variant-caps: normal;orphans: auto;widows: auto;-webkit-te=
+xt-stroke-width: 0px;word-spacing:0px">
+<span style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#222222">&nbs=
+p;</span><o:p></o:p></p>
+<p style=3D"caret-color: rgb(34, 34, 34);font-variant-caps: normal;orphans:=
+ auto;text-align:start;widows: auto;-webkit-text-stroke-width: 0px;word-spa=
+cing:0px">
+<span style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#222222">=82=
+=80dnsCache.host=80=83<br>
+=81<span class=3D"apple-converted-space">&nbsp;</span><a href=3D"http://scp=
+xth.xyz" target=3D"_blank"><span style=3D"color:#1155CC">scpxth.xyz</span><=
+/a>&nbsp;&nbsp;&nbsp; =81<br>
+=84=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=85<br>
+=82=80dnsCache.host=80=80=80=80=80=80=80=80=80=83<br>
+=81 research.cynet.online =81<br>
+=81<span class=3D"apple-converted-space">&nbsp;</span><a href=3D"http://slb=
+.cynet.com" target=3D"_blank"><span style=3D"color:#1155CC">slb.cynet.com</=
+span></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =81<br>
+=81<span class=3D"apple-converted-space">&nbsp;</span><a href=3D"http://lin=
+k.sbstck.com" target=3D"_blank"><span style=3D"color:#1155CC">link.sbstck.c=
+om</span></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =81<br>
+=84=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=80=85=
+<br>
+=82=80dnsCache.host=80=80=80=80=80=80=80=80=80=80=80=80=83<br>
+=81<span class=3D"apple-converted-space">&nbsp;</span><a href=3D"http://act=
+.qasimforcongress.org" target=3D"_blank"><span style=3D"color:#1155CC">act.=
+qasimforcongress.org</span></a><span class=3D"apple-converted-space">&nbsp;=
+</span>=81</span><o:p></o:p></p>
+<p style=3D"caret-color: rgb(34, 34, 34);font-variant-caps: normal;orphans:=
+ auto;text-align:start;widows: auto;-webkit-text-stroke-width: 0px;word-spa=
+cing:0px">
+<span style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#222222">&nbs=
+p;</span><o:p></o:p></p>
+<p style=3D"caret-color: rgb(34, 34, 34);font-variant-caps: normal;orphans:=
+ auto;text-align:start;widows: auto;-webkit-text-stroke-width: 0px;word-spa=
+cing:0px">
+<span style=3D"font-family:&quot;Arial&quot;,sans-serif;color:#222222">Than=
+ks</span><o:p></o:p></p>
+<p class=3D"MsoNormal"><span style=3D"font-size:11.0pt;mso-ligatures:standa=
+rdcontextual">&nbsp;<o:p></o:p></span></p>
+</div>
+</div>
+</div>
+</body>
+</html>
+
+--_000_DB9PR01MB73235E8D018C4ADA7D420A15ACCFADB9PR01MB7323eurp_--
