@@ -64,7 +64,7 @@ func (q *quotedPrintable) Flush() []string {
 // To: eyaltest@cynetint.onmicrosoft.com <eyaltest@cynetint.onmicrosoft.com>
 // Subject: Find forward headers in outlook
 // TODO: see if we need to identify forward in outlook
-func (q *quotedPrintable) checkForwardedStartGmail(lineString string) (isForwarded bool) {
+func (q *quotedPrintable) checkForwardedStartGmail(lineString string, contentType processortypes.ContentType) (isForwarded bool) {
 	// gmail adds forwarded message
 	if strings.Contains(lineString, "---------- Forwarded message ---------") {
 		logrus.Infof("hit gmail forwarded start")
@@ -82,24 +82,42 @@ func (q *quotedPrintable) checkForwardedStartGmail(lineString string) (isForward
 	return false
 }
 
-func (q *quotedPrintable) checkForwardingFinishGmail(lineString string) {
+func (q *quotedPrintable) generatePossibleGmailEndings() []string {
 	gmailForwardingEnding := "<u></u>"
-	for _, char := range strings.Split(gmailForwardingEnding, "") {
-		if strings.HasPrefix(lineString, char) {
-			logrus.Infof("hit gmail forwarded end")
+	endingPossibilities := []string{}
+	for idx, _ := range gmailForwardingEnding {
+		endingPossibilities = append(endingPossibilities, gmailForwardingEnding[idx:])
+	}
+	return endingPossibilities
+}
+
+func (q *quotedPrintable) checkForwardingFinishGmail(lineString string, contentType processortypes.ContentType) {
+	switch contentType {
+	case processortypes.TextHTML:
+		allEndings := q.generatePossibleGmailEndings()
+		for _, ending := range allEndings {
+			if lineString == ending {
+				logrus.Infof("hit gmail forwarded end with content type: text/html")
+				q.isForwarded = false
+			}
+		}
+	case processortypes.TextPlain:
+		if lineString == "" {
+			logrus.Infof("hit gmail forwarded end with content type: text/plain")
 			q.isForwarded = false
 		}
 	}
+
 }
 
 func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
 	if q.isForwarded {
-		q.checkForwardingFinishGmail(lineString)
+		q.checkForwardingFinishGmail(lineString, contentType)
 		q.writeLine(lineString)
 		return true, nil
 	}
 
-	isForwarded := q.checkForwardedStartGmail(lineString)
+	isForwarded := q.checkForwardedStartGmail(lineString, contentType)
 	if isForwarded {
 		return true, nil
 	}
