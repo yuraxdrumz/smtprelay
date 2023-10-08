@@ -47,6 +47,27 @@ func TestSaveMailToMailDir(t *testing.T) {
 	os.RemoveAll("../../../examples/maildir")
 }
 
+func TestNoDoubleForward(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/double_forward.txt")
+	assert.NoError(t, err)
+	str := string(body)
+	rewrittenBody, _, _ := c.rewriteBody(str, urlReplacer)
+	split := strings.Split(rewrittenBody, "\n")
+	timesSeenForwarded := 0
+	for _, line := range split {
+		if line == "---------- Forwarded message ---------" {
+			timesSeenForwarded += 1
+		}
+	}
+
+	assert.EqualValuesf(t, 2, timesSeenForwarded, "should have been only two forwards in processed body")
+}
+
 func TestDoNotReplaceImageSrcs(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})

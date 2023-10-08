@@ -55,19 +55,24 @@ func (b *bodyProcessor) ProcessBody(line string) (links []string, err error) {
 	didHitBoundary := strings.HasPrefix(line, boundaryStart)
 	// if we hit another boundary call flush of current transfer encoding
 	if didHitBoundary {
+		logrus.WithFields(logrus.Fields{
+			"line":        line,
+			"boundaryEnd": boundaryEnd,
+			"boundaries":  b.boundaries,
+		}).Debugf("checking if boundary hit")
 		if line == boundaryEnd && len(b.boundaries) > 1 {
 			// pop boundary, set current boundary to one before
 			b.boundaries = b.boundaries[:len(b.boundaries)-1]
-			logrus.Debugf("popping boundary=%s", b.currentBoundary)
+			logrus.Infof("popping boundary=%s", b.currentBoundary)
 			b.currentBoundary = b.boundaries[len(b.boundaries)-1]
-			logrus.Debugf("setting boundary to=%s", b.currentBoundary)
+			logrus.Infof("setting boundary to=%s", b.currentBoundary)
 		}
 		foundLinks := b.bodyProcessors[b.currentTransferEncoding].Flush()
 		links = append(links, foundLinks...)
 		b.currentBoundaryAppearanceNumber += 1
 		b.currentContentType = processortypes.DefaultContentType
 		b.currentTransferEncoding = processortypes.Default
-		logrus.Debugf("hit boundary=%s, num=%d", b.currentBoundary, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit boundary=%s, num=%d", b.currentBoundary, b.currentBoundaryAppearanceNumber)
 	}
 
 	// if we are still in current boundary, no need to check content type and encoding, call process
@@ -84,34 +89,33 @@ func (b *bodyProcessor) ProcessBody(line string) (links []string, err error) {
 
 	// handle current content type
 	switch {
-	case strings.Contains(line, string(processortypes.MultiPart)):
+	case strings.Contains(line, `boundary=`):
+		// case strings.Contains(line, string(processortypes.MultiPart)):
 		// add another boundary and set current boundary
-		if strings.Contains(line, `boundary=`) {
-			splitBoundary := strings.Split(line, "boundary=")
-			newBoundary := strings.ReplaceAll(splitBoundary[1], `"`, "")
-			logrus.Debugf("found new boundary=%s", newBoundary)
-			b.boundaries = append(b.boundaries, newBoundary)
-			b.currentBoundary = newBoundary
-		}
+		splitBoundary := strings.Split(line, "boundary=")
+		newBoundary := strings.ReplaceAll(splitBoundary[1], `"`, "")
+		logrus.Infof("found new boundary=%s", newBoundary)
+		b.boundaries = append(b.boundaries, newBoundary)
+		b.currentBoundary = newBoundary
 	case strings.Contains(line, string(processortypes.Image)):
 		b.currentContentType = processortypes.Image
-		logrus.Debugf("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
 	case strings.Contains(line, string(processortypes.TextPlain)):
 		b.currentContentType = processortypes.TextPlain
-		logrus.Debugf("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
 	case strings.Contains(line, string(processortypes.TextHTML)):
 		b.currentContentType = processortypes.TextHTML
-		logrus.Debugf("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
 	case strings.Contains(line, string(processortypes.Base64)):
 		// call base64 until end of boundary
 		b.currentTransferEncoding = processortypes.Base64
 		b.lastCheckedBoundaryNumber = b.currentBoundaryAppearanceNumber
-		logrus.Debugf("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
 	case strings.Contains(line, string(processortypes.Quotedprintable)):
 		// call quoted printable until end of boundary
 		b.currentTransferEncoding = processortypes.Quotedprintable
 		b.lastCheckedBoundaryNumber = b.currentBoundaryAppearanceNumber
-		logrus.Debugf("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
 	}
 
 	_, foundLinks := b.bodyProcessors[processortypes.Default].Process(line, didHitBoundary, b.currentBoundary, b.currentBoundaryAppearanceNumber, b.currentContentType)

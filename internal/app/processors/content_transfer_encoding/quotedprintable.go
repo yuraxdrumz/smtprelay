@@ -64,9 +64,10 @@ func (q *quotedPrintable) Flush() []string {
 // To: eyaltest@cynetint.onmicrosoft.com <eyaltest@cynetint.onmicrosoft.com>
 // Subject: Find forward headers in outlook
 // TODO: see if we need to identify forward in outlook
-func (q *quotedPrintable) checkForwardedStartGmail(lineString string) {
+func (q *quotedPrintable) checkForwardedStartGmail(lineString string) (isForwarded bool) {
 	// gmail adds forwarded message
 	if strings.Contains(lineString, "---------- Forwarded message ---------") {
+		logrus.Infof("hit gmail forwarded start")
 		// we may have accumulated quoted printable data in buffer, flush
 		accumulated := q.buf.String()
 		q.writeNewLine()
@@ -76,23 +77,30 @@ func (q *quotedPrintable) checkForwardedStartGmail(lineString string) {
 		}
 		q.writeLine(lineString)
 		q.isForwarded = true
+		return true
 	}
+	return false
 }
 
 func (q *quotedPrintable) checkForwardingFinishGmail(lineString string) {
 	gmailForwardingEnding := "<u></u>"
 	for _, char := range strings.Split(gmailForwardingEnding, "") {
 		if strings.HasPrefix(lineString, char) {
+			logrus.Infof("hit gmail forwarded end")
 			q.isForwarded = false
 		}
 	}
 }
 
 func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
-	q.checkForwardedStartGmail(lineString)
 	if q.isForwarded {
 		q.checkForwardingFinishGmail(lineString)
 		q.writeLine(lineString)
+		return true, nil
+	}
+
+	isForwarded := q.checkForwardedStartGmail(lineString)
+	if isForwarded {
 		return true, nil
 	}
 
