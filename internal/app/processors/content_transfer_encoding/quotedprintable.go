@@ -71,11 +71,17 @@ func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boun
 		// we may have accumulated quoted printable data in buffer, flush
 		accumulated := q.buf.String()
 		q.writeNewLine()
-		if accumulated != "" {
-			q.writeLine(accumulated)
-			q.buf.Reset()
-		}
 		q.writeLine(lineString)
+		if accumulated != "" {
+			replacedLine, foundLinks, err := q.urlReplacer.Replace(accumulated)
+			if err != nil {
+				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+				return false, nil
+			}
+			q.writeLine(replacedLine)
+			q.buf.Reset()
+			return true, foundLinks
+		}
 		return true, nil
 	}
 

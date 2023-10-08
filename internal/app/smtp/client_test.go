@@ -142,6 +142,23 @@ func TestBase64Equals76Chars(t *testing.T) {
 	assert.Fail(t, "should have been asserted true on 76 chars base64")
 }
 
+func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/forward/before_forward.txt")
+	assert.NoError(t, err)
+	str := string(body)
+	rewrittenBody, headers, _ := c.rewriteBody(str, urlReplacer)
+	newBody := &strings.Builder{}
+	newBody.WriteString(headers.String())
+	newBody.WriteString(rewrittenBody)
+	assert.NotContains(t, newBody.String(), "dnsCache.host")
+	assert.NotContains(t, newBody.String(), "scpxth.xyz")
+}
+
 func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
