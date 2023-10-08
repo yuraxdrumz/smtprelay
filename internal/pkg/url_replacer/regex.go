@@ -43,7 +43,7 @@ func (r *regexUrlReplacer) Replace(str string) (replaced string, links []string,
 		}
 		// if link has 3 chars before src=, its image source, ignore
 		linkIdx := strings.Index(replacedLine, string(link))
-		if len(replacedLine) > len(link)+4 {
+		if linkIdx > 4 {
 			stringBeforeLink := replacedLine[linkIdx-5 : linkIdx-1]
 			if stringBeforeLink == "src=" {
 				// do not replace src link
