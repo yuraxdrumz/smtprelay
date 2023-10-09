@@ -45,6 +45,7 @@ func (r *regexUrlReplacer) Replace(str string) (replaced string, links []string,
 		linkIdx := strings.Index(replacedLine, string(link))
 		if linkIdx > 4 {
 			stringBeforeLink := replacedLine[linkIdx-5 : linkIdx-1]
+			// TODO: add check on name=, filename=
 			if stringBeforeLink == "src=" {
 				// do not replace src link
 				continue

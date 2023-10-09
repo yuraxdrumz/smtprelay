@@ -155,7 +155,7 @@ func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 	rewrittenBody, _, _ := c.rewriteBody(str, urlReplacer)
 	t.Log(rewrittenBody)
 	assert.NotContains(t, rewrittenBody, "dnsCache.host")
-	assert.Contains(t, rewrittenBody, "scpxth.xyz")
+	assert.NotContains(t, rewrittenBody, "scpxth.xyz")
 }
 
 func TestEmailBase64WithMaliciousLink(t *testing.T) {
