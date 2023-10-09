@@ -21,11 +21,11 @@ type base64 struct {
 	forwardProcessor *forwarded.Forwarded
 }
 
-func NewBase64Processor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *base64 {
+func NewBase64Processor(urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *base64 {
 	return &base64{
 		buf:              &strings.Builder{},
 		gotToBase64Body:  false,
-		lineWriter:       lineWriter,
+		lineWriter:       new(bytes.Buffer),
 		urlReplacer:      urlReplacer,
 		forwardProcessor: forwardProcessor,
 	}
@@ -52,13 +52,22 @@ func (b *base64) writeLine(line string) {
 	b.writeNewLine()
 }
 
-func (b *base64) Flush(contentType processortypes.ContentType) []string {
+func (b *base64) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string) (section *processortypes.Section, links []string) {
 	qpBuf, foundLinks := b.parseBase64(contentType)
 	emailBase64 := b.insertNth(qpBuf, 76)
 	b.writeLine(emailBase64)
 	b.buf.Reset()
 	b.gotToBase64Body = false
-	return foundLinks
+	data := b.lineWriter.String()
+	b.lineWriter.Reset()
+	return &processortypes.Section{
+		Name:                    string(b.Name()),
+		Boundary:                boundary,
+		ContentType:             contentType,
+		ContentTransferEncoding: contentTransferEncoding,
+		Data:                    data,
+		Processed:               contentType != processortypes.Image,
+	}, foundLinks
 }
 
 func (b *base64) insertNth(s string, n int) string {

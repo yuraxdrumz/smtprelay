@@ -37,15 +37,6 @@ func (q *Forwarded) CheckForwardedStartGmail(lineString string, contentType proc
 	return false
 }
 
-func (q *Forwarded) generatePossibleGmailEndings() []string {
-	gmailForwardingEnding := "<u></u>"
-	endingPossibilities := []string{}
-	for idx := range gmailForwardingEnding {
-		endingPossibilities = append(endingPossibilities, gmailForwardingEnding[idx:])
-	}
-	return endingPossibilities
-}
-
 func (q *Forwarded) CheckForwardingFinishGmail(lineString string, contentType processortypes.ContentType) {
 	switch contentType {
 	case processortypes.TextHTML:

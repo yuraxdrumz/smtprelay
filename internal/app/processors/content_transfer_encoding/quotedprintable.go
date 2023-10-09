@@ -19,10 +19,10 @@ type quotedPrintable struct {
 	forwardProcessor *forwarded.Forwarded
 }
 
-func NewQuotedPrintableProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *quotedPrintable {
+func NewQuotedPrintableProcessor(urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *quotedPrintable {
 	return &quotedPrintable{
 		buf:              &strings.Builder{},
-		lineWriter:       lineWriter,
+		lineWriter:       new(bytes.Buffer),
 		urlReplacer:      urlReplacer,
 		forwardProcessor: forwardProcessor,
 	}
@@ -49,14 +49,23 @@ func (q *quotedPrintable) writeLine(line string) {
 	q.writeNewLine()
 }
 
-func (q *quotedPrintable) Flush(contentType processortypes.ContentType) []string {
+func (q *quotedPrintable) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string) (section *processortypes.Section, links []string) {
 	logrus.Debug("flushing as quotedPrintable to rest of body")
 	q.writeNewLine()
 	qpBuf, foundLinks := q.parseQuotedPrintable()
 	q.writeLine(qpBuf)
 	q.writeNewLine()
 	q.buf.Reset()
-	return foundLinks
+	data := q.lineWriter.String()
+	q.lineWriter.Reset()
+	return &processortypes.Section{
+		Name:                    string(q.Name()),
+		Boundary:                boundary,
+		ContentType:             contentType,
+		ContentTransferEncoding: contentTransferEncoding,
+		Data:                    data,
+		Processed:               contentType != processortypes.Image,
+	}, foundLinks
 }
 
 func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {

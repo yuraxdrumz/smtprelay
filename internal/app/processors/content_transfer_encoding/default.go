@@ -15,9 +15,9 @@ type defaultBody struct {
 	forwardProcessor *forwarded.Forwarded
 }
 
-func NewDefaultBodyProcessor(lineWriter *bytes.Buffer, urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *defaultBody {
+func NewDefaultBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *defaultBody {
 	return &defaultBody{
-		lineWriter:       lineWriter,
+		lineWriter:       new(bytes.Buffer),
 		urlReplacer:      urlReplacer,
 		forwardProcessor: forwardProcessor,
 	}
@@ -44,17 +44,28 @@ func (d *defaultBody) writeLine(line string) {
 	d.writeNewLine()
 }
 
-func (d *defaultBody) Flush(contentType processortypes.ContentType) []string {
-	return nil
+func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string) (section *processortypes.Section, links []string) {
+	data := d.lineWriter.String()
+	d.lineWriter.Reset()
+	replacedData, foundLinks, err := d.urlReplacer.Replace(data)
+	if err != nil {
+		logrus.Errorf("error in writing line=%s, err=%s", data, err)
+		return
+	}
+	logrus.Infof("data from default %s", data)
+	logrus.Infof("replacedData from default %s", replacedData)
+	return &processortypes.Section{
+		Name:                    string(d.Name()),
+		Boundary:                boundary,
+		ContentType:             contentType,
+		ContentTransferEncoding: contentTransferEncoding,
+		Data:                    replacedData,
+		Processed:               contentType != processortypes.Image,
+	}, foundLinks
 }
 
 func (d *defaultBody) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
 	// if no quoted printable, replace line as usual
-	replacedLine, foundLinks, err := d.urlReplacer.Replace(lineString)
-	if err != nil {
-		logrus.Errorf("error in writing line=%s, err=%s", lineString, err)
-		return
-	}
-	d.writeLine(replacedLine)
-	return true, foundLinks
+	d.writeLine(lineString)
+	return true, nil
 }

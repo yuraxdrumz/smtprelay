@@ -1,7 +1,6 @@
 package contenttransferencoding
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/decke/smtprelay/internal/app/processors/forwarded"
@@ -10,9 +9,8 @@ import (
 )
 
 func TestGmailForwardingTextPlain(t *testing.T) {
-	buf := new(bytes.Buffer)
 	forwardedProcessor := forwarded.New()
-	q := NewQuotedPrintableProcessor(buf, nil, forwardedProcessor)
+	q := NewQuotedPrintableProcessor(nil, forwardedProcessor)
 	line := "---------- Forwarded message ---------"
 	q.Process(line, false, "", 0, processortypes.TextPlain)
 	assert.True(t, q.forwardProcessor.IsForwarded())
@@ -22,9 +20,8 @@ func TestGmailForwardingTextPlain(t *testing.T) {
 }
 
 func TestGmailForwardingTextHTML(t *testing.T) {
-	buf := new(bytes.Buffer)
 	forwardedProcessor := forwarded.New()
-	q := NewQuotedPrintableProcessor(buf, nil, forwardedProcessor)
+	q := NewQuotedPrintableProcessor(nil, forwardedProcessor)
 	line := "---------- Forwarded message ---------"
 	q.Process(line, false, "", 0, processortypes.TextHTML)
 	assert.True(t, q.forwardProcessor.IsForwarded())

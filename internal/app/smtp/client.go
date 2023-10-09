@@ -18,7 +18,6 @@
 package smtp
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/base64"
@@ -33,7 +32,6 @@ import (
 
 	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
-	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
@@ -439,17 +437,11 @@ func SendMail(
 		"key":  beforeMsg.Key(),
 	}).Info("saved before msg")
 
-	replacedBody, headers, links := c.rewriteBody(string(msg), urlReplacer)
-	log.Debugf("found the following links=%+v", links)
-	shouldMark := c.shouldMarkEmailByLinks(scanner, links, replacedBody)
-	if shouldMark {
-		headers = c.addHeader(headers, *cynetActionHeader, "junk")
+	newBodyString, err := c.rewriteEmail(string(msg), urlReplacer, scanner)
+	if err != nil {
+		log.Warnf("failed to process body, err=%s", err)
+		return err
 	}
-
-	newBody := &strings.Builder{}
-	newBody.WriteString(headers.String())
-	newBody.WriteString(replacedBody)
-	newBodyString := newBody.String()
 
 	afterMsg, err := md.Add(newBodyString)
 	if err != nil {
@@ -474,7 +466,7 @@ func SendMail(
 	return c.Quit()
 }
 
-func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[string]bool, body string) bool {
+func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[string]bool) bool {
 	shouldMarkEmail := false
 	for link := range links {
 		res, err := scanner.ScanURL(link)
@@ -498,75 +490,30 @@ func (c *Client) addHeader(headers *strings.Builder, key string, value string) *
 	return headers
 }
 
-func (c *Client) writeNewLine() {
-	_, err := c.tmpBuffer.WriteString("\n")
+func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner) (string, error) {
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer)
+	sections, headers, links, err := bodyProcessor.GetBodySections(msg)
 	if err != nil {
-		log.Errorf("error in writing new line, err=%s", err)
-		return
-	}
-}
-
-func (c *Client) writeLine(line string) {
-	_, err := c.tmpBuffer.WriteString(line)
-	if err != nil {
-		log.Errorf("error in writing line=%s, err=%s", line, err)
-		return
-	}
-	c.writeNewLine()
-}
-
-func (c *Client) rewriteBody(msg string, urlReplacer urlreplacer.UrlReplacerActions) (string, *strings.Builder, map[string]bool) {
-	forwardedProcessor := forwarded.New()
-	bodyProcessor := processors.NewBodyProcessor(c.tmpBuffer, urlReplacer, forwardedProcessor)
-	bodyReader := strings.NewReader(msg)
-	scanner := bufio.NewScanner(bodyReader)
-	// 8MB max token size, which can be a file encoded in base64
-	scanner.Buffer([]byte{}, 8*1024*1024)
-	scanner.Split(bufio.ScanLines)
-	reachedBody := false
-	linksMap := map[string]bool{}
-	boundary := ""
-	headers := &strings.Builder{}
-	for scanner.Scan() {
-		line := scanner
-		lineString := line.Text()
-		if lineString == "" && !reachedBody {
-			log.Debug("reached body")
-			reachedBody = true
-		}
-
-		if !reachedBody {
-			headers.WriteString(lineString)
-			headers.WriteString("\n")
-			if strings.Contains(lineString, `boundary=`) {
-				splitBoundary := strings.Split(lineString, "boundary=")
-				boundary = strings.ReplaceAll(splitBoundary[1], `"`, "")
-				bodyProcessor.SetBoundary(boundary)
-				logrus.Debugf("found boundary=%s", boundary)
-			}
-			continue
-		}
-
-		if boundary == "" {
-			logrus.Fatalf("no boundary found in headers=%s", headers.String())
-		}
-
-		links, err := bodyProcessor.ProcessBody(lineString)
-		for _, link := range links {
-			linksMap[link] = true
-		}
-
-		if err != nil {
-			logrus.Error(err)
-		}
+		return "", err
 	}
 
-	if err := scanner.Err(); err != nil {
-		log.Errorf("error in scanner, err=%s", err)
-		return msg, nil, nil
+	newBody := &strings.Builder{}
+	log.Debugf("found the following links=%+v", links)
+	shouldMark := c.shouldMarkEmailByLinks(scanner, links)
+	if shouldMark {
+		headers = c.addHeader(headers, *cynetActionHeader, "junk")
 	}
-	// log.Debugf("quotedString=%s", quotedPrintableString)
-	return c.tmpBuffer.String(), headers, linksMap
+	newBody.WriteString(headers.String())
+	for _, section := range sections {
+		newBody.WriteString("\n")
+		newBody.WriteString(fmt.Sprintf("--%s", section.Boundary))
+		newBody.WriteString("\n")
+		newBody.WriteString(section.Data)
+	}
+	lastSection := sections[len(sections)-1]
+	newBody.WriteString(fmt.Sprintf("--%s--", lastSection.Boundary))
+	newBody.WriteString("\n")
+	return newBody.String(), nil
 }
 
 // Extension reports whether an extension is support by the server.
