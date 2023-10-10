@@ -18,8 +18,11 @@ const (
 )
 
 type Section struct {
-	Name                    string
-	Boundary                string
+	Name     string
+	Boundary string
+	// if we have multiple boundaries and we need to close one of them, we add it here
+	BoundaryEnd             string
+	Headers                 string
 	ContentType             ContentType
 	ContentTransferEncoding ContentTransferEncoding
 	Data                    string

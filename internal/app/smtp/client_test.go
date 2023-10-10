@@ -126,24 +126,13 @@ func TestGetLinksDeduplicated(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
-	ctrl := gomock.NewController(t)
-	sc := scanner.NewMockScanner(ctrl)
-	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
-		{
-			StatusCode:    0,
-			DomainGrey:    false,
-			StatusMessage: []string{},
-		},
-	}, nil).AnyTimes()
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
-	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
-	os.WriteFile("../../../examples/test_results/TestGetLinksDeduplicated.txt", []byte(rewrittenBody), 0666)
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer)
+	_, _, links, err := bodyProcessor.GetBodySections(string(body))
 	assert.NoError(t, err)
-	assert.NotContains(t, rewrittenBody, "</div></div>\n\n--0000000000008dfe8706066a3fbb--\n")
-	// assert.Len(t, links, 67)
+	assert.Len(t, links, 67)
 }
 
 func TestBase64InnerBoundary(t *testing.T) {
@@ -157,6 +146,7 @@ func TestBase64InnerBoundary(t *testing.T) {
 	str := string(body)
 	newBody, err := c.rewriteEmail(str, urlReplacer, nil)
 	assert.NoError(t, err)
+	os.WriteFile("../../../examples/test_results/TestBase64InnerBoundary.msg", []byte(newBody), 0666)
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018")
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018--")
 	assert.Contains(t, newBody, "--000000000000d40a3f0606f64016")

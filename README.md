@@ -13,3 +13,4 @@ https://github.com/Supme/smtpSender/blob/master/builder.go
 
 [ ] - Attachments names get rewritten
 [ ] - Images srcs in outlook get cid referenced from attachments
+[ ] - Sections are written without their headers

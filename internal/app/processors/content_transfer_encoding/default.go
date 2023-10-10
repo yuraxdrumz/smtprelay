@@ -13,6 +13,7 @@ type defaultBody struct {
 	lineWriter       *bytes.Buffer
 	urlReplacer      urlreplacer.UrlReplacerActions
 	forwardProcessor *forwarded.Forwarded
+	headers          string
 }
 
 func NewDefaultBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *defaultBody {
@@ -44,7 +45,11 @@ func (d *defaultBody) writeLine(line string) {
 	d.writeNewLine()
 }
 
-func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string) (section *processortypes.Section, links []string) {
+func (d *defaultBody) SetSectionHeaders(headers string) {
+	d.headers = headers
+}
+
+func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string, boundaryEnd string) (section *processortypes.Section, links []string) {
 	data := d.lineWriter.String()
 	d.lineWriter.Reset()
 	replacedData, foundLinks, err := d.urlReplacer.Replace(data)
@@ -57,8 +62,10 @@ func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTrans
 	return &processortypes.Section{
 		Name:                    string(d.Name()),
 		Boundary:                boundary,
+		BoundaryEnd:             boundaryEnd,
 		ContentType:             contentType,
 		ContentTransferEncoding: contentTransferEncoding,
+		Headers:                 d.headers,
 		Data:                    replacedData,
 		Processed:               contentType != processortypes.Image,
 	}, foundLinks
