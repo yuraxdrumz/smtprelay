@@ -14,18 +14,17 @@ import (
 
 type ContentTransferProcessor interface {
 	Process(lineString string)
-	Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string, boundaryEnd string) (section *processortypes.Section, links []string)
+	Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string)
 	Name() processortypes.ContentTransferEncoding
 	SetSectionHeaders(headers string)
 }
 
 type bodyProcessor struct {
-	localBuffer                     *strings.Builder
+	headersBuffer                   *strings.Builder
 	bodyProcessors                  map[processortypes.ContentTransferEncoding]ContentTransferProcessor
 	boundaries                      []string
 	currentBoundary                 string
 	currentBoundaryAppearanceNumber int
-	lastCheckedBoundaryNumber       int
 	boundariesEncountered           int
 	boundariesProcessed             int
 	currentTransferEncoding         processortypes.ContentTransferEncoding
@@ -43,13 +42,8 @@ func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions) *bodyProcessor
 	processorMap[quotedPrintableProcessor.Name()] = quotedPrintableProcessor
 	return &bodyProcessor{
 		bodyProcessors: processorMap,
-		localBuffer:    &strings.Builder{},
+		headersBuffer:  &strings.Builder{},
 	}
-}
-
-func (b *bodyProcessor) SetBoundary(boundary string) {
-	b.boundaries = []string{boundary}
-	b.currentBoundary = boundary
 }
 
 func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section, *strings.Builder, map[string]bool, error) {
@@ -102,7 +96,7 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 // we process the body by sections, each section is divided by a boundary
 // whenever we reach a boundary, we collect all the headers that follow the boundary until new line
 // after reaching newline, we already know from the headers, which processor to use, like base64 or quoted printable
-// We set the headers of the section by calling the corresponding body processor
+// we set the headers of the section by calling the corresponding body processor
 // we process line by line until we hit another boundary
 // when another boundary is hit, we flush what we collected from previous boundary
 // flushing a boundary returns a section object, which includes:
@@ -110,9 +104,9 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 // content transfer encoding
 // headers
 // data
-// boundary
 func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Section, links []string, err error) {
 	links = []string{}
+	isHeader := false
 	if len(b.boundaries) == 0 {
 		return nil, nil, fmt.Errorf("boundary should be set before processing body")
 	}
@@ -124,8 +118,7 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	if didHitBoundaryStart || didHitBoundaryEnd {
 		if didHitBoundaryStart {
 			b.boundariesEncountered += 1
-			b.localBuffer.WriteString(line)
-			b.localBuffer.WriteString("\n")
+			b.writeHeaderToBuffer(line)
 		}
 		// first boundary we hit is after headers, so no section there
 		if b.boundariesEncountered == 1 {
@@ -136,13 +129,10 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 		return foundSection, links, nil
 	}
 
-	isHeader := false
-
-	// after hit boundary, all headers afterwards until newline need buffer until we find where to set them
+	// between boundary and newline everything is considered headers
 	if b.boundariesEncountered > b.boundariesProcessed && line != "" {
 		isHeader = true
-		b.localBuffer.WriteString(line)
-		b.localBuffer.WriteString("\n")
+		b.writeHeaderToBuffer(line)
 	}
 
 	// its possible to have nested boundaries, so we always look for them
@@ -160,14 +150,11 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	}
 	// after reaching newline and the current section was not yet processes by counting boundaries
 	// set all buffered headers as section headers, flush buffer and don't process
-	if line == "" && b.boundariesEncountered > b.boundariesProcessed {
+	if b.boundariesEncountered > b.boundariesProcessed && line == "" {
 		b.boundariesProcessed = b.boundariesEncountered
-		headers := b.localBuffer.String()
-		headers = strings.TrimSuffix(headers, "\n")
-		logrus.Infof("headers for boundary=%s, headers=%s", b.currentBoundary, headers)
-		// by this point, content transfter encoding was already chosen
+		headers := b.flushHeaders(line)
+		// by this point, content transfer encoding was already chosen
 		b.bodyProcessors[b.currentTransferEncoding].SetSectionHeaders(headers)
-		b.localBuffer.Reset()
 		b.processLine(line)
 		return nil, nil, nil
 	}
@@ -179,9 +166,21 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	return nil, nil, nil
 }
 
+func (b *bodyProcessor) writeHeaderToBuffer(line string) {
+	b.headersBuffer.WriteString(line)
+	b.headersBuffer.WriteString("\n")
+}
+
+func (b *bodyProcessor) flushHeaders(line string) string {
+	headers := b.headersBuffer.String()
+	headers = strings.TrimSuffix(headers, "\n")
+	logrus.Debugf("headers for boundary=%s, headers=%s", b.currentBoundary, headers)
+	b.headersBuffer.Reset()
+	return headers
+}
+
 func (b *bodyProcessor) processLine(line string) {
 	b.bodyProcessors[b.currentTransferEncoding].Process(line)
-	// links = append(links, foundLinks...)
 }
 
 func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (section *processortypes.Section, foundLinks []string) {
@@ -197,9 +196,8 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 		b.boundariesEncountered = 0
 		b.boundariesProcessed = 0
 		shouldAddLastBoundaryLine = true
-		// b.processLine(line)
 	}
-	section, foundLinks = b.bodyProcessors[b.currentTransferEncoding].Flush(b.currentContentType, b.currentTransferEncoding, b.currentBoundary, boundaryEnd)
+	section, foundLinks = b.bodyProcessors[b.currentTransferEncoding].Flush(b.currentContentType, b.currentTransferEncoding)
 	if shouldAddLastBoundaryLine {
 		section.Data += fmt.Sprintf("\n%s\n", line)
 	}
@@ -215,13 +213,11 @@ func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {
 	case strings.Contains(line, string(processortypes.Base64)):
 		// call base64 until end of boundary
 		b.currentTransferEncoding = processortypes.Base64
-		b.lastCheckedBoundaryNumber = b.currentBoundaryAppearanceNumber
 		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
 		return true
 	case strings.Contains(line, string(processortypes.Quotedprintable)):
 		// call quoted printable until end of boundary
 		b.currentTransferEncoding = processortypes.Quotedprintable
-		b.lastCheckedBoundaryNumber = b.currentBoundaryAppearanceNumber
 		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
 		return true
 	default:
@@ -237,6 +233,7 @@ func (b *bodyProcessor) setBoundaryFromLine(line string) bool {
 	// add another boundary and set current boundary
 	splitBoundary := strings.Split(line, "boundary=")
 	newBoundary := strings.ReplaceAll(splitBoundary[1], `"`, "")
+	newBoundary = strings.ReplaceAll(newBoundary, ";", "")
 	logrus.Infof("found new boundary=%s", newBoundary)
 	b.boundaries = append(b.boundaries, newBoundary)
 	b.currentBoundary = newBoundary

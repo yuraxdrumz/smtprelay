@@ -53,7 +53,7 @@ func (b *base64) writeLine(line string) {
 	b.writeNewLine()
 }
 
-func (b *base64) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string, boundaryEnd string) (section *processortypes.Section, links []string) {
+func (b *base64) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string) {
 	qpBuf, foundLinks := b.parseBase64(contentType)
 	emailBase64 := b.insertNth(qpBuf, 76)
 	b.writeLine(emailBase64)

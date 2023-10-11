@@ -52,9 +52,8 @@ func TestSaveMailToMailDir(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	_, err = c.rewriteEmail(str, urlReplacer, sc)
 	assert.NoError(t, err)
-	os.WriteFile("../../../examples/test_results/TestSaveMailToMailDir.msg", []byte(rewrittenBody), 0666)
 	m, _ := md.Add(str)
 	assert.NotEmpty(t, m.Key())
 	md.Delete(m.Key())
@@ -81,7 +80,6 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 	str := string(body)
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
 	assert.NoError(t, err)
-	os.WriteFile("../../../examples/test_results/TestForwardShouldAppearLikeInOriginal.msg", []byte(rewrittenBody), 0666)
 	split := strings.Split(rewrittenBody, "\n")
 	timesSeenForwarded := 0
 	for _, line := range split {
@@ -114,7 +112,6 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 	str := string(body)
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
 	assert.NoError(t, err)
-	os.WriteFile("../../../examples/test_results/TestDoNotReplaceImageSrcs.msg", []byte(rewrittenBody), 0666)
 	assert.Contains(t, rewrittenBody, "src=3D\"https://image.properties")
 	// assert.NotContains(t, links, "https://image.properties.emaarinfo.com/lib/fe3811717564047c741d76/m/1/99c40832-90df-4138-b786-d70bd1ed119b.jpg")
 }
@@ -154,7 +151,6 @@ func TestBase64InnerBoundary(t *testing.T) {
 	str := string(body)
 	newBody, err := c.rewriteEmail(str, urlReplacer, sc)
 	assert.NoError(t, err)
-	os.WriteFile("../../../examples/test_results/TestBase64InnerBoundary.msg", []byte(newBody), 0666)
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018")
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018--")
 	assert.Contains(t, newBody, "--000000000000d40a3f0606f64016")
@@ -230,7 +226,6 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	str := string(body)
 	*cynetActionHeader = "X-Cynet-Action"
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
-	os.WriteFile("../../../examples/test_results/TestEmailBase64WithMaliciousLink.msg", []byte(rewrittenBody), 0666)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
@@ -300,4 +295,73 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
 	assert.NoError(t, err)
 	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
+}
+
+func TestBoundaryMultiline(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/images/outlook.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	assert.NoError(t, err)
+	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_")
+	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_--")
+	assert.Contains(t, rewrittenBody, "--_000_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_")
+	assert.Contains(t, rewrittenBody, "--_000_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_--")
+}
+
+func TestWriteAllEmails(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	setupLogger()
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	items, _ := os.ReadDir("../../../examples")
+	for _, item := range items {
+		if item.Name() == "test_results" {
+			continue
+		}
+		if item.IsDir() {
+			subitems, _ := os.ReadDir(fmt.Sprintf("../../../examples/%s", item.Name()))
+			for _, subitem := range subitems {
+				if !subitem.IsDir() {
+					// handle file there
+					emailToCheck := fmt.Sprintf("../../../examples/%s/%s", item.Name(), subitem.Name())
+					body, err := os.ReadFile(emailToCheck)
+					assert.NoError(t, err)
+					str := string(body)
+					rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+					assert.NoError(t, err)
+					os.WriteFile(fmt.Sprintf("../../../examples/test_results/%s", subitem.Name()), []byte(rewrittenBody), 0666)
+				}
+			}
+		} else {
+			// handle file there
+			t.Log(item.Name())
+		}
+	}
 }

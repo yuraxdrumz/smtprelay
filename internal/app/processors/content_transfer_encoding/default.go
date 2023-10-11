@@ -49,7 +49,7 @@ func (d *defaultBody) SetSectionHeaders(headers string) {
 	d.headers = headers
 }
 
-func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string, boundaryEnd string) (section *processortypes.Section, links []string) {
+func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string) {
 	data := d.lineWriter.String()
 	d.lineWriter.Reset()
 	headerString := d.headers
