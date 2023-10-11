@@ -11,7 +11,8 @@ import (
 func TestProcessorsNoBoundary(t *testing.T) {
 	aesEncoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("http://test.com", aesEncoder)
-	p := NewBodyProcessor(urlReplacer)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	p := NewBodyProcessor(urlReplacer, htmlURLReplacer)
 	_, _, err := p.ProcessBody("test")
 	assert.Error(t, err)
 }

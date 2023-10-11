@@ -31,12 +31,12 @@ type bodyProcessor struct {
 	currentContentType              processortypes.ContentType
 }
 
-func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions) *bodyProcessor {
+func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions) *bodyProcessor {
 	forwardedProcessor := forwarded.New()
 	processorMap := map[processortypes.ContentTransferEncoding]ContentTransferProcessor{}
 	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(urlReplacer, forwardedProcessor)
 	base64Processor := contenttransferencoding.NewBase64Processor(urlReplacer, forwardedProcessor)
-	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(urlReplacer, forwardedProcessor)
+	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(htmlURLReplacer, forwardedProcessor)
 	processorMap[defaultProcessor.Name()] = defaultProcessor
 	processorMap[base64Processor.Name()] = base64Processor
 	processorMap[quotedPrintableProcessor.Name()] = quotedPrintableProcessor

@@ -344,6 +344,7 @@ func SendMail(
 	metrics *metrics.Metrics,
 	scanner scanner.Scanner,
 	urlReplacer urlreplacer.UrlReplacerActions,
+	htmlURLReplacer urlreplacer.UrlReplacerActions,
 	md *maildir.Maildir,
 ) error {
 	if r.Sender != "" {
@@ -437,7 +438,7 @@ func SendMail(
 		"key":  beforeMsg.Key(),
 	}).Info("saved before msg")
 
-	newBodyString, err := c.rewriteEmail(string(msg), urlReplacer, scanner)
+	newBodyString, err := c.rewriteEmail(string(msg), urlReplacer, htmlURLReplacer, scanner)
 	if err != nil {
 		log.Warnf("failed to process body, err=%s", err)
 		return err
@@ -490,8 +491,8 @@ func (c *Client) addHeader(headers *strings.Builder, key string, value string) *
 	return headers
 }
 
-func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner) (string, error) {
-	bodyProcessor := processors.NewBodyProcessor(urlReplacer)
+func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerActions, htmlUrlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner) (string, error) {
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlUrlReplacer)
 	sections, headers, links, err := bodyProcessor.GetBodySections(msg)
 	if err != nil {
 		return "", err

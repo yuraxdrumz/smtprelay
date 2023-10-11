@@ -160,7 +160,7 @@ func authChecker(peer smtpd.Peer, username string, password string) error {
 	return nil
 }
 
-func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlReplacer urlreplacer.UrlReplacerActions, md *maildir.Maildir) func(peer smtpd.Peer, env smtpd.Envelope) error {
+func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions, md *maildir.Maildir) func(peer smtpd.Peer, env smtpd.Envelope) error {
 	return func(peer smtpd.Peer, env smtpd.Envelope) error {
 		peerIP := ""
 		if addr, ok := peer.Addr.(*net.TCPAddr); ok {
@@ -265,6 +265,7 @@ func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlRe
 			metrics,
 			scanner,
 			urlReplacer,
+			htmlURLReplacer,
 			md,
 		)
 		if err != nil {
@@ -366,6 +367,7 @@ func Smtp() {
 	httpGetter := httpgetter.NewHTTPGetter(&http.Client{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer(*cynetProtectionUrl, aes256Encoder)
+	htmlUrlReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	md := maildir.NewMaildir(*mailDir)
 	// scanner := scanner.NewNimbusScanner(httpGetter, env.ENVVARS.ScannerURL, env.ENVVARS.ScannerClientID)
 	scanner := scanner.NewWebFilter(httpGetter, *scannerUrl, *scannerClientID)
@@ -387,7 +389,7 @@ func Smtp() {
 			ConnectionChecker: connectionChecker,
 			SenderChecker:     senderChecker,
 			RecipientChecker:  recipientChecker,
-			Handler:           mailHandlerWrapper(metrics, scanner, urlReplacer, md),
+			Handler:           mailHandlerWrapper(metrics, scanner, urlReplacer, htmlUrlReplacer, md),
 		}
 
 		if localAuthRequired() {

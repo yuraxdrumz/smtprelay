@@ -23,10 +23,11 @@ func TestImagesShouldNotBeProcessed(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/images/multiple.msg")
 	assert.NoError(t, err)
-	bodyProcessor := processors.NewBodyProcessor(urlReplacer)
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
 	_, _, links, err := bodyProcessor.GetBodySections(string(body))
 	assert.NoError(t, err)
 	assert.Len(t, links, 0)
@@ -38,6 +39,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 
@@ -52,7 +54,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	_, err = c.rewriteEmail(str, urlReplacer, sc)
+	_, err = c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	m, _ := md.Add(str)
 	assert.NotEmpty(t, m.Key())
@@ -65,6 +67,7 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
@@ -78,7 +81,7 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/forward/double_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	split := strings.Split(rewrittenBody, "\n")
 	timesSeenForwarded := 0
@@ -97,6 +100,7 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
@@ -110,7 +114,7 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/links/skip_src.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, "src=3D\"https://image.properties")
 	// assert.NotContains(t, links, "https://image.properties.emaarinfo.com/lib/fe3811717564047c741d76/m/1/99c40832-90df-4138-b786-d70bd1ed119b.jpg")
@@ -121,13 +125,14 @@ func TestGetLinksDeduplicated(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
-	bodyProcessor := processors.NewBodyProcessor(urlReplacer)
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
 	_, _, links, err := bodyProcessor.GetBodySections(string(body))
 	assert.NoError(t, err)
-	assert.Len(t, links, 67)
+	assert.Len(t, links, 59)
 }
 
 func TestBase64InnerBoundary(t *testing.T) {
@@ -135,6 +140,7 @@ func TestBase64InnerBoundary(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
@@ -149,7 +155,7 @@ func TestBase64InnerBoundary(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	newBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018")
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018--")
@@ -162,10 +168,11 @@ func TestBase64Equals76Chars(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	setupLogger()
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
-	bodyProcessor := processors.NewBodyProcessor(urlReplacer)
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
 	sections, _, _, err := bodyProcessor.GetBodySections(string(body))
 	assert.NoError(t, err)
 	for _, section := range sections {
@@ -184,6 +191,7 @@ func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 
@@ -198,7 +206,7 @@ func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/forward/text_before_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	assert.NotContains(t, rewrittenBody, "dnsCache.host")
 	assert.NotContains(t, rewrittenBody, "scpxth.xyz")
@@ -209,6 +217,7 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 
@@ -225,7 +234,7 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	assert.NoError(t, err)
 	str := string(body)
 	*cynetActionHeader = "X-Cynet-Action"
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
@@ -255,6 +264,7 @@ func TestInjectHeaders(t *testing.T) {
 	setupLogger()
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
@@ -268,7 +278,7 @@ func TestInjectHeaders(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
@@ -279,6 +289,7 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 	setupLogger()
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
@@ -292,7 +303,7 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
@@ -302,6 +313,7 @@ func TestBoundaryMultiline(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 
@@ -317,7 +329,7 @@ func TestBoundaryMultiline(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/images/outlook.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_")
 	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_--")
@@ -330,6 +342,7 @@ func TestWriteAllEmails(t *testing.T) {
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	setupLogger()
@@ -354,7 +367,7 @@ func TestWriteAllEmails(t *testing.T) {
 					body, err := os.ReadFile(emailToCheck)
 					assert.NoError(t, err)
 					str := string(body)
-					rewrittenBody, err := c.rewriteEmail(str, urlReplacer, sc)
+					rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 					assert.NoError(t, err)
 					os.WriteFile(fmt.Sprintf("../../../examples/test_results/%s", subitem.Name()), []byte(rewrittenBody), 0666)
 				}
