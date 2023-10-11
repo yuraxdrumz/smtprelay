@@ -52,6 +52,8 @@ func (d *defaultBody) SetSectionHeaders(headers string) {
 func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string, boundaryEnd string) (section *processortypes.Section, links []string) {
 	data := d.lineWriter.String()
 	d.lineWriter.Reset()
+	headerString := d.headers
+	d.headers = ""
 	replacedData, foundLinks, err := d.urlReplacer.Replace(data)
 	if err != nil {
 		logrus.Errorf("error in writing line=%s, err=%s", data, err)
@@ -61,18 +63,14 @@ func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTrans
 	logrus.Infof("replacedData from default %s", replacedData)
 	return &processortypes.Section{
 		Name:                    string(d.Name()),
-		Boundary:                boundary,
-		BoundaryEnd:             boundaryEnd,
 		ContentType:             contentType,
 		ContentTransferEncoding: contentTransferEncoding,
-		Headers:                 d.headers,
+		Headers:                 headerString,
 		Data:                    replacedData,
-		Processed:               contentType != processortypes.Image,
 	}, foundLinks
 }
 
-func (d *defaultBody) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
+func (d *defaultBody) Process(lineString string) {
 	// if no quoted printable, replace line as usual
 	d.writeLine(lineString)
-	return true, nil
 }

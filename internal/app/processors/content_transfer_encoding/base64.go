@@ -61,15 +61,14 @@ func (b *base64) Flush(contentType processortypes.ContentType, contentTransferEn
 	b.gotToBase64Body = false
 	data := b.lineWriter.String()
 	b.lineWriter.Reset()
+	headerString := b.headers
+	b.headers = ""
 	return &processortypes.Section{
 		Name:                    string(b.Name()),
-		Boundary:                boundary,
-		BoundaryEnd:             boundaryEnd,
 		ContentType:             contentType,
 		ContentTransferEncoding: contentTransferEncoding,
 		Data:                    data,
-		Headers:                 b.headers,
-		Processed:               contentType != processortypes.Image,
+		Headers:                 headerString,
 	}, foundLinks
 }
 
@@ -90,22 +89,21 @@ func (b *base64) insertNth(s string, n int) string {
 	return buffer.String()
 }
 
-func (b *base64) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
+func (b *base64) Process(lineString string) {
 	switch {
 	case !b.gotToBase64Body:
 		b.writeLine(lineString)
 		if lineString == "" {
 			b.gotToBase64Body = true
 		}
-		return true, nil
 	default:
 		b.buf.WriteString(lineString)
-		return true, nil
 	}
 }
 
 func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []string) {
-	base64DecodedBytes, err := b64Enc.StdEncoding.DecodeString(b.buf.String())
+	data := b.buf.String()
+	base64DecodedBytes, err := b64Enc.StdEncoding.DecodeString(data)
 	if err != nil {
 		logrus.Errorf("error in writing base64 buffer, err=%s", err)
 		return "", nil
@@ -119,16 +117,16 @@ func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		line := scanner
-		if !b.forwardProcessor.IsForwarded() {
-			b.forwardProcessor.CheckForwardedStartGmail(line.Text(), contentType)
-		}
+		// if !b.forwardProcessor.IsForwarded() {
+		// 	b.forwardProcessor.CheckForwardedStartGmail(line.Text(), contentType)
+		// }
 
-		if b.forwardProcessor.IsForwarded() {
-			b.forwardProcessor.CheckForwardingFinishGmail(line.Text(), contentType)
-			checkedBase64String.WriteString(line.Text())
-			checkedBase64String.WriteString("\n")
-			continue
-		}
+		// if b.forwardProcessor.IsForwarded() {
+		// 	b.forwardProcessor.CheckForwardingFinishGmail(line.Text(), contentType)
+		// 	checkedBase64String.WriteString(line.Text())
+		// 	checkedBase64String.WriteString("\n")
+		// 	continue
+		// }
 
 		replacedLine, foundLinks, err := b.urlReplacer.Replace(line.Text())
 		if err != nil {

@@ -2,6 +2,7 @@ package contenttransferencoding
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"mime/quotedprintable"
 	"strings"
@@ -59,16 +60,14 @@ func (q *quotedPrintable) Flush(contentType processortypes.ContentType, contentT
 	q.buf.Reset()
 	data := q.lineWriter.String()
 	q.lineWriter.Reset()
+	headerString := q.headers
 	q.headers = ""
 	return &processortypes.Section{
 		Name:                    string(q.Name()),
-		Boundary:                boundary,
-		BoundaryEnd:             boundaryEnd,
 		ContentType:             contentType,
 		ContentTransferEncoding: contentTransferEncoding,
 		Data:                    data,
-		Headers:                 q.headers,
-		Processed:               contentType != processortypes.Image,
+		Headers:                 headerString,
 	}, foundLinks
 }
 
@@ -76,75 +75,98 @@ func (q *quotedPrintable) SetSectionHeaders(headers string) {
 	q.headers = headers
 }
 
-func (q *quotedPrintable) Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string) {
-	if q.forwardProcessor.IsForwarded() {
-		q.forwardProcessor.CheckForwardingFinishGmail(lineString, contentType)
-		q.writeLine(lineString)
-		return true, nil
-	}
-
-	isForwarded := q.forwardProcessor.CheckForwardedStartGmail(lineString, contentType)
-	if isForwarded {
-		// we may have accumulated quoted printable data in buffer, flush
-		accumulated := q.buf.String()
-		q.writeNewLine()
-		// if context type is text html, we need to write to buf + check replace
-		// if content type is text plain, we need to check replace
-		switch {
-		case contentType == processortypes.TextPlain && accumulated != "":
-			accumulated = q.buf.String()
-			replacedLine, foundLinks, err := q.urlReplacer.Replace(accumulated)
-			if err != nil {
-				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
-				return false, nil
-			}
-			q.writeLine(replacedLine)
-			q.writeNewLine()
-			q.writeLine(lineString)
-			q.buf.Reset()
-			return true, foundLinks
-		case contentType == processortypes.TextHTML && accumulated != "":
-			r := strings.NewReader(lineString)
-			qpReader := quotedprintable.NewReader(r)
-			decodedString, _ := io.ReadAll(qpReader)
-			decoded := string(decodedString)
-			logrus.Debugf("decoded quote string=%s", decoded)
-			q.buf.WriteString(decoded)
-			accumulated := q.buf.String()
-			replacedLine, foundLinks, err := q.urlReplacer.Replace(accumulated)
-			if err != nil {
-				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
-				return false, nil
-			}
-			qpBuf := new(bytes.Buffer)
-			qp := quotedprintable.NewWriter(qpBuf)
-			_, err = qp.Write([]byte(replacedLine))
-			if err != nil {
-				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
-				return false, nil
-			}
-			err = qp.Close()
-			if err != nil {
-				logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
-				return false, nil
-			}
-			q.writeLine(qpBuf.String())
-			q.buf.Reset()
-			return true, foundLinks
-		default:
-			q.writeLine(lineString)
-			return true, nil
+func (q *quotedPrintable) getHeaders() map[string]string {
+	headersMap := map[string]string{}
+	for _, header := range strings.Split(q.headers, "\n") {
+		headerSplit := strings.Split(header, ":")
+		if len(headerSplit) == 2 {
+			key := headerSplit[0]
+			value := headerSplit[1]
+			headersMap[key] = strings.TrimSpace(value)
 		}
 	}
+	return headersMap
+}
 
-	logrus.Debugf("got to quoted printable, boundary=%s, line=%s", boundary, lineString)
-	r := strings.NewReader(lineString)
+func (q *quotedPrintable) Process(lineString string) {
+	// headerMap := q.getHeaders()
+	// contentTypeUnprocessed := headerMap["Content-Type"]
+	// var contentType processortypes.ContentType
+	// switch {
+	// case strings.Contains(contentTypeUnprocessed, "text/plain"):
+	// 	contentType = processortypes.TextPlain
+	// case strings.Contains(contentTypeUnprocessed, "text/html"):
+	// 	contentType = processortypes.TextHTML
+	// }
+
+	// if q.forwardProcessor.IsForwarded() {
+	// 	q.forwardProcessor.CheckForwardingFinishGmail(lineString, contentType)
+	// 	q.writeLine(lineString)
+	// 	return
+	// }
+
+	// isForwarded := q.forwardProcessor.CheckForwardedStartGmail(lineString, contentType)
+	// if isForwarded {
+	// 	// we may have accumulated quoted printable data in buffer, flush
+	// 	accumulated := q.buf.String()
+	// 	q.writeNewLine()
+	// 	// if context type is text html, we need to write to buf + check replace
+	// 	// if content type is text plain, we need to check replace
+	// 	switch {
+	// 	case contentType == processortypes.TextPlain && accumulated != "":
+	// 		accumulated = q.buf.String()
+	// 		replacedLine, _, err := q.urlReplacer.Replace(accumulated)
+	// 		if err != nil {
+	// 			logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+	// 			return
+	// 		}
+	// 		q.writeLine(replacedLine)
+	// 		q.writeNewLine()
+	// 		q.writeLine(lineString)
+	// 		q.buf.Reset()
+	// 		return
+	// 	case contentType == processortypes.TextHTML && accumulated != "":
+	// 		r := strings.NewReader(lineString)
+	// 		qpReader := quotedprintable.NewReader(r)
+	// 		decodedString, _ := io.ReadAll(qpReader)
+	// 		decoded := string(decodedString)
+	// 		logrus.Debugf("decoded quote string=%s", decoded)
+	// 		q.buf.WriteString(decoded)
+	// 		accumulated := q.buf.String()
+	// 		replacedLine, _, err := q.urlReplacer.Replace(accumulated)
+	// 		if err != nil {
+	// 			logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+	// 			return
+	// 		}
+	// 		qpBuf := new(bytes.Buffer)
+	// 		qp := quotedprintable.NewWriter(qpBuf)
+	// 		_, err = qp.Write([]byte(replacedLine))
+	// 		if err != nil {
+	// 			logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+	// 			return
+	// 		}
+	// 		err = qp.Close()
+	// 		if err != nil {
+	// 			logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+	// 			return
+	// 		}
+	// 		q.writeLine(qpBuf.String())
+	// 		q.buf.Reset()
+	// 		return
+	// 	default:
+	// 		q.writeLine(lineString)
+	// 		return
+	// 	}
+	// }
+
+	logrus.Debugf("got to quoted printable, line=%s", lineString)
+	r := strings.NewReader(fmt.Sprintf("%s\n", lineString))
 	qpReader := quotedprintable.NewReader(r)
 	decodedString, _ := io.ReadAll(qpReader)
 	decoded := string(decodedString)
 	logrus.Debugf("decoded quote string=%s", decoded)
 	q.buf.WriteString(decoded)
-	return true, nil
+	// q.buf.WriteString("\n")
 }
 
 func (q *quotedPrintable) parseQuotedPrintable() (string, []string) {

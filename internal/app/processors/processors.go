@@ -13,7 +13,7 @@ import (
 )
 
 type ContentTransferProcessor interface {
-	Process(lineString string, didReachBoundary bool, boundary string, boundaryNum int, contentType processortypes.ContentType) (didProcess bool, links []string)
+	Process(lineString string)
 	Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding, boundary string, boundaryEnd string) (section *processortypes.Section, links []string)
 	Name() processortypes.ContentTransferEncoding
 	SetSectionHeaders(headers string)
@@ -68,6 +68,7 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 		if lineString == "" && !reachedBody {
 			logrus.Debug("reached body")
 			reachedBody = true
+			continue
 		}
 
 		if !reachedBody {
@@ -118,9 +119,14 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 
 	boundaryStart := fmt.Sprintf("--%s", b.currentBoundary)
 	boundaryEnd := fmt.Sprintf("--%s--", b.currentBoundary)
-	didHitBoundary := strings.HasPrefix(line, boundaryStart)
-	if didHitBoundary {
-		b.boundariesEncountered += 1
+	didHitBoundaryStart := line == boundaryStart
+	didHitBoundaryEnd := line == boundaryEnd
+	if didHitBoundaryStart || didHitBoundaryEnd {
+		if didHitBoundaryStart {
+			b.boundariesEncountered += 1
+			b.localBuffer.WriteString(line)
+			b.localBuffer.WriteString("\n")
+		}
 		// first boundary we hit is after headers, so no section there
 		if b.boundariesEncountered == 1 {
 			return nil, nil, nil
@@ -130,8 +136,11 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 		return foundSection, links, nil
 	}
 
+	isHeader := false
+
 	// after hit boundary, all headers afterwards until newline need buffer until we find where to set them
 	if b.boundariesEncountered > b.boundariesProcessed && line != "" {
+		isHeader = true
 		b.localBuffer.WriteString(line)
 		b.localBuffer.WriteString("\n")
 	}
@@ -152,42 +161,48 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	// after reaching newline and the current section was not yet processes by counting boundaries
 	// set all buffered headers as section headers, flush buffer and don't process
 	if line == "" && b.boundariesEncountered > b.boundariesProcessed {
-		b.boundariesProcessed += 1
+		b.boundariesProcessed = b.boundariesEncountered
 		headers := b.localBuffer.String()
 		headers = strings.TrimSuffix(headers, "\n")
 		logrus.Infof("headers for boundary=%s, headers=%s", b.currentBoundary, headers)
 		// by this point, content transfter encoding was already chosen
 		b.bodyProcessors[b.currentTransferEncoding].SetSectionHeaders(headers)
 		b.localBuffer.Reset()
+		b.processLine(line)
 		return nil, nil, nil
 	}
-	return b.processLine(line, didHitBoundary, b.currentBoundary, b.currentBoundaryAppearanceNumber, string(b.currentContentType))
+
+	if isHeader {
+		return nil, nil, nil
+	}
+	b.processLine(line)
+	return nil, nil, nil
 }
 
-func (b *bodyProcessor) processLine(line string, didHitBoundary bool, currentBoundary string, currentBoundaryAppearanceNumber int, currentContentType string) (section *processortypes.Section, links []string, err error) {
-	if b.currentContentType == processortypes.Image {
-		_, _ = b.bodyProcessors[processortypes.Default].Process(line, didHitBoundary, b.currentBoundary, b.currentBoundaryAppearanceNumber, b.currentContentType)
-		return nil, nil, nil
-	}
-	_, foundLinks := b.bodyProcessors[b.currentTransferEncoding].Process(line, didHitBoundary, b.currentBoundary, b.currentBoundaryAppearanceNumber, b.currentContentType)
-	links = append(links, foundLinks...)
-	return nil, links, nil
+func (b *bodyProcessor) processLine(line string) {
+	b.bodyProcessors[b.currentTransferEncoding].Process(line)
+	// links = append(links, foundLinks...)
 }
 
 func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (section *processortypes.Section, foundLinks []string) {
-	logrus.WithFields(logrus.Fields{
-		"line":        line,
-		"boundaryEnd": boundaryEnd,
-		"boundaries":  b.boundaries,
-	}).Debugf("checking if boundary hit")
-	if line == boundaryEnd && len(b.boundaries) > 1 {
+	shouldAddLastBoundaryLine := false
+	if line == boundaryEnd {
 		// pop boundary, set current boundary to one before
 		b.boundaries = b.boundaries[:len(b.boundaries)-1]
-		logrus.Infof("popping boundary=%s", b.currentBoundary)
-		b.currentBoundary = b.boundaries[len(b.boundaries)-1]
-		logrus.Infof("setting boundary to=%s", b.currentBoundary)
+		if len(b.boundaries) > 0 {
+			logrus.Infof("popping boundary=%s", b.currentBoundary)
+			b.currentBoundary = b.boundaries[len(b.boundaries)-1]
+			logrus.Infof("setting boundary to=%s", b.currentBoundary)
+		}
+		b.boundariesEncountered = 0
+		b.boundariesProcessed = 0
+		shouldAddLastBoundaryLine = true
+		// b.processLine(line)
 	}
 	section, foundLinks = b.bodyProcessors[b.currentTransferEncoding].Flush(b.currentContentType, b.currentTransferEncoding, b.currentBoundary, boundaryEnd)
+	if shouldAddLastBoundaryLine {
+		section.Data += fmt.Sprintf("\n%s\n", line)
+	}
 	b.currentBoundaryAppearanceNumber += 1
 	b.currentContentType = processortypes.DefaultContentType
 	b.currentTransferEncoding = processortypes.Default

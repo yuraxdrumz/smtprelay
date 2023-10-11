@@ -506,13 +506,9 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 	newBody.WriteString(headers.String())
 	newBody.WriteString("\n")
 	for _, section := range sections {
-		newBody.WriteString(fmt.Sprintf("--%s\n", section.Boundary))
 		newBody.WriteString(fmt.Sprintf("%s\n", section.Headers))
 		newBody.WriteString(section.Data)
-		// os.WriteFile(fmt.Sprintf("../../../examples/test_results/section_%d.txt", idx), []byte(section.Data), 0666)
 	}
-	lastSection := sections[len(sections)-1]
-	newBody.WriteString(fmt.Sprintf("--%s--", lastSection.Boundary))
 	return newBody.String(), nil
 }
 

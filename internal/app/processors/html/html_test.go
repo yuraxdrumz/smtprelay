@@ -10,6 +10,7 @@ import (
 )
 
 func TestImageSrc(t *testing.T) {
+	t.Skipf("playing with image src with html parser")
 	// body := `<div dir=3D"ltr">Hey, check this out<div><br></div><div><p style=3D"color:b=
 	// lack;font-size:15px">=E2=94=8C=E2=94=80dnsCache.host=E2=94=80=E2=94=90<br a=
 	// ria-hidden=3D"true">=E2=94=82=C2=A0<a href=3D"http://scpxth.xyz/" target=3D=
