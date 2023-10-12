@@ -1,7 +1,6 @@
 package urlreplacer
 
 import (
-	"os"
 	"testing"
 
 	"github.com/decke/smtprelay/internal/pkg/encoder"
@@ -886,6 +885,5 @@ func TestReplaceOnlyHrefs(t *testing.T) {
 	replacedBody, links, err := html.Replace(body)
 	assert.NoError(t, err)
 	assert.Len(t, links, 2)
-	os.WriteFile("./href.msg", []byte(replacedBody), 0666)
 	assert.Contains(t, replacedBody, "www.cynet.com")
 }

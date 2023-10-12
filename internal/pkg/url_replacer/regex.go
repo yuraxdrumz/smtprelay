@@ -41,16 +41,6 @@ func (r *regexUrlReplacer) Replace(str string) (replaced string, links []string,
 		if strings.Contains(string(link), "@") && !strings.Contains(string(link), "://") {
 			continue
 		}
-		// if link has 3 chars before src=, its image source, ignore
-		linkIdx := strings.Index(replacedLine, string(link))
-		if linkIdx > 4 {
-			stringBeforeLink := replacedLine[linkIdx-5 : linkIdx-1]
-			// TODO: add check on name=, filename=
-			if stringBeforeLink == "src=" {
-				// do not replace src link
-				continue
-			}
-		}
 		links = append(links, string(link))
 		bytes := []byte("passphrasewhichneedstobe32bytes!")
 		key := hex.EncodeToString(bytes)

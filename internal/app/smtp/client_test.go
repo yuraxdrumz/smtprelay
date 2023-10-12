@@ -18,7 +18,6 @@ import (
 )
 
 func TestImagesShouldNotBeProcessed(t *testing.T) {
-	t.Skip()
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()

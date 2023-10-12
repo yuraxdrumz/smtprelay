@@ -7,30 +7,27 @@ import (
 
 	b64Enc "encoding/base64"
 
-	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
 
 type base64 struct {
-	buf              *strings.Builder
-	gotToBase64Body  bool
-	lineWriter       *bytes.Buffer
-	urlReplacer      urlreplacer.UrlReplacerActions
-	htmlURLReplacer  urlreplacer.UrlReplacerActions
-	forwardProcessor *forwarded.Forwarded
-	headers          string
+	buf             *strings.Builder
+	gotToBase64Body bool
+	lineWriter      *bytes.Buffer
+	urlReplacer     urlreplacer.UrlReplacerActions
+	htmlURLReplacer urlreplacer.UrlReplacerActions
+	headers         string
 }
 
-func NewBase64Processor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *base64 {
+func NewBase64Processor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions) *base64 {
 	return &base64{
-		buf:              &strings.Builder{},
-		gotToBase64Body:  false,
-		lineWriter:       new(bytes.Buffer),
-		urlReplacer:      urlReplacer,
-		htmlURLReplacer:  htmlURLReplacer,
-		forwardProcessor: forwardProcessor,
+		buf:             &strings.Builder{},
+		gotToBase64Body: false,
+		lineWriter:      new(bytes.Buffer),
+		urlReplacer:     urlReplacer,
+		htmlURLReplacer: htmlURLReplacer,
 	}
 }
 
@@ -130,17 +127,6 @@ func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			line := scanner
-			// if !b.forwardProcessor.IsForwarded() {
-			// 	b.forwardProcessor.CheckForwardedStartGmail(line.Text(), contentType)
-			// }
-
-			// if b.forwardProcessor.IsForwarded() {
-			// 	b.forwardProcessor.CheckForwardingFinishGmail(line.Text(), contentType)
-			// 	checkedBase64String.WriteString(line.Text())
-			// 	checkedBase64String.WriteString("\n")
-			// 	continue
-			// }
-
 			replacedLine, foundLinks, err := b.urlReplacer.Replace(line.Text())
 			if err != nil {
 				logrus.Errorf("error in writing base64 buffer, err=%s", err)

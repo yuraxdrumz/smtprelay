@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	contenttransferencoding "github.com/decke/smtprelay/internal/app/processors/content_transfer_encoding"
-	"github.com/decke/smtprelay/internal/app/processors/forwarded"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
@@ -32,11 +31,10 @@ type bodyProcessor struct {
 }
 
 func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions) *bodyProcessor {
-	forwardedProcessor := forwarded.New()
 	processorMap := map[processortypes.ContentTransferEncoding]ContentTransferProcessor{}
-	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(urlReplacer, forwardedProcessor)
-	base64Processor := contenttransferencoding.NewBase64Processor(urlReplacer, htmlURLReplacer, forwardedProcessor)
-	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(urlReplacer, htmlURLReplacer, forwardedProcessor)
+	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(urlReplacer)
+	base64Processor := contenttransferencoding.NewBase64Processor(urlReplacer, htmlURLReplacer)
+	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(urlReplacer, htmlURLReplacer)
 	processorMap[defaultProcessor.Name()] = defaultProcessor
 	processorMap[base64Processor.Name()] = base64Processor
 	processorMap[quotedPrintableProcessor.Name()] = quotedPrintableProcessor
