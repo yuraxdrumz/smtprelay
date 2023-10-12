@@ -46,7 +46,11 @@ func (h *HTML) Replace(str string) (replaced string, links []string, err error) 
 		return "", nil, err
 	}
 
-	newBody = strings.Replace(newBody, "<html><head></head><body>", "", 1)
-	newBody = strings.Replace(newBody, "</body></html>", "", 1)
+	if !strings.Contains(str, "<html") {
+		newBody = strings.Replace(newBody, "<html><head></head><body>", "", 1)
+	}
+	if !strings.Contains(str, "</html>") {
+		newBody = strings.Replace(newBody, "</body></html>", "", 1)
+	}
 	return newBody, links, nil
 }

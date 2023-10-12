@@ -114,7 +114,7 @@ func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []
 	switch contentType {
 	case processortypes.TextHTML:
 		decodedString := string(base64DecodedBytes)
-		replacedHTML, foundLinks, err := b.urlReplacer.Replace(decodedString)
+		replacedHTML, foundLinks, err := b.htmlURLReplacer.Replace(decodedString)
 		if err != nil {
 			logrus.Errorf("error in replacing base64 buffer, err=%s", err)
 		}

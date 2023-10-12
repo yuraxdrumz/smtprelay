@@ -61,7 +61,6 @@ func TestSaveMailToMailDir(t *testing.T) {
 	md.Delete(m.Key())
 	os.RemoveAll("../../../examples/maildir")
 }
-
 func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
@@ -95,7 +94,6 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 }
 
 func TestDoNotReplaceImageSrcs(t *testing.T) {
-	t.Skipf("should be implemented with html parser")
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
@@ -111,13 +109,12 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	setupLogger()
-	body, err := os.ReadFile("../../../examples/links/skip_src.msg")
+	body, err := os.ReadFile("../../../examples/forward/forward_with_images.msg")
 	assert.NoError(t, err)
 	str := string(body)
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
 	assert.NoError(t, err)
-	assert.Contains(t, rewrittenBody, "src=3D\"https://image.properties")
-	// assert.NotContains(t, links, "https://image.properties.emaarinfo.com/lib/fe3811717564047c741d76/m/1/99c40832-90df-4138-b786-d70bd1ed119b.jpg")
+	assert.Contains(t, rewrittenBody, `src=3D"https://a.travel-assets.com`)
 }
 
 func TestGetLinksDeduplicated(t *testing.T) {
