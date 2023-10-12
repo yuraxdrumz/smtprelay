@@ -46,6 +46,7 @@ func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplace
 	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(contentTypeMap)
 	base64Processor := contenttransferencoding.NewBase64Processor(contentTypeMap)
 	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(contentTypeMap)
+
 	processorMap[defaultProcessor.Name()] = defaultProcessor
 	processorMap[base64Processor.Name()] = base64Processor
 	processorMap[quotedPrintableProcessor.Name()] = quotedPrintableProcessor
@@ -117,7 +118,6 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 // data
 func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Section, links []string, err error) {
 	links = []string{}
-	isHeader := false
 	if len(b.boundaries) == 0 {
 		return nil, nil, fmt.Errorf("boundary should be set before processing body")
 	}
@@ -129,7 +129,10 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	if didHitBoundaryStart || didHitBoundaryEnd {
 		if didHitBoundaryStart {
 			b.boundariesEncountered += 1
-			b.writeHeaderToBuffer(line)
+			err := b.writeHeaderToBuffer(line)
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 		// first boundary we hit is after headers, so no section there
 		if b.boundariesEncountered == 1 {
@@ -140,46 +143,38 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 		return foundSection, links, err
 	}
 
-	// between boundary and newline everything is considered headers
-	if b.boundariesEncountered > b.boundariesProcessed && line != "" {
-		isHeader = true
-		b.writeHeaderToBuffer(line)
-	}
-
 	// its possible to have nested boundaries, so we always look for them
 	b.setBoundaryFromLine(line)
-	setContentType := b.setContentTypeFromLine(line)
-	// we already wrote it before as part of headers, so no need to process
-	if setContentType {
-		return nil, nil, nil
-	}
+	b.setContentTypeFromLine(line)
+	b.setContentTransferEncodingFromLine(line)
 
-	setContentTransferEncoding := b.setContentTransferEncodingFromLine(line)
-	// we already wrote it before as part of headers, so no need to process
-	if setContentTransferEncoding {
-		return nil, nil, nil
-	}
-	// after reaching newline and the current section was not yet processes by counting boundaries
-	// set all buffered headers as section headers, flush buffer and don't process
-	if b.boundariesEncountered > b.boundariesProcessed && line == "" {
+	switch {
+	// when we still reading headers, add to headers buffer
+	case b.boundariesEncountered > b.boundariesProcessed && line != "":
+		err := b.writeHeaderToBuffer(line)
+		return nil, nil, err
+		// when we reached end of headers in boundary, flush them to appropriate content transfer encoding processor
+	case b.boundariesEncountered > b.boundariesProcessed && line == "":
 		b.boundariesProcessed = b.boundariesEncountered
 		headers := b.flushHeaders(line)
 		// by this point, content transfer encoding was already chosen
 		b.bodyProcessors[b.currentTransferEncoding].SetSectionHeaders(headers)
-		b.processLine(line)
-		return nil, nil, nil
+		err = b.processLine(line)
+		return nil, nil, err
+	default:
+		// process line in body of a specific boundary. We get here after we process the above headers
+		err = b.processLine(line)
+		return nil, nil, err
 	}
-
-	if isHeader {
-		return nil, nil, nil
-	}
-	b.processLine(line)
-	return nil, nil, nil
 }
 
-func (b *bodyProcessor) writeHeaderToBuffer(line string) {
-	b.headersBuffer.WriteString(line)
-	b.headersBuffer.WriteString("\n")
+func (b *bodyProcessor) writeHeaderToBuffer(line string) error {
+	_, err := b.headersBuffer.WriteString(line)
+	if err != nil {
+		return err
+	}
+	_, err = b.headersBuffer.WriteString("\n")
+	return err
 }
 
 func (b *bodyProcessor) flushHeaders(line string) string {
@@ -190,8 +185,8 @@ func (b *bodyProcessor) flushHeaders(line string) string {
 	return headers
 }
 
-func (b *bodyProcessor) processLine(line string) {
-	b.bodyProcessors[b.currentTransferEncoding].Process(line)
+func (b *bodyProcessor) processLine(line string) error {
+	return b.bodyProcessors[b.currentTransferEncoding].Process(line)
 }
 
 func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (section *processortypes.Section, foundLinks []string, err error) {
