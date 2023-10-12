@@ -149,7 +149,7 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	b.setContentTransferEncodingFromLine(line)
 
 	switch {
-	// when we still reading headers, add to headers buffer
+	// when we are still reading headers, add to headers buffer
 	case b.boundariesEncountered > b.boundariesProcessed && line != "":
 		err := b.writeHeaderToBuffer(line)
 		return nil, nil, err
@@ -230,7 +230,7 @@ func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {
 		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
 		return true
 	default:
-		logrus.Debugf("unknown transfer encoding, line=%s", line)
+		logrus.Warnf("unknown transfer encoding, line=%s", line)
 		return false
 	}
 }
@@ -269,7 +269,7 @@ func (b *bodyProcessor) setContentTypeFromLine(line string) bool {
 		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
 		return true
 	default:
-		logrus.Debugf("unknown content type, line=%s", line)
+		logrus.Warnf("unknown content type, line=%s", line)
 		return false
 	}
 }
