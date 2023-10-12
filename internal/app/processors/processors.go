@@ -6,14 +6,15 @@ import (
 	"strings"
 
 	contenttransferencoding "github.com/decke/smtprelay/internal/app/processors/content_transfer_encoding"
+	contenttype "github.com/decke/smtprelay/internal/app/processors/content_type"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
 
 type ContentTransferProcessor interface {
-	Process(lineString string)
-	Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string)
+	Process(lineString string) error
+	Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string, err error)
 	Name() processortypes.ContentTransferEncoding
 	SetSectionHeaders(headers string)
 }
@@ -32,15 +33,27 @@ type bodyProcessor struct {
 
 func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions) *bodyProcessor {
 	processorMap := map[processortypes.ContentTransferEncoding]ContentTransferProcessor{}
-	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(urlReplacer)
-	base64Processor := contenttransferencoding.NewBase64Processor(urlReplacer, htmlURLReplacer)
-	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(urlReplacer, htmlURLReplacer)
+	contentTypeMap := map[processortypes.ContentType]contenttype.ContentTypeActions{}
+
+	textHTML := contenttype.NewTextHTML(htmlURLReplacer)
+	textPlain := contenttype.NewTextPlain(urlReplacer)
+	defaultContentType := contenttype.NewDefault(urlReplacer)
+
+	contentTypeMap[processortypes.TextHTML] = textHTML
+	contentTypeMap[processortypes.TextPlain] = textPlain
+	contentTypeMap[processortypes.DefaultContentType] = defaultContentType
+
+	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(contentTypeMap)
+	base64Processor := contenttransferencoding.NewBase64Processor(contentTypeMap)
+	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(contentTypeMap)
 	processorMap[defaultProcessor.Name()] = defaultProcessor
 	processorMap[base64Processor.Name()] = base64Processor
 	processorMap[quotedPrintableProcessor.Name()] = quotedPrintableProcessor
 	return &bodyProcessor{
-		bodyProcessors: processorMap,
-		headersBuffer:  &strings.Builder{},
+		bodyProcessors:          processorMap,
+		headersBuffer:           &strings.Builder{},
+		currentTransferEncoding: processortypes.Default,
+		currentContentType:      processortypes.DefaultContentType,
 	}
 }
 
@@ -122,9 +135,9 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 		if b.boundariesEncountered == 1 {
 			return nil, nil, nil
 		}
-		foundSection, foundLinks := b.handleHitBoundary(line, boundaryEnd)
+		foundSection, foundLinks, err := b.handleHitBoundary(line, boundaryEnd)
 		links = append(links, foundLinks...)
-		return foundSection, links, nil
+		return foundSection, links, err
 	}
 
 	// between boundary and newline everything is considered headers
@@ -181,7 +194,7 @@ func (b *bodyProcessor) processLine(line string) {
 	b.bodyProcessors[b.currentTransferEncoding].Process(line)
 }
 
-func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (section *processortypes.Section, foundLinks []string) {
+func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (section *processortypes.Section, foundLinks []string, err error) {
 	shouldAddLastBoundaryLine := false
 	if line == boundaryEnd {
 		// pop boundary, set current boundary to one before
@@ -195,7 +208,10 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 		b.boundariesProcessed = 0
 		shouldAddLastBoundaryLine = true
 	}
-	section, foundLinks = b.bodyProcessors[b.currentTransferEncoding].Flush(b.currentContentType, b.currentTransferEncoding)
+	section, foundLinks, err = b.bodyProcessors[b.currentTransferEncoding].Flush(b.currentContentType, b.currentTransferEncoding)
+	if err != nil {
+		return nil, nil, err
+	}
 	if shouldAddLastBoundaryLine {
 		section.Data += fmt.Sprintf("\n%s\n", line)
 	}
@@ -203,7 +219,7 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 	b.currentContentType = processortypes.DefaultContentType
 	b.currentTransferEncoding = processortypes.Default
 	logrus.Infof("hit boundary=%s, num=%d", b.currentBoundary, b.currentBoundaryAppearanceNumber)
-	return section, foundLinks
+	return section, foundLinks, nil
 }
 
 func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {

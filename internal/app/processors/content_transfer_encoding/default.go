@@ -3,21 +3,21 @@ package contenttransferencoding
 import (
 	"bytes"
 
+	contenttype "github.com/decke/smtprelay/internal/app/processors/content_type"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
-	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/sirupsen/logrus"
 )
 
 type defaultBody struct {
-	lineWriter  *bytes.Buffer
-	urlReplacer urlreplacer.UrlReplacerActions
-	headers     string
+	lineWriter     *bytes.Buffer
+	headers        string
+	contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions
 }
 
-func NewDefaultBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions) *defaultBody {
+func NewDefaultBodyProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions) *defaultBody {
 	return &defaultBody{
-		lineWriter:  new(bytes.Buffer),
-		urlReplacer: urlReplacer,
+		lineWriter:     new(bytes.Buffer),
+		contentTypeMap: contentTypeMap,
 	}
 }
 
@@ -25,49 +25,47 @@ func (b *defaultBody) Name() processortypes.ContentTransferEncoding {
 	return processortypes.Default
 }
 
-func (d *defaultBody) writeNewLine() {
+func (d *defaultBody) writeNewLine() error {
 	_, err := d.lineWriter.WriteString("\n")
 	if err != nil {
 		logrus.Errorf("error in writing new line, err=%s", err)
-		return
+		return err
 	}
+	return nil
 }
 
-func (d *defaultBody) writeLine(line string) {
+func (d *defaultBody) writeLine(line string) error {
 	_, err := d.lineWriter.WriteString(line)
 	if err != nil {
 		logrus.Errorf("error in writing line=%s, err=%s", line, err)
-		return
+		return err
 	}
-	d.writeNewLine()
+	return d.writeNewLine()
 }
 
 func (d *defaultBody) SetSectionHeaders(headers string) {
 	d.headers = headers
 }
 
-func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string) {
+func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string, err error) {
 	data := d.lineWriter.String()
 	d.lineWriter.Reset()
 	headerString := d.headers
 	d.headers = ""
-	replacedData, foundLinks, err := d.urlReplacer.Replace(data)
+	replacedData, foundLinks, err := d.contentTypeMap[processortypes.DefaultContentType].Parse(data)
 	if err != nil {
 		logrus.Errorf("error in writing line=%s, err=%s", data, err)
-		return
+		return nil, nil, err
 	}
-	logrus.Infof("data from default %s", data)
-	logrus.Infof("replacedData from default %s", replacedData)
 	return &processortypes.Section{
 		Name:                    string(d.Name()),
 		ContentType:             contentType,
 		ContentTransferEncoding: contentTransferEncoding,
 		Headers:                 headerString,
 		Data:                    replacedData,
-	}, foundLinks
+	}, foundLinks, nil
 }
 
-func (d *defaultBody) Process(lineString string) {
-	// if no quoted printable, replace line as usual
-	d.writeLine(lineString)
+func (d *defaultBody) Process(lineString string) error {
+	return d.writeLine(lineString)
 }

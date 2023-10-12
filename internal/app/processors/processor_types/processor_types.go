@@ -4,7 +4,7 @@ type ContentType string
 type ContentTransferEncoding string
 
 const (
-	DefaultContentType ContentType = ""
+	DefaultContentType ContentType = "default"
 	TextPlain          ContentType = "Content-Type: text/plain"
 	TextHTML           ContentType = "Content-Type: text/html"
 	Image              ContentType = "Content-Type: image"
@@ -12,7 +12,7 @@ const (
 )
 
 const (
-	Default         ContentTransferEncoding = ""
+	Default         ContentTransferEncoding = "default"
 	Base64          ContentTransferEncoding = "Content-Transfer-Encoding: base64"
 	Quotedprintable ContentTransferEncoding = "Content-Transfer-Encoding: quoted-printable"
 )
