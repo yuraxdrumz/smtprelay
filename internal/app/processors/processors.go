@@ -36,7 +36,7 @@ func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplace
 	processorMap := map[processortypes.ContentTransferEncoding]ContentTransferProcessor{}
 	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(urlReplacer, forwardedProcessor)
 	base64Processor := contenttransferencoding.NewBase64Processor(urlReplacer, htmlURLReplacer, forwardedProcessor)
-	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(htmlURLReplacer, forwardedProcessor)
+	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(urlReplacer, htmlURLReplacer, forwardedProcessor)
 	processorMap[defaultProcessor.Name()] = defaultProcessor
 	processorMap[base64Processor.Name()] = base64Processor
 	processorMap[quotedPrintableProcessor.Name()] = quotedPrintableProcessor

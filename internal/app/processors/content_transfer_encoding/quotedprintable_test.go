@@ -10,7 +10,7 @@ import (
 func TestGmailForwardingTextPlain(t *testing.T) {
 	t.Skipf("add forward support")
 	forwardedProcessor := forwarded.New()
-	q := NewQuotedPrintableProcessor(nil, forwardedProcessor)
+	q := NewQuotedPrintableProcessor(nil, nil, forwardedProcessor)
 	line := "---------- Forwarded message ---------"
 	q.Process(line)
 	assert.True(t, q.forwardProcessor.IsForwarded())
@@ -22,7 +22,7 @@ func TestGmailForwardingTextPlain(t *testing.T) {
 func TestGmailForwardingTextHTML(t *testing.T) {
 	t.Skipf("add forward support")
 	forwardedProcessor := forwarded.New()
-	q := NewQuotedPrintableProcessor(nil, forwardedProcessor)
+	q := NewQuotedPrintableProcessor(nil, nil, forwardedProcessor)
 	line := "---------- Forwarded message ---------"
 	q.Process(line)
 	assert.True(t, q.forwardProcessor.IsForwarded())

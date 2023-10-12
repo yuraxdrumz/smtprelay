@@ -17,15 +17,17 @@ type quotedPrintable struct {
 	buf              *strings.Builder
 	lineWriter       *bytes.Buffer
 	urlReplacer      urlreplacer.UrlReplacerActions
+	htmlURLReplacer  urlreplacer.UrlReplacerActions
 	forwardProcessor *forwarded.Forwarded
 	headers          string
 }
 
-func NewQuotedPrintableProcessor(urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *quotedPrintable {
+func NewQuotedPrintableProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *quotedPrintable {
 	return &quotedPrintable{
 		buf:              &strings.Builder{},
 		lineWriter:       new(bytes.Buffer),
 		urlReplacer:      urlReplacer,
+		htmlURLReplacer:  htmlURLReplacer,
 		forwardProcessor: forwardProcessor,
 	}
 }
@@ -176,7 +178,14 @@ func (q *quotedPrintable) parseQuotedPrintable(contentType processortypes.Conten
 	switch contentType {
 	case processortypes.TextHTML:
 		rawHTML := q.buf.String()
-		replacedLine, foundLinks, err = q.urlReplacer.Replace(rawHTML)
+		replacedLine, foundLinks, err = q.htmlURLReplacer.Replace(rawHTML)
+		if err != nil {
+			logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+			return "", nil
+		}
+	case processortypes.TextPlain:
+		str := q.buf.String()
+		replacedLine, foundLinks, err = q.urlReplacer.Replace(str)
 		if err != nil {
 			logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
 			return "", nil

@@ -296,7 +296,7 @@
 	&#34;Source Sans Pro&#34;,sans-serif"><a href="mailto:H
 	adars@cynet.com"><span style="font-size:10.5pt;color:#1E2
 	02C">Hadars@cynet.com</span></a> | <a href="htt
-	ps://http://localhost:1333?u=N2UzODU4MjU4OTk4ZTg5MjAzMzUwNDQzMDk4YTBlZmVhMjM5MWVmZTI4ZGI0ZmMyOTQ4YmVkNTBhM2ZiMGE4MzRmODMwZDhlZTI3NGZmYzZkNDI4"><span style="font-size:10.5pt;color:
+	ps://http://localhost:1333?u=OThiYjcyYzhmODVkNjZlYjJjNzRkZDk0ZjBiYmRmZTY5ODEyMmE5MzNjODYyY2RlN2Y1Y2MyMzU1NGE3YjJiNjQ3ZWNlM2RiZjNiMDVjNDE4MjY0"><span style="font-size:10.5pt;color:
 	#1E202C">www.cynet.com</span></a></span><o:p></o:p></p>
 	
 	</td>
@@ -321,7 +321,7 @@
 	<td styl="" e="padding:.75pt .75pt .75pt .75pt">
 	<p class="MsoNormal
 	" style="text-align:left;direction:ltr;unicode-bidi:embed
-	"><a href="http://localhost:1333?u=OWY2NWRkMzk2YjYxOGU0MDM5ZDFiMjRkNzVjOTVjODk1ZmY1NjRhMDkxYjJhNWEyNTc1YjYwZGZmMTFhOWE1NzAzYzAyMmUyODkxZDRlMDlmNDAwZDQ2MzA0YmJmNDQ3NTkzNzA1Y2I1MzRjN2M3MzM3MzQ3OGFiOTQwNzUzNDMzNzc4ZmYyYjBmMzJkNzkyNTk0Ng==
+	"><a href="http://localhost:1333?u=MjAwZDllZGFkMTU4NDc5MzVjNGU1MjQ0N2M1ZTBkYzA2ZjNiYTBlNWQ1ZWVlM2E3NTE4ZGY1MmRiOGI5NTViZmJkM2QwMWUxZWI2MzhlMWU3Y2NhZTVhYTZmYTBjNWRlMDlmZWJkYWM2M2M0NDI1M2M5NmI5NjIyNzA2NjkxZmFjZjcxMjU0MmM1NmZhNTkxYmM3Yg==
 	175/"><span style="color:windowtext;text-decoration:none"><span style="font-size:13.5pt;font-family:-apple-system;
 	color:blue"><img border="0" width="20" height="20" style="width:.2083in;height:.2083in" id="Picture_x0020_7" src="
 	cid:image007.png@01D9DFF7.3742A150" alt="linkedin logo"/>&lt;
