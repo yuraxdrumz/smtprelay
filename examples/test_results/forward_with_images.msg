@@ -128,6 +128,7 @@ X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1P192MB2163
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
+
 ---------- Forwarded message ---------
 From: Expedia.com <mail@eg.expedia.com>
 Date: Wed, 4 Oct 2023 at 2:59
@@ -154,24 +155,24 @@ Members always get our best prices
 =8C =E2=80=8C =E2=80=8C =E2=80=8C =E2=80=8C =E2=80=8C =E2=80=8C
 
 [image: Expedia]
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac756ef08dbab55f8b55e=
-429727258a4d20dee809a81a589e287e6997077b5dee5ef8865f352e7ebf1c8991d6c452755=
-257dc29fa89cf3f09ac">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac756ef08dbab55f8b55e42972=
+7258a4d20dee809a81a589e287e6997077b5dee5ef8865f352e7ebf1c8991d6c452755257dc=
+29fa89cf3f09ac>
 
 * The Travel Edit
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac7aca55aaf1d61de7559=
-f2de231504005c2bbf1f01d2d21cad016fdb5f3fe43b7233a5b931a90cf03e3546bf1427732=
-d1512482705cb7afed9">*
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac7aca55aaf1d61de7559f2de2=
+31504005c2bbf1f01d2d21cad016fdb5f3fe43b7233a5b931a90cf03e3546bf1427732d1512=
+482705cb7afed9>*
 
 [image: Plan your fall getaway and save with Member Prices.]
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac7faf79f758baacbc25c=
-c9d4a41fefb8e2a57ad321ce3b17408f7df41714ab7939c48dcf555dedad766b01677f60ffc=
-0ec6d37331d6ab98ddb">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac7faf79f758baacbc25cc9d4a=
+41fefb8e2a57ad321ce3b17408f7df41714ab7939c48dcf555dedad766b01677f60ffc0ec6d=
+37331d6ab98ddb>
 
 [image: Plan your fall getaway and save with Member Prices.]
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac7faf79f758baacbc25c=
-c9d4a41fefb8e2a57ad321ce3b17408f7df41714ab7939c48dcf555dedad766b01677f60ffc=
-0ec6d37331d6ab98ddb">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac7faf79f758baacbc25cc9d4a=
+41fefb8e2a57ad321ce3b17408f7df41714ab7939c48dcf555dedad766b01677f60ffc0ec6d=
+37331d6ab98ddb>
 
 Made to Travel: Inspiration for your next journey
 
@@ -183,21 +184,21 @@ Silver Member Prices on the app. Now is the perfect time to book your fall
 break.
 
 Start saving
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac7a1e3f3dc2f076567fb=
-cc5d3ff37a2704ad1c6872e5128a5d0794f14c277eb97baa040c6ff2cb0005b4477e86c9c9f=
-682d66d9915182ec4b5">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac7a1e3f3dc2f076567fbcc5d3=
+ff37a2704ad1c6872e5128a5d0794f14c277eb97baa040c6ff2cb0005b4477e86c9c9f682d6=
+6d9915182ec4b5>
 
 News this week
 
 [image: Plan a visit to West Maui when it reopens for travel Oct 8]
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac7aaf2602dcc7abff356=
-dcb05603641ebf6e80d4b64789046229eee1b3fa3fd4766617dc710384f0d8a8fbae0072d7b=
-d17c2fe8a497ce103c3">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac7aaf2602dcc7abff356dcb05=
+603641ebf6e80d4b64789046229eee1b3fa3fd4766617dc710384f0d8a8fbae0072d7bd17c2=
+fe8a497ce103c3>
 
 [image: Plan a visit to West Maui when it reopens for travel Oct 8]
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac7aaf2602dcc7abff356=
-dcb05603641ebf6e80d4b64789046229eee1b3fa3fd4766617dc710384f0d8a8fbae0072d7b=
-d17c2fe8a497ce103c3">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac7aaf2602dcc7abff356dcb05=
+603641ebf6e80d4b64789046229eee1b3fa3fd4766617dc710384f0d8a8fbae0072d7bd17c2=
+fe8a497ce103c3>
 
 West Maui reopens for travel on Oct 8
 
@@ -205,7 +206,7 @@ Hawai=CA=BBi Governor Green has announced that beautiful K=C4=81=E2=80=98an=
 apali, N=C4=81pili,
 Honok=C5=8Dwai, and Kapalua will fully reopen for travel on Oct 8. Plan a v=
 isit
-to this special place, support the island&#39;s businesses, and make a new
+to this special place, support the island's businesses, and make a new
 memory.
 
 Lahaina will remain closed to the public out of respect to the town=E2=80=
@@ -213,41 +214,41 @@ Lahaina will remain closed to the public out of respect to the town=E2=80=
 residents.
 
 Explore Hawaii Hotels
-<https: click.eg.expedia.com=3D"" u=3D"" ?qs=3D"4262744522a25ac70c33430abf0=
-12aadc82692f88d30431aa043362549d37309954720d11cd4d1bcf90c732854f5312cb2386d=
-b86097b73b03de19b6e2c7537a">
+<https://click.eg.expedia.com/u/?qs=3D4262744522a25ac70c33430abf012aadc8269=
+2f88d30431aa043362549d37309954720d11cd4d1bcf90c732854f5312cb2386db86097b73b=
+03de19b6e2c7537a>
 
 
 Download our FREE mobile app
 [image: App Store]
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac70082c2833b57c2bcc1=
-fbafd92ed13d7cc0931363b56184ce7fad8d587b1139c55de0289172d7dee7080ac2ef9dbcb=
-42e6809544787ecc74c">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac70082c2833b57c2bcc1fbafd=
+92ed13d7cc0931363b56184ce7fad8d587b1139c55de0289172d7dee7080ac2ef9dbcb42e68=
+09544787ecc74c>
   [image: Google Play]
-<https: click.eg.expedia.com=3D"" ?qs=3D"4262744522a25ac77de39585b7fa0b618e=
-8bb0ed38856b85733883dc20f7eaf54778f1812fada0f43a9b6bd9eeaa72f6ae5b223895536=
-2877e15260a5d530647">
+<https://click.eg.expedia.com/?qs=3D4262744522a25ac77de39585b7fa0b618e8bb0e=
+d38856b85733883dc20f7eaf54778f1812fada0f43a9b6bd9eeaa72f6ae5b2238955362877e=
+15260a5d530647>
 
 Unsubscribe from The Travel Edit
-<https: click.eg.expedia.com=3D"" u=3D"" ?qs=3D"4262744522a25ac79e7da72c03b=
-8d38e1fef2d6afe384767591d409fb338cadf4e54e3f162ab5d59173d41712717a5e264bb7f=
-cf8286f202b6398c2621d8a072">
+<https://click.eg.expedia.com/u/?qs=3D4262744522a25ac79e7da72c03b8d38e1fef2=
+d6afe384767591d409fb338cadf4e54e3f162ab5d59173d41712717a5e264bb7fcf8286f202=
+b6398c2621d8a072>
    Manage Preferences
-<https: click.eg.expedia.com=3D"" u=3D"" ?qs=3D"4262744522a25ac7248e87469c0=
-51de840f348a62b04505ba731bcb0d37e9d8ece1aef209f1ed7df93f4a40fdb22a43b51a605=
-aad4983ceb320de7fc8451a8d0">
+<https://click.eg.expedia.com/u/?qs=3D4262744522a25ac7248e87469c051de840f34=
+8a62b04505ba731bcb0d37e9d8ece1aef209f1ed7df93f4a40fdb22a43b51a605aad4983ceb=
+320de7fc8451a8d0>
    Privacy Statement
-<https: click.eg.expedia.com=3D"" u=3D"" ?qs=3D"4262744522a25ac7b10747c422a=
-9e4fc79550d6dfd90e5f63ccdbcddbd59a455d30dff1eba6d1c5aeaeb3e4abf139939aa9e8b=
-62ad94b0e63e0e210e09ddcccd">
+<https://click.eg.expedia.com/u/?qs=3D4262744522a25ac7b10747c422a9e4fc79550=
+d6dfd90e5f63ccdbcddbd59a455d30dff1eba6d1c5aeaeb3e4abf139939aa9e8b62ad94b0e6=
+3e0e210e09ddcccd>
    About Us
-<https: click.eg.expedia.com=3D"" u=3D"" ?qs=3D"4262744522a25ac70c3cb3010d8=
-9a5019360331166c5cf6cc4973a013eb4eb8dae617a255ef378b9bd2fa3ad480fe245361612=
-993b4e79f129adc9e6d2c42c00">
+<https://click.eg.expedia.com/u/?qs=3D4262744522a25ac70c3cb3010d89a50193603=
+31166c5cf6cc4973a013eb4eb8dae617a255ef378b9bd2fa3ad480fe245361612993b4e79f1=
+29adc9e6d2c42c00>
    Customer Service
-<https: click.eg.expedia.com=3D"" u=3D"" ?qs=3D"4262744522a25ac75b1f0fe44b5=
-bcda537b76d74534d05ddc3a61f50e0f6e9baf3a08a01768e1f7178515db45bfc702025fad1=
-fd77d9887ab4cc1d98e2fe215c">
+<https://click.eg.expedia.com/u/?qs=3D4262744522a25ac75b1f0fe44b5bcda537b76=
+d74534d05ddc3a61f50e0f6e9baf3a08a01768e1f7178515db45bfc702025fad1fd77d9887a=
+b4cc1d98e2fe215c>
 
 This email and its links may contain your personal information; please only
 forward to people you trust.
@@ -256,8 +257,8 @@ You are receiving this email because you are eligible to receive
 promotional emails from Expedia.
 
 Expedia, Attn: EMC Team 1111 Expedia Group Way W., Seattle WA 98119
-<https: www.google.com=3D"" maps=3D"" search=3D"" 1111+expedia+group+way+w.=
-,+seattle+wa+98119?entry=3D"gmail&amp;source=3Dg">.
+<https://www.google.com/maps/search/1111+Expedia+Group+Way+W.,+Seattle+WA+9=
+8119?entry=3Dgmail&source=3Dg>.
 
 
 *CST# 2029030-50*
@@ -267,16 +268,14 @@ Expedia, the Airplane Logo, One Key and OneKeyCash are trademarks or
 registered trademarks of Expedia, Inc.
 
 View online
-<https: view.eg.expedia.com=3D"" ?qs=3D"c44a114bafaa630043eda34584fbf4e1d17=
-0665116637e0d3752fdae39027b9801e08b9469d60891932a4adc432f95910888739e9c95a9=
-db63857879e69ff1193778c5d6f0dd8f6a1cea6e26ed2ceb7d">
+<https://view.eg.expedia.com/?qs=3Dc44a114bafaa630043eda34584fbf4e1d1706651=
+16637e0d3752fdae39027b9801e08b9469d60891932a4adc432f95910888739e9c95a9db638=
+57879e69ff1193778c5d6f0dd8f6a1cea6e26ed2ceb7d>
 
-EMLCID=3DUS.MKT.ACTV.6517fb570dbb61a0e51fae804a13e521.EML&amp;EMLDTL=3DDATE=
-20231003-ISSUX.SIDX.KEYX.PAIDX.LANGEN_US.MCIDX.TESTX.VERSX.MIDSX
+EMLCID=3DUS.MKT.ACTV.6517fb570dbb61a0e51fae804a13e521.EML&EMLDTL=3DDATE2023=
+1003-ISSUX.SIDX.KEYX.PAIDX.LANGEN_US.MCIDX.TESTX.VERSX.MIDSX
 
-</https:></https:></https:></https:></https:></https:></https:></https:></h=
-ttps:></https:></https:></https:></https:></https:></https:></https:></http=
-s:></eyal.gr@gmail.com></mail@eg.expedia.com>
+
 
 --00000000000049ba010606e05d24
 Content-Type: text/html; charset="UTF-8"
@@ -440,14 +439,14 @@ tyle=3D"font-family:Helvetica,Arial,sans-serif;background-color:rgb(255,255=
 ly:Helvetica,Arial,sans-serif" class=3D"m_1202337279934882522gutter-margin =
 m_1202337279934882522text-align-left">
         <a style=3D"text-decoration:none;vertical-align:middle;font-family:=
-Helvetica,Arial,sans-serif" href=3D"localhost:1333?u=3DMTNlOWFkZDQyOWI5YjNi=
-YTg4ZTRmNTcxODRkNmY1NDFhZGViYzEzNDk0NjFhOTM0Y2U5Y2VmMmZkOGIxNjE0ODYxMThiZjU=
-5YmQ1MWM1OGRkNjYzMzQ2MmU4ZmJkYWNlNDFkNWEzMGNmZjIxMmZjZGYwMzE0NzE3MjRjY2I3Zj=
-Q1YTliMmY5YjAyMDk5ZTJlZmNmYmZjMjk0NzRhMjQ5MWJmZjhiZDM3NGJiNTE0ODRiZTY3NDI4Y=
-2U3NzQ4NTZiZmY1OTlkZDc4OWE0MWJmNWZjYWQxMDQ5MTFmM2Q2MDg0ZWZkZTIzNjUxYzEwNTRm=
-MzMzZDQ4OTBiZjkzZWJiMjA5Y2FmNzgxZGZiNTRlOGIyMjNlMzEzYzFjMDVjNDc1M2M1M2VkMTN=
-lMjUwZjMwNjFhOTdmMjBmNzk0OThhNmJjZGNiMDczYmYwNmVlNjVmMjJhMmZmZTUyOGYyYmYzZD=
-MyY2JlMGEyODg1NmY1NmQzODQ4MmM2ZDBl" target=3D"_blank">
+Helvetica,Arial,sans-serif" href=3D"localhost:1333?u=3DMTZkZTFjODAzZTJlMGJm=
+MWI2N2UxZTJhYzM1MDY2N2Y4OWU0ZDc3ZTYwMTIxMGI4OTRhYTg5MDVmYzY5OTZhYjQ0NzQxMzJ=
+lOWUyN2U2MzNmMTM2YjEzOTVlNjgzMWQ1ZjUwZDRjZjlkZjczZTc4ZjIxMTZmMDE5ZmJhOTFhZT=
+JhOWEwMDAyMTE5OTczNzg2NWM5Y2QzZmI2MGRjYTZiZTc3OTM2ZGM4M2E2YmRjOTk4ZjhjMTVlY=
+jJiODcyOTMxYmJhMjE1YmM5Y2M0YjdmMTNkMzhjOGEyOTM3YmEzOTJhZGViNjczNGJlY2MyZTVj=
+ZWVjMDUwOWJhOTYwZWJkZjM2ZmVmOGVmZDU1NWZkYjA5OTc3NzNmNWYwNzc3ODE5MGIxZmMxZDh=
+hYjE3NzM3MzYyOTA0Y2NmM2I1NDg5YzEzNjY1ODY5MDY5MmI1Njg2MzFiZDA2NmI4NjcxNGE3Mz=
+FkOGMwMGU2MDFhOTg1NDRjNmViYzhlZmY0" target=3D"_blank">
           <img src=3D"https://image.eg.expedia.com/lib/fe3211727364047c7217=
 75/m/1/expedia_logo_product_dark+blue.png" alt=3D"Expedia" width=3D"150" he=
 ight=3D"auto" style=3D"font-family: sans-serif; border: 0px; height: auto; =
@@ -503,13 +502,13 @@ t-family:Helvetica,Arial,sans-serif;font-weight:500!important;color:rgb(25,=
 30,59)">
                                   <b style=3D"font-family:Helvetica,Arial,s=
 ans-serif"> <a class=3D"m_1202337279934882522h-dark" href=3D"localhost:1333=
-?u=3DNzRhYjkxMzQ3MDEwZjMwOTY0OTQ4OGY1ZDMxYjIxZTFiMWI5OTUxZWVhM2M4M2I2Njk5Mm=
-FlYTJlZWZhZDhlN2U4MmJkNjEyYmJkYjA0YjhjY2RlMTQ0NDhmOTliYzM5ZjdmMDliMjI5ZDdmN=
-DUwNjFiOWNhMzZmN2ZmOGQ4NTZlZWE5MDEyODFmODRiMzM1OWFiZmM5ZWNjMzMzNjkxMzBhOWFm=
-OGU4ZDljYjM4ZDQ1MDVmZGFiYTcyNjE1MmRmY2U4ZjM3NDlkYzIyMjE0MmEwODNmZDVlMGNiMTV=
-lOWIyOGYwNmViNWVkZDQ4OTRiM2VhNGI2ZmNlM2JhNTcxNzRlZWViOGViZTViNDJjYzIxYWNiMj=
-gyODE0MzNlNWQ2ZjJlNTU2NjkxYmRlNjhhYjBjODBkMTllOTQ0NWIwY2YzOTVlMjdkNmYzZmM1Z=
-TJmZGZiNGViYzFhY2U1ZTFjYWExZjEyOGNmMjczNzc0OTYxNGE2YjkxMDY2" style=3D"text-=
+?u=3DNjQ5OWE3MjY0OTFiN2I5MWViYTEyMGNiYmRhNjcxZDU3Mzk0YjAyMjFlOTM4YjBmNzZkND=
+YyOGM4YzUwNmRiNjA3YTk3YmI4NmI3MmYyZDM3OWJkZDJhN2U2YTNjODI1ZGE3OWY0ODg5ZjIzY=
+TFmY2YwZGQ5NjVhZmRhY2M4YmVkNGExNDc4YjEyOTM4ZGRjYjZkZWFlYjY2NzcwYTg4YTAxZDRk=
+YzZmNzgxYmZlODAyMDExNTg4ZGFiNmI2OWRkYzVlMjg0MzFhYTlmZTEyZGFjNmQzMWM2OWQ1OTk=
+0ZGYyNDcxMGI0ZGQ4MDBmZTRhMTNlNzZjODY5NmQ1NjA2ZjE0YzdkNWFlMWQ5ODFjYjA1MzY5Zm=
+NjMGEyZTg3MzBlNGNjZGRmYjE2OWI1YzhlNzVhOGFmMTc2OTAyZjhlMGI4NjNkMjVmYWMxOTkwY=
+zUyNGUyNDhjZjQwOTlmZDU1MjkxYzI3ZmUzYjAzZmY0ZGQ0NzUyNDAzOThm" style=3D"text-=
 decoration:none;font-family:Helvetica,Arial,sans-serif;color:rgb(25,30,59)"=
  target=3D"_blank">The Travel Edit</a></b>
                                 </p>
@@ -558,14 +557,14 @@ s-serif"><tr style=3D"font-family:Helvetica,Arial,sans-serif">
                                 <p style=3D"margin:0px 0px 16px;text-align:=
 center;font-family:Helvetica,Arial,sans-serif" class=3D"m_12023372799348825=
 22nomob">
-                                    <a href=3D"localhost:1333?u=3DNzY2YjJhZ=
-GJlOTNjMTc2NmU5M2UzMDA2ZTNiY2I5MTBhYmM1ZDE2MjdhYzk3NDMxMjk1ODMzNTdjZGRmMzI5=
-ZGUzNzNmNzJhNDNhOWQ1ZDU5NDdkOWEwZTIwZDFmZWQ4ZWZjZTUyODAwNWVlNWVkM2RkYmQyNTU=
-yMDFhZDY2M2I2Yjc2ODcxZTc4NmU1M2Y2YzgzMTMyYWZjYmFhMjQ4YjQ1ZWRmYjVjMGVjZjE4OG=
-I3MWYxMDVlNmZlM2JhOGNmOTI3Mzc4YWE5MjNjNGI3NzM4NTY1ZjdjODE2Y2ZkNmFlOTRiMjYzO=
-GM5N2E3YjQ1MWE0NTY4MmU1ZTRkNTA3N2QwNTQ1ZmMwYzNjNjU5NGIyOTgwNjYxMDY0ZWUwNGE2=
-MDgwY2RhYTA2M2FjZTg0MjUyZjJiYmVkYmNhYmE5ZWNjODI5N2RkYTg5YmY2OTI5MzUzOGI2MWE=
-0MjkyNjYwNzBlMDk1MmNjMTJlZTg0OThjZmQ4MzM2OTRi" target=3D"_blank" style=3D"f=
+                                    <a href=3D"localhost:1333?u=3DMzExNTk1Z=
+mUyOTgxZGQwMDAwOWJlMGE2OGE1YWZhNDAxMDg1MmUxMjIzODM3ZDAzYTdkMTMwMWYwOTc5M2Vm=
+ODRmNzI0ZGYyZjBmZTVmNGY3ZTA0OTlhODc1M2Y5YjU1MGU2ZGY3MDg1M2Q0YzA1ZjI4ZWY4ZDU=
+yYzBkZTIxYzUzYTEwN2Y4MjA3YzAxY2NhYzY0NTJkODZhNTY1MjFhODA1NmQ0ODY5NjQwZWJhMG=
+Q0OTUxN2U0ZTNmNjZlYWQ0ZTg3OWIwNTMzZmU4Y2IxYjgwYzY0NjhiYmIwMzcwMTZlZTgxNTM5O=
+GU4NmEzYThhNmI0NmZjZDNmNzkzNzhkOWE0ZDMwYTZmMjRlOTY0MmE1MGE1MmEyZGViYTJjNWZm=
+OGY3ZWJiOGM1N2ZlZGYwZmJiNTUxOGVlOTkxNzIwOWM0ZTdlNTI4NjNhYTI3ZTNlYTdjYjkxYTU=
+xNjkyNjE1OGNjMzNkN2JiMzkxNzRjZGY1NTJmMzJlODY4" target=3D"_blank" style=3D"f=
 ont-family:Helvetica,Arial,sans-serif">
                                       <img width=3D"600" style=3D"display: =
 inline-block; width: 100%; max-width: 600px; height: auto; font-family: Hel=
@@ -580,14 +579,14 @@ loat:left;display:none;height:0px;font-family:Helvetica,Arial,sans-serif" c=
 lass=3D"m_1202337279934882522showmob">
                                     <p style=3D"margin:16px 0px;text-align:=
 center;font-family:Helvetica,Arial,sans-serif">
-                                      <a href=3D"localhost:1333?u=3DMmU0MWR=
-jNDk4NmJiNDM1ZTkyNGViNTdlMmJhN2VkMTJhYjRmNDY2MjJkNmM2YzcxMjQ0ZjVkNWRkZTM3Y2=
-I5YzM5N2U5NTRkOTc0MTc3YTliMGIyZGI0NTViZTAxNmNhM2JmMDgxMmNmMDk1MzA2OWEyZWJhM=
-zZmMTRhMmIwMjcxM2VlZTExMmVmMmNmNDU2YTU4Y2ZiMmVkZGU2YTE5M2NjNjdmMmNjODU5NzRi=
-MjkyNzg0NzdiMWJmYWI1ZGMxOGQ4YmFkOWIzYzAwYzBkZDc0ZjU0OGIzMmI0ZTVhN2M2ZWRiMDc=
-yMTVhZTM4NTk1YzM5MDgzM2Q3MWY4YjkxNTM0NjViY2U1ZjFjODcwNzdhOTY2OWNmMDZhYWNlOW=
-Y0NWRlMWE0Y2Y0ODYyYmVkY2Q5MzkzOWZkMDJlYzA3NzU1MTJlYjZmYzg3ZTgyMDQ1ZDNmZDk4Z=
-Dk0MGU3MTZhNTQ3Zjg2MWQxYzVlYTVhZTc4NzRiYjkyYmFh" target=3D"_blank" style=3D=
+                                      <a href=3D"localhost:1333?u=3DOTM4OTF=
+lZmI4Nzk2ZmVhMmFjYTc5YjZjYzEyMWJkZTJjMzc1YmVjYWFlOTBlN2NiODZhODg3MzYwZDhiZD=
+Y4ZGE0NDg5OWZlZjg0NmY1YWZlZDQ2OGU5Zjk0NDM1MTQ4NGRmOGJlYmE2Y2ZhZGZlZmY0M2VjM=
+DYyYTc5OGZhYjM5OThlMjZkMDRlMjQwYWIxMzE1MmQyNjU0YTA4N2ZiZTAwMGVjYmFmOWEwYjE3=
+Y2RkMGE4OGU0MTAyMjRlMzg2YzcyZmVhMzlmZTQxMjAzZTkyMWYwMmZjNmJjMDJjYmUyMmY2NmI=
+zM2E1NmQwNGYzYjZlZWEwZGI0M2IxYmZlNjY2NGFjNjhlNjlkMzE0YmM4N2RmZTBlYzkzNTY0YW=
+EzMGZhNTRhZDc2NDU4ZDA4NTk4NjhhNWYyNmQ0YjFmNjJiZmY4YmY1MWRjOTRhY2E1NDFlMDEwO=
+GQ5MDM5ZDQxOGRkMmVhOTAyYjM0MDRkZmJiYTk2ZDc3MWNi" target=3D"_blank" style=3D=
 "font-family:Helvetica,Arial,sans-serif">
                                         <img width=3D"375" alt=3D"Plan your=
  fall getaway and save with Member Prices." style=3D"display: block; font-f=
@@ -651,14 +650,14 @@ time to book your fall break.
 26%;font-weight:normal;margin:4px 32px 16px;text-align:left;font-family:Hel=
 vetica,Arial,sans-serif;color:rgb(255,255,255)">
                             <a class=3D"m_1202337279934882522block m_120233=
-7279934882522button__primary__link" href=3D"localhost:1333?u=3DMWE2OTE3YWQ1=
-MTc4NTA2ZmEwM2FhZTczZjQ4YTc5ODU5NmFlODBlMjI2MGNiNTRiYzE0ZTMzMmVlNDBiYTk3ZWE=
-3OGViYmJmZWUxZGFiMDUxMTIyMzY0NWJkODVmZGFmYWMzODJkNjk2MzY0NTUwNDA2MDIxNWQ3M2=
-M5YTA0NDliNzJhOWIxOWUyM2I2Y2MyMTAyYmZjZTc2ZTdhZTZlYzU0M2E2MzA4YzE5OWNlYjg5M=
-2E4MDc5YmU1Njk0ZjhlMDM0YjVmYTk0NTkzYWQ1OTkwNzIzMGM0ZDE4ZDRjZjU2OTYyZmQzYzE0=
-ZjJjYWY1YWY3ZmMwMmU2MDE4MzZkNWJiNjA5NDFhODkyODU0YTZkMjAxNDgwODA5MTlhYzk0OWQ=
-3MjFhNWQ1Mjk2NTk1NjA2ZTkwOTYwNGVmYTc5Y2U1OWIzMTBjODNhNjYzNWJkYzkyODBmMzFjYz=
-lmNTMxNzc4ZWFmYzFiMDFkMGFiNzM4NGYzMWZjZmFh" style=3D"display:inline-block;t=
+7279934882522button__primary__link" href=3D"localhost:1333?u=3DOGI2N2EyZDEz=
+ZTMyYmQyZDM4NzU5OWRhZThlMjlhYmEyZTBkYTc0YWEyZTUzZmUzZmJmNjJmOWJlYjdjYzVjNTc=
+2OTA4OGE2M2Y2NTIyNjIxMjcxZjc4NWZmODgxNWY0NDc3MWYzYmNlYjMwZDRiNmE1YjVhMzkxYj=
+I3ZTU4NzJiNGRlZmRlYTNmMjU3MGJhN2UzZDNiNDQxZGZjZWI4ZDQ5Y2E0ZjQ4MmQxNDkzOWI3M=
+jNkYmE2MzYyOGFmN2I3OGE5ZmRjZDYwNDZmZTNiODQ2MjcyNjQzYjIzODIzNWExNjgxYzE4YjAx=
+MDU4MWYxOTQ3YmEwZTQ5NTE1ODRhODQ3NDUyNDU1MmU2ZDRjYzNmNDkyMjcxZDM1OTJiYjVhZWR=
+hOTFjYWQ3YjI3ZWUxYTYyY2Y3NmRkYzA4NjgyZDFmN2QyMjU1MTE3YWE2MmUzYzc5MmQ3NTE4Mz=
+dkYWI4ZThkOTMxYzdiNjQwNmUyZThiYzAwYjdmOTc2" style=3D"display:inline-block;t=
 ext-decoration:none;text-transform:none;padding:8px 16px;border-radius:4000=
 0px;font-size:16px;line-height:126%;font-weight:normal;font-family:Helvetic=
 a,Arial,sans-serif;background-color:rgb(22,104,227);color:rgb(255,255,255)"=
@@ -725,14 +724,14 @@ line-height:120%;font-weight:normal;text-align:center;font-family:Helvetica=
                         <p style=3D"margin:0px 0px 16px;text-align:center;f=
 ont-family:Helvetica,Arial,sans-serif" class=3D"m_1202337279934882522nomob"=
 >
-                            <a href=3D"localhost:1333?u=3DOGRjZDc0OTU4MWFiM=
-zAyNDY2MGM2OTU5YjE4MWY0Y2QzNjI2MmExOWM5NTc1ZGMxNzAxZDIyZTI1MmU5MTFmNzk0NDdl=
-ZTI0OWI4MTUzM2IwYjFjOGQ1MzJiNmZhNDFkZmI4OTU5NTZmZjUxNGUyY2M2Mzg5YmRhN2NjNWQ=
-3NmE5ZjM2YzRiYjEyYzQ5NGMzYzVjNWM3ZDE0NzdkMDAxMGQyOGI5OTA5ZmZkMjQ4NDQxNGZiNj=
-g5ZmQ3N2Y0YTZkMjRlY2E2ZjY1YzljN2E0MmNkNWY3ZTM1YzE4OWY1NDA4YzQ4MGZiNjcyY2ZmZ=
-Tg1MTQ0YmY5ZWZjZjNhODNlOGU2OGNmZDcwNmVmNDUzYzgwNmI3Yzc3ZTY1ODRjZjgwN2MyOWQ5=
-NjU2ZmVlNjU3ODVjYjc2ZjI4OWU2NDVlNDA4YTRiOGFiZGU0OGJkZjQ4NTFlOGM0YjBkMzc0MDQ=
-yYzI4NzdhYWZiZDhjMjQyOWNhZGRiZjhiY2Vj" target=3D"_blank" style=3D"font-fami=
+                            <a href=3D"localhost:1333?u=3DMjk2NDE2NzkyNjIzO=
+DgzOGJiYmZiYmIwOWE4MWRiYmE3ODBjYWI0ODUzYjdkYjA0N2RiMWNmMzQzNjBmNzQzM2FhZDA3=
+YjVjNjkwMzU5ZDUyYzlmNmQ2MjY4MjNkYTZmODI5MDQ5NGI1OTIwOGMwYmI2NDFkOTA5MGM3NDU=
+wZWVjNzExNTY1YjQ4ZDZkMmZjZjhiMDA4NjIxMDI0YjFkMGQ3YWZjMTU5NWFhMmMwMTFhMWVlM2=
+JiYTYyMDQzNWJlZWM2YWFmNGIxZjExYTBiMDlkZTFmMDRmZGM1MTc4ZjdhNzQ4MjNmODdkY2FlN=
+DJkMDcyZDJjYzU1ZTZmNmJiNjdkMzJmNTg5MDU1NzlkMTY5Y2MzMjg5NjJlYTViNmQ1ZmE3NTRh=
+ZjQ5MmM4M2FjZjhhNTBlZTEwODQzZWViYWNkOWU1OTM0MWZkZjBiZDllMGJmMTAyNmNkMDU5ODY=
+zYzk0OGIyNGQ1YjE2MmZjMTZkZTcwM2FjNmVj" target=3D"_blank" style=3D"font-fami=
 ly:Helvetica,Arial,sans-serif">
                                 <img width=3D"536" style=3D"display: inline=
 -block; border-radius: 0px 0px 16px 16px; width: 100%; max-width: 536px; he=
@@ -748,14 +747,14 @@ display:none;height:0px;font-family:Helvetica,Arial,sans-serif" class=3D"m_=
 1202337279934882522showmob">
                             <p style=3D"margin:0px 0px 16px;text-align:cent=
 er;font-family:Helvetica,Arial,sans-serif">
-                                <a href=3D"localhost:1333?u=3DYTVlOTM1NGFiO=
-TY2NzRmZDNjMWFhMDdhMmIyZDI1NzJkZmUxNGQ2YTVjM2I1MDMyZmM2ZDZiODM5OTNkMTFjYjhh=
-NTc1M2Y2ODU0YjA2MjEyMjM1NWNkNDUyZDFlZjFjOTEzMDU3ODI1ODNhMWVmNDkxMWI4N2YwMzN=
-lOWRhYzQ3N2ZjYTQwNmM3ODE3ODNmYTE2NjIzZGIxYTlkNjJlYTdhODJiOTE1NWJjZjkwMDlhMW=
-YwY2UxY2Q0ODI2MzZmMzEwMzlhM2FhZjNkNzJkNzZhYzYzYWNhZmYyZDMzNWIxM2JkMjZhMjllY=
-mE3M2JjYTgxZWMzNTRlZTlmYTJhMTY2Y2FmYzkwNjEzZGU1N2Q4MmUxNzBmNDY3ZWFmMGY0ZWRj=
-MzcwZjIwYzg5ZjM3NzZiNThjODdlZjk1ZjViN2UwOWYyNTE3NDIzZTM0MTNlZGY3NjY0M2E5MWE=
-2YWY1ODkyZjJjY2ZmZjVmYTk1MGFmYTVkN2E2OTI0" target=3D"_blank" style=3D"font-=
+                                <a href=3D"localhost:1333?u=3DZjkzN2I1ZGVhY=
+jI4ZThjNDRiZTEwNzhiMTc5MTRkZmFkNTUxMjM1NzkxNzA4Yjc1NDE3NDkzNWMwMzQ3MDlmZDBj=
+MmE1YzhkZmZmN2VjNDY4MWFmYWFlYjM1MjQxYTcyYTJiNWE3ZDQ5OWI3Yzc5NGM1ZjM4NjNhMGJ=
+mNDc4MDQxYTM2YzZjMmU3MDNlZjU5ZGVkZTQyOWRmZTNiNGU2MjliZWQ3MzViY2UyYjczOTY4Yj=
+BjMmM1ZjU4YmQxOTUyMTY1MTdiNzc0ZTlkNGE3YjBlZTBlYWNlMDEyNDBjMDMzZDQ5NWVhZWI2N=
+mE3ODU5NDZhM2ViN2ZhZGQ1ZGRlNWQ4NWYwOGRkODJkMjNmMGMwNTY5N2RlYWU0ZDYxOTAyMjUx=
+OWIwYzY4ZDY5MGVmNjkxMWY1ZmM0NTY5OTIyNDIwOTNjMzliN2EzNmRmN2UyZTllMzAxM2VhNWE=
+2NTBmNGQ4NzAwYWY5YWQ2ZjYyNGUwZGIxZDYwZTA3" target=3D"_blank" style=3D"font-=
 family:Helvetica,Arial,sans-serif">
                                     <img width=3D"311" alt=3D"Plan a visit =
 to West Maui when it reopens for travel Oct 8" style=3D"display: block; bor=
@@ -811,14 +810,14 @@ Lahaina will remain closed to the public out of respect to the town=E2=80=
                                     <p style=3D"font-size:14px;line-height:=
 130%;font-weight:normal;margin:0px 0px 16px;text-align:left;font-family:Hel=
 vetica,Arial,sans-serif;color:rgb(22,104,227)">
-                                      <a href=3D"localhost:1333?u=3DOWMxYzU=
-zMGY0N2IxYjk2ZGVlZGQ1N2RhNGEyMGNmMmE0ZTI2Yzc2NmFkZmZhMTU0ZjdjYWVmNDc2ZjYyND=
-QyOGM1OTE2ZTNjMThiY2E0MGYxNjY1YTI2MDdiMjRiZWIyOTBlNzY5NDY2ODhjMDkxMGMzODhhZ=
-TFlZDZmNmM0N2Q5YWI0ZWYzOWU5NzY2OTgwYWZjNjJjMWVlYWUxMTBiNGNjYWUyNGY1NzBmNDA1=
-YjBjMGYwNmRlMzkxMGU5N2I4ZDZlMjJiYjNmNmUzNGNiZmI0ZjgyYjBiZTYyMTRlMmNjMjdlM2V=
-iMzhhNTUxMDU2NTgwZDU4YmM1YWMxNjM5OTgwMzY3Y2JmMDY5Y2MyMWEwNjM1YjZiMmU1MzBkNj=
-VjOTU5OWM4ZDBjOWNlYWRmMWZiMmQ5NDZhOWMxYzcxN2JlM2I1YTQ2NTY0MTk1NDIwOGU1ODRjN=
-zk0MWE3NWFlYTAxYjY2NzEyYTk3YWJiNjllY2M1YTQzZTU4YzVlZA=3D=3D" style=3D"text-=
+                                      <a href=3D"localhost:1333?u=3DOTEyNzV=
+kMTVjMWU4YzJlZTY2ZTgzNTI1M2U0ZWI3NjRjNDFlYWE5MjNmMmQ4MTJiOGI3NWNiYWRmMzQ3OD=
+A0NjFhZDNiM2YxYjdkMWYyNjI3ZTg4Y2I2ZDFhMjMzN2RmYjgzNjhlYzBkYzQ2ZjQ4ZWUyNGExN=
+mI0Y2MyODYwY2FkMjRlZTI0Y2M3ZGQzMTM3NDMxZWI4OGE5MzQzM2QzYTgwNzI4NDU3NzRkODUw=
+Y2FjZDQxZGFlNzJiMTY2OGQ4MTdiNWMyZTk0ZWYxNGRjYzdkZDZmZTU3YmI3MDI0NTUxOWM5ZDd=
+iZTk5YWRhN2M4ZWE3M2NlOGFkYmJhMWFmYjcwYjk1MWM4MmRlZTYyNDA1NWFkNzFkMDQ2NWRkMz=
+YwMDM5Y2FiM2U3MjhmNmI0MDExYTA5MWQ4ZjJlZTdmZjZhNzI5MDRlYmY5YjMyYzRkN2M0NGJlN=
+Tc0NThlMDJiNjJmYTQ0MDY2NjM1MzFhZWYxODZiNGFhMzE2Njc4Yw=3D=3D" style=3D"text-=
 decoration:underline;font-family:Helvetica,Arial,sans-serif;color:rgb(22,10=
 4,227)" target=3D"_blank">
                                         Explore Hawaii Hotels
@@ -896,14 +895,14 @@ ellpadding=3D"0" align=3D"center" style=3D"font-family:Helvetica,Arial,sans=
                   <td style=3D"text-align:right;font-family:Helvetica,Arial=
 ,sans-serif">
                     <a style=3D"text-decoration:none;font-family:Helvetica,=
-Arial,sans-serif" href=3D"localhost:1333?u=3DMWEzM2U3OWJiYThmMjcyNWNmM2IxYm=
-M1YTE4OWUzYzg1ZDU1YjA4NjU2YWY2MjgxNjIzOGUxMGJmNWM5ODgyYzQwOTRlODBhOWQzNjk1Z=
-jM3MDE5OWU3ODQ2N2UxMWM0OGIwODc1NjZjM2FiMTkxMzcyNGVhZTBjMWQ2ZDJhZmNiNDU2MWJj=
-NzIxMjVlMTQwZTBjMTdiODhhMjliOTBhMzM1MzU4ZDMxMjY2Mzg0MDUxNGVkMzA5YTBmZjhmYjN=
-mZTZjMDJjNzAyYmQ0ZWY3OGM5Y2RiNGZiN2UwN2JhMjVhNWIwYjEwYThhNTgwZWRlMGYxNWE3NG=
-FjNzBhYmY3NDE2MzQzMzgzMDY4NmRkZjAxODk3ZGFjNWZlMWEyZjM3NzU5YTQ4ZThlNGIzNmQ2N=
-DAyNGUwOGY0NDdmZDg2MDg3OWNiZTU5NjcxYTE5YzJjMzU2ZDFiM2RkMmQ5ZDkyMGNkYjczMGY4=
-NjRlNDMxNzE5NGM1MzA0NDE2" target=3D"_blank">=20
+Arial,sans-serif" href=3D"localhost:1333?u=3DNGU4MGE4NDQzMmZjYzI4NWEwMDU4YT=
+g0YzdhNjJjYTA0NjViMWQ1YzA4MTJiYjY3MjU3NGE2Y2JmZjU5ZjJjODU2NGUyNmVhMDUwZGM5O=
+DVlOWI0OGFjYzgwMzk5MDJhNGU4ZGNhYmNlMTYwODdmMDZmNzBhNmRkYzQ3YjM0ZmE3ZDY1Yzhh=
+MWQxZTViY2UyOGJjN2I2ZTU1Nzc0N2VhYTBiZjRjZmY5NDcxNTU2ZGZhZTc0Y2VjZGZhNTY1ZDY=
+4ZDllNjZiYTRhYWJkZDc2NDZkNmU3NDhjNWY3OTA3ZDc2NjNkYmZkNWY5NWMyOTc3NTJhMmNhNT=
+lmMmUzNjZlYjA2ZjVkMGViYzE0OWIzZGJlMDM5ZjZiMTQyODFiMjJkM2YzNGY2ZDAxNjQzMjBhZ=
+jJkNzhmYTA2ZjQ0NmRlOWVhMDNlMWE2MWE0YjJjZjA2NDNkMTE3NjJhYzAxNDI5ZjY0YWFlOGU3=
+OTZhNDM1Y2IwODE3OWI3ZTRm" target=3D"_blank">=20
                       <img src=3D"https://image.eg.expedia.com/lib/fe321172=
 7364047c721775/m/1/enUS_iOS.png" alt=3D"App Store" width=3D"auto" height=3D=
 "28" style=3D"border: 0px; height: 28px; line-height: 100%; outline: none; =
@@ -917,14 +916,14 @@ s-serif">=C2=A0</td>
                   <td style=3D"text-align:left;font-family:Helvetica,Arial,=
 sans-serif">
                     <a style=3D"text-decoration:none;font-family:Helvetica,=
-Arial,sans-serif" href=3D"localhost:1333?u=3DNzI2YjNkZmIzNzQwOGUxMDZmZGU4Mz=
-E2NTdiMWUyMzNhMThlOTlkM2NmYjk0MDU3MDUxMWMzZDU3M2FiODFhNDA1MzRiYzhjNjhiN2MxN=
-2EzYzQ1MWY1ZDNlNWYyYmZhM2UyYThlYTkwNWNhZThlNTEwNWIzM2FjMmUyNTBlODZjMjZiYjA1=
-OWI4ZWZmZDhmZWQwYzFlNzE0ZDk0MWZiZmI4NGVmN2EwMTY3Y2RkYmQyY2JiY2E4ZjNmOTA2MDE=
-1YThkNDY1YmNkNzM2NjNjODg4ZTgzMDU1NTc2NWNhNzYwNThjYTc4YTY0ZTFiNThhMzhkMjU1ZW=
-RjZGM2ZDU2NDA0YzQxYWZmNWEzMDk0NzhhYmJkZmNhMGMyNjM1OGE2MmY1MjI5MWIyMjE2ZmVhY=
-2FiMmQwZmQ2ODBlNDJiNWMyYTA0MjcxZjU0MDhhNGU3ZDYwNTYxMWY1NDBhYjBlYzMyM2ZjYjE3=
-YmE4NTY5MGUzNmZmYzQwMWY1" target=3D"_blank">
+Arial,sans-serif" href=3D"localhost:1333?u=3DZmU5ZTBkMTM2OWI0YTNlMTI3MWJhY2=
+YwMWUzY2JhNmY0ZmJhYTE0MzA5YjJmZDEyYWMzODUxOGFlOGJjZDc5Mzg4NDkzNTRhZjRmNTRiM=
+DMwNDlmNjEzMjVkMTM3ODgwMzE3ZWY1ZDNkMDE5Y2NkZWEyYTM4MzJiYzY1NTlmMDc2YjZiYzhl=
+NmU2MjE0N2YwMDdlNDE5OGRmMjdmMTBmMGI2ZDIzODJkZGFlOWExZTBiOWY3OTU2NzFlYjhjYjU=
+0NmU2NzU5NmE2YjY3NGY0MGJhNDU4NDk0OTJjNGJkNWM1OGQyZmVmMTYxY2M5MTZmOTNlZDRiYz=
+FlYzk2OGQ2YmRiZDA4ZmQxOGE1ZTY2MmVkMmRlOTViYjVjYzllMjQyZTU0ZGYwZDk5YjRjYjdiM=
+TIyNmI0MDUxMDg2YTYwNGI2YmJmODA3NjhmMWVjOTgxN2ZkNWQ5MTY2ZGZjYjM0MzJmNWQ0OGM0=
+Mzg3M2Y1ZTYzYzI2ZGM0MTJl" target=3D"_blank">
                       <img src=3D"https://image.eg.expedia.com/lib/fe321172=
 7364047c721775/m/1/enUS_Android.png" alt=3D"Google Play" width=3D"auto" hei=
 ght=3D"28" style=3D"border: 0px; height: 28px; line-height: 100%; outline: =
@@ -960,70 +959,70 @@ s=3D"m_1202337279934882522gutter-margin">=20
         =20
           <a style=3D"display:inline-block;font-size:12px;line-height:134%;=
 font-weight:normal;text-decoration:underline;font-family:Helvetica,Arial,sa=
-ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DZjNkZTAyMjI2ZWMz=
-MjBlNDc5YzNkZmU3NzUwOTU1MmI3MDllOTZlMjg0NDY3NGI3ODczZmEwOGVlNmRkMDMxYTJkNDd=
-hYjg0YmUwMmE3YjhiNmYwM2M2Yjc2ZTZmODQzZmU5OTEyYTE4YzEwYjYxMTUzMTZlOGNiY2NkZT=
-ljN2JkNjk3NjEyMTc1MjhhZTM5MjExZTMwNTBkN2U1MDhiNGIyMzg2ODE3YzVhYTJiNzdhOTg0Z=
-jlmNzlhN2UyMzMyOGI4M2RmYzE0OWZhYjA5N2FhZTY0NjlkYzM0ZGMyY2RkNDNkYzIzZjU2MGI3=
-NjI5MGI0M2JiZmNjNzc3NjAwNzQ0OTEyNWFiMGNmZDI3YjMwMGIyZTkxMDYxMDhlZTQwYTdmNTQ=
-wMGU3ZTY3MjI0OTA2ZjE1YjcwNjVkZWM2ZjRlMWU3MWJlZDY1MWY4ZDc4MDk1MTM0NzM4MGMzNz=
-IxZGZmZDViZGY3YTdmZWM3MGRhNWY2OTQzMDYxZjU3ZQ=3D=3D" target=3D"_blank">Unsub=
+ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DYWQ3MDliMGY1Mjk3=
+ZDJmMTA2ZjVjOTlhYTFjOTdlZTIwNjk1MzVhOWM3YTlmNjBlYzYyMDA4NDRmZDhlZGJmYTYzZmQ=
+zMzQwODNjYjM2MWZmNjM3NDJkNDRlOTk1YjZjZGFiYmFmZDUxNzQ0NWY4YjAzZWU4ZjM4MzYyMm=
+U2YmM3NzJmMmE2NThiYjNkNGM0NDZkODQ1YWZiYWUzOGMxMjZiNjA3MTZhNjBlMmMzMGQ2MzE2N=
+mQxZjIxMzRjMWNjZGEwYzg2OGE1MTlkNDVmMzFmOGNkY2FjNjQzN2U1MzIxODU5NGE3ZTQ2N2I4=
+MWUwZWEwYTQ2ZGQ4OTE4NGZhZTJiZDRjMjI4YzBiMTM1NTY0ZGI4MjY1N2JjYWI0OTdlZTQwMDU=
+wODI5NWNlNTQxZDdhODc0MjViNjE3Nzk5ZWJiNjFjMWU5NDA5YWY5ODQwYTY3OGI5MmQ2NzBlZD=
+NmMmJhZTQ1NzViOTg4YmE5NjBjNjFiOGZkODUxZjBiNA=3D=3D" target=3D"_blank">Unsub=
 scribe from The Travel Edit</a>
           =C2=A0=C2=A0
        =20
        =20
           <a style=3D"display:inline-block;font-size:12px;line-height:134%;=
 font-weight:normal;text-decoration:underline;font-family:Helvetica,Arial,sa=
-ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DZjA5NDM4NTA1NjNl=
-MTA1ODAyYjkzNjRjNzc2ZjY3MDJiZjMxOWE0MzJjZGRjZjU5NTliMWUzOWVhNWFkMjk2NTNjNjV=
-kZDBhYjM5MjE3NmZiNGUwYWUxZTYxODAzMTlkNmJjZDU1MTMwMThmMjRlODUyYzQ4YzNmYjFiYm=
-I2NTBkNjJjY2Q3ZTE5YzczMDE1NDQ5ZjljNWQwMmE1YmMxMzhkNTg1MzJkYTJlZTVmMDY0YTU2N=
-GU5ZDgyODBkNjg1ZWY4ZWU0ZTcwYjVmYTFjYjgwZjE2YTdhYTZjM2RhMmZiYzI0MDA4OTFmNzEx=
-NTQ5ZTFiZWY2MWY2NDM4M2U5ZTQ2YjIwYzI3Nzc3M2ZjZWRhNzQ5NDI0OWUwODc2ZWE2YjExNTc=
-xODI1YWYzY2U1MDNjMTJkOTZkNWJjZmJkNmIyZTEzODdlMzg0MzFlZjgxNGRkYmMwNDM3OTJlYj=
-E4NjQ4MjBjOTA2MTdmODI0NDYxYjEyZDZiYjQwNjUzNA=3D=3D" target=3D"_blank">Manag=
+ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DNzY1MjI2NzNmOTg4=
+YWFiNzliZGI2NDc3OTQwMTIyZTYyNmFhMGU2N2RhMmEwOWMzYTJmOTBkMGYzYmE0OTA0MTNkNjZ=
+iYjVlZjI2ZDRlMjQ5MGIxMDIyMzA1OGNhZmJmMjdiYTEzZWIwYjQ1YTg3NDQwNzg2OWI3MjIxYj=
+A1YjQyYTM2YWE4YTcxYjQ5Mzc4MTQwMjdiYTg5YWE5ZWZiYjZkMDVkYmE4ZjkwMTQ0OGRkMDE4M=
+zhhOTFhODM0OWJiMzhmZWRkYTlkNmM3OTBiNzQ1NDNjNjY2NjAxNzVkMWI2N2QxZjI4NmM1YWI4=
+OGU5NWU4ZjQ3ZmY4M2JkYWZkMjA0ZGZhOTAxNTI3NjliYTA3NTIwOTlkZTAzMDVkYmQ4NmY0MjF=
+jY2U5NzU1YzNmYmQzYzE0ZmU4YTBhMjE3OTMwMmFhMmIwYWZkY2FlNWQ5ZWU0NmMzODZlOTAzMj=
+ExNjY5MDc0NTUyYTVhYmRjZGRkZDRiYjI2NDE1M2I1ZQ=3D=3D" target=3D"_blank">Manag=
 e Preferences</a>
           =C2=A0=C2=A0
        =20
        =20
           <a style=3D"display:inline-block;font-size:12px;line-height:134%;=
 font-weight:normal;text-decoration:underline;font-family:Helvetica,Arial,sa=
-ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DYTUxMTYzM2ZkNzli=
-ODA3ZWM4NjRhZTA1MGM4ODgwM2YxNTE1OGVmM2Q4MGM1MWFjNmZmNDYxYjIzNDEzM2Q3MThkMmZ=
-mZmU5OGMxMmZjMDIwNDY2YmNmOWNjYjcyNDJkZWNjMTNlYzNjNjBiMWIyMTkyMGQwZDYwMWM2N2=
-MzZTdmYjlmNDg2MTk1MzlkZmE5YTAxNWZiNDQ2NTViN2E5MDM1NzA4MzMzOGRmODgzYzRmZGI0Y=
-mRhNDFjOWZjNWZjN2UwYzU5YWJhNDViNWY0MmFiZTAzNDZkYTkxZDEyNTgwZjhjMDFiOWNlMmZl=
-NWIyZDEzZDI5ZjcyZjQ3Mzk4N2FjNjY2MTk5ZjZlODVlYjIwZGNkMzE3MGYzMTI4MTNmNWY4NjJ=
-mYWY5NGFiZWUzMTNkZWQyMzVmN2RhNTRjNGFmMzc4ZGUzY2YzNzE1ZmMwYTE5MWZhNDU3NGMzOW=
-VmODUyMTEyNzMzNzI5YmI0MjFjYWFjZmI5Mjk1Y2E4MQ=3D=3D" target=3D"_blank">Priva=
+ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DZmEyOWE3NmUwY2U1=
+YTlmMGJiYzdlNjA0NDU5OGJkMTJiYzMyYzNjYjE4NGI3YmZjYmU2YzBiYjBhZjI2ZGY4NDhiYjM=
+3MGM5MTcxODUxMGMwZGQ2Njc3OThhNTlkOGEyYmFiYjI1ODg2YmUzMjI0ZGEyOTlhNTQzZmIxNG=
+EwNTQyMjczZmU2ZjIxZDg2MzU3OGQwZjM4MDA1Yjg3MTdmYmNmODkwYTNkMmEzYzljYThmMjFhO=
+GUyNzA1M2U5ZWZiNzg4ZTQ2ZWUwMDJiODdhZTdiZWIxYjUyNjc2YTAxNjQ2NWIzNDQ2Mzc3Mzhj=
+YjRhYjYzYjg2ZGRlNWJiOTExNjg3MDM5NDA3N2U1ODQ2Y2M3YzEzNzM2NTM1NDI2MWFmNzE0MGR=
+kMTcyMWFhYjZkMzcxMzJlMzVmYTQzOGFiMWVhZjkxM2M0ZDNhYjg4ZjU4ZmJjMTk5YTBkMDQyOW=
+UwZDI2YjdmNmI1OWJlMmE0NWI1MTg4NzU5NjIzMzNhMQ=3D=3D" target=3D"_blank">Priva=
 cy Statement</a>
           =C2=A0=C2=A0
        =20
        =20
           <a style=3D"display:inline-block;font-size:12px;line-height:134%;=
 font-weight:normal;text-decoration:underline;font-family:Helvetica,Arial,sa=
-ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DNzllYjkzOTg4OWEx=
-ZjQ1MDJlMDMyODdhZWJjMWM3YzYwY2IyYWQyZDAzMjQyZWEwMTgwYTE3MGRkZWJhMDIyYmI0ZWI=
-xMzkxNWNmNTE5MDE3ZTcyZjRjZWZmMzBlYTE0MjI4MWU5ZDlmYTg2YjRmMWNmZDA3NzAyMWQzM2=
-Q3NWRkNmE3MzFkZGZiYjQ3MzBhZjgxYWY0ZmIzODg5OTg3NzgwOTVjMjFmZmNjNzE0MGY5ZmZiN=
-jdjYzI3ODg1YzgwYzI5NzMxMTAzZTMyNzdkMWJjYzk2MGQwN2I1MzQ3ODQ5ZTg1MDM2MWEyNGJi=
-Mzk4MGQ2NDhmNjZmMGZlMjc2NDM3NWE4NzE3MTljYjlkYmY3NWIyNWRhYjczNWI1NGViYWU3YWQ=
-xNWM1MGI1OTE1ODgzOTllMTlkMWFkZWNlZDQ3MGNmNDVhMDdkYjU4MDBmMzMyMDY2MDI3MTMwYT=
-YyYmQ1ZGM3MzVjODc1ZmRlYWUwZjdkNTViMTI0OTIyNg=3D=3D" target=3D"_blank">About=
+ns-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DZTg2OTBjN2Y3YzM1=
+NjRiNDllYzNkMGIwNDAxYzY5NzVhZWU0YzllY2JlNmZlYjA1OGYzYzkyMTRjZWY0YmI5OWYzOWY=
+wYjM2Nzk0MTBlYzRkOGY2M2Y4OGFlZjgxNGNlZDhmOTc0NTc5MzU5OTExYjEwZjcxNjYwMDI1ND=
+U3ZDRhM2U0YWEwZDJiMzQyYTZhOTkyNTQ1OWFkZDQzNDY0MWUyZTZhMjRmMDAxOGUyNDhmNGYzZ=
+WMwODhiMDA5NzJiNTYzMWYxYmMyNWMyNWIwMTVmZjJlMmI3OWZhMDRmMDk5M2UyMDFiNzcwNWIw=
+MDdhYzJkOGU2MWRmNzExZTc4NjU1MmQzZWI3YzhhNjA5MGI1NzcwNDQ4ZjMzOWRkM2VmMzcxZmV=
+kOTIxNTU5YjM4NTM3MTcxZDk3YjNmMDJjZWE5MDk5NDJiMmZhOGM1YzE4NDJhYzgxNTMzODQ5ZW=
+E2ZjUzOWUyZmI0OTNlZjI5OTU0NDMwNTE5NDBmY2E2OQ=3D=3D" target=3D"_blank">About=
  Us</a>
           =C2=A0=C2=A0
        =20
        =20
         <a style=3D"display:inline-block;font-size:12px;line-height:134%;fo=
 nt-weight:normal;text-decoration:underline;font-family:Helvetica,Arial,sans=
--serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DYWU5NjlkYmFhNjUyY2=
-M5Yjg2Yjg2MDcyOTc2ZWU5NWQyZTliOTAxYzM2OTFiMzc2Yzc1NWFmM2E5MzhkYWIzMTlhNGM5Z=
-DUyZjRkZTY4ZDEyOWNlMDhkOWUwZDVjMWU4MThmZTFkZmQwYjBjMDM5ZjA5ZTU0ZmVjM2ViNWNm=
-MmZiZTY5Yzk0ZGUwZDk4NmIyZWI0OWI4MzY5YTcwZjkyMDc3NWIyNDNkODYyMDBjNjBkMDc2NzA=
-4NGY4OWVkZjE2NmVmZmQwZjk1Y2MwOTQ0ZjVmMDNlZmM0ODA1YjA4YmE4MmY1OGUxZDRjZDg1OW=
-FlMWFlYjg5MGNjZDMwOTYxZWQ1NmEzMmY2MGJlZmE1MDQ4ZDA5YjUzNWNkYTQzYjRiYTExYzA4O=
-DllZTA2ZTdkZTUxMzYyZDkwMTYzOTgwYmI2MzAwODg3YzEzZjA5NjMxOWNhMGVhMjVmMmI1YWU0=
-MmEzYjU1NTk2NDYxNmJiNjI1YTNlZWY4MmMzMTU5MA=3D=3D" target=3D"_blank">Custome=
+-serif;color:rgb(22,104,227)" href=3D"localhost:1333?u=3DOGE5MWU4YWY0NDY5YT=
+MyZGViOWQyMzBkNzc4ZGU1NzA3N2FhZTMyYTNlNWVlMTcwZDJmNDIwOTllODcwODQzMzE1MDE0N=
+TVjYTU1ZTRlNzU1NjhlNDY1MGZmMjE0MTkwNGVmNGNiZGQ4ZDY4NDlhYzBlMjUyM2E0OTczYjdk=
+YmUyZmUwNDQzYjcyMjNiMGE5Mjg0MzEyYzNlNWRiN2IzZjg1NzBiMjdkNDVhOTBlM2U4MWE2Y2Q=
+yYTg2NTI0NjU2ZjEwMDJiYTU3NGE4OTViNjViYmUyODdlMTY3YWE0MzYzYzUwZGU5NGU0ZDRkYm=
+I1MzYzZTYxM2I1YTEzMWI5ZDc0NDg2ZTNhNDE2ZWEwMzViMDg2MmM2M2Q5ZGJjZTUxNGY3YzJkO=
+GYwNmQ3ZDliN2JiMjYxZDc0MGZiMmJkMGFmYjIzYWZlZWU0OGEyYmQ0ODdmMzM0ZGI5NTQ0ZDA3=
+MmRiODg3YTkzN2E4NzI4OGM0ZWY1ZDgyMWY1YzllZQ=3D=3D" target=3D"_blank">Custome=
 r Service</a>
        =20
       </p>
@@ -1055,12 +1054,12 @@ cause you are eligible to receive promotional emails from Expedia.
        =20
     =20
 
-     Expedia, Attn: EMC Team <a href=3D"localhost:1333?u=3DZGZmNDIxYzg3MWU0=
-MzYzY2IyNWNmODQ5N2VjMjA3ZDI4MDJkYzhmNzBkMjdiNDIyMDRjYWNkNTJkZGM5N2MxZTJiNTJ=
-mNjQ5ZTVjNTRlZmFhYWIzMDc1Mzc4YzI1YmQxNmQ0NjNlMDZiOGEyZDUxMDdlZDMyOTEwNGIzYz=
-M2YjlmNmI3ZGVlMzc3YTJiN2FhMWM5ZjkyYjhjMzUzYTNlZDE4YjIzOWI3MmJlODdiMjNkZThiN=
-DBiYjI3NDgxZmRlYWJlNGYwYTI1MTk3MzE4YjVkMTc2ZTU4M2Q4NWIzODhhOGVmZmFlZTdiM2Qz=
-Zjg3Yjc1MGJiZjcxOWIxZTA=3D" style=3D"font-family:Helvetica,Arial,sans-serif=
+     Expedia, Attn: EMC Team <a href=3D"localhost:1333?u=3DNDIwOTg0M2MzM2Rk=
+ZWZmODhiOWEwYzRkNjQ1NWIxZGM0MzE2Mjc4ZDM0OWM5Zjk5MjZiNmI0ODFlYWExYjQ3Zjg1YTc=
+yYWI5ZGJiZDZjYTFiZjdhMDU5NDAyZTBiMWI5NjBhOTdlMjhlMGI3MmM0ZGZiMmY3YmU0NWRiYm=
+FhYThlODZiZDhmNjk0MGEyZTRmMzk3MmY1YmEyMzJmMjQ3YmJjMzQ0ZjliZDBiYjkyYzM3MmM4O=
+TlmZjJjMTI0ODI0ZTQ2Y2VmNDI2ZjM1MTkwMWE1ZDlmZDMzZDIyZDhiMjczYjQ3MmQxYjhlMGI0=
+NDA0YzliOGY4OWM2MWRhNWQ=3D" style=3D"font-family:Helvetica,Arial,sans-serif=
 ">1111 Expedia Group Way W., Seattle WA 98119</a>.=20
           <br/>
           <br/>
@@ -1085,15 +1084,15 @@ or registered trademarks of Expedia, Inc.
        =20
        =20
    =20
-        <a href=3D"localhost:1333?u=3DOWJmMTM3OTlhYjc1OGQ2ZjNiMWY5NGE4Y2I3N=
-WZiY2RjYjliOWIyZGI0ZTc0NGQyYjhlMzNiOWI1M2U3ZjFlZmQwM2IxOGNiNzc3ZmI5ZjRhZjZm=
-YTY2MzQxM2Q2NmI3Njc1MWY5NDM3MzQwNWM3N2I2ZTZhNTA5MjQxMmM4Zjc1MDYyMmYwYTE2Nzl=
-iYTBkMjBhMWQyZDUzZTU2NWY3ZDM4OGZlOTk5NmFmNjAwZDg0NmUyNjE0Y2YzYTEwODlhOGViYT=
-JmOGQ0MjNjZTg1Y2VhODMzMjRhNjk4OTg5YWFmNDkwZWMwNWE1NGU3Mjg1MWVlMzFlNGI5NTk4Z=
-jc3NmU0ODBkZTk2YTA3OGViNDhlZjY2ZjdjMDUwMWMxMjEwNzBkYzVmMDAwYTUyMjI1Yzk3NjQz=
-YWRmNGYyMGY3ZjU5OTFhZjY4Njk3N2QyMTgzOWNhY2YyM2U3MjM5MDkwZTE3MDljMjdmOWM3Yzd=
-iZGYxZTg4NTQ4NjYyYjcyYTc5YmIyYzlmYjhhNDkwYjFlNGYxZWNhNDAxY2VjMzE5NzNmMTE5YW=
-MxMWNiM2IwODQyMmNlNjBmODg=3D" style=3D"font-size:12px;line-height:134%;font=
+        <a href=3D"localhost:1333?u=3DMTFlMmI3OGU3ZGI3ZTMyM2UyOTlhNDI0N2I5M=
+jY4ZGJlYjA4M2UzYTUzNTRhNzdjZWM2YTI0MTM2MGQzYzczNDc0ZTkyNTkyY2Y3ZDRhMDViNzA2=
+MWVkMGIyMTA1NjkyNDk3M2Y3ODNiZTNhMTIzYWM1M2UxYWYxN2U5YjRkZmJhZTdjZjI1ZGJjNDc=
+5NjE3NDNmNzNmNjc5MGI0YWMzNDkzMzM3ZjcxMzRkYzQ1MTNiNzI4NTZiZGJmNmFkZmZmOTZhNz=
+ZkMmEzZmUwZTc2NzM5NTI1MWM3MjRkZThiMzgwZTdhNGIzYWQwYWI3NDhmNzE1Y2JmNjUxMmIxM=
+zg3YWZkYTlhYmE0ZGIyODQ4YzFjM2UyOGUxMjc5M2UyNmE0Y2I4OWQxOWExY2JmYzYzZWJkNGY5=
+MGNjMWExYThlMGRmNWQ0MmU2ZDQ4YTc3ODg3MDMyZmM5NWYyN2I0ZjRhOWMwYjEyMDk5NGM2MmM=
+3YjNiOWM4NjIwMDI3MWMwYzY3OWIwNDQ1NGJlZWQ2ZTdjNDE0NDI2YjBkNGY5MmEwZjljNjk4Mj=
+djNzkzNDNiYmIwNGE4NWQ4YjM=3D" style=3D"font-size:12px;line-height:134%;font=
 -weight:normal;margin:0px;text-decoration:underline;font-family:Helvetica,A=
 rial,sans-serif;color:rgb(22,104,227)" target=3D"_blank">View online</a>
           <br/>

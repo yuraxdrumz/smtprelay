@@ -18,16 +18,18 @@ type base64 struct {
 	gotToBase64Body  bool
 	lineWriter       *bytes.Buffer
 	urlReplacer      urlreplacer.UrlReplacerActions
+	htmlURLReplacer  urlreplacer.UrlReplacerActions
 	forwardProcessor *forwarded.Forwarded
 	headers          string
 }
 
-func NewBase64Processor(urlReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *base64 {
+func NewBase64Processor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions, forwardProcessor *forwarded.Forwarded) *base64 {
 	return &base64{
 		buf:              &strings.Builder{},
 		gotToBase64Body:  false,
 		lineWriter:       new(bytes.Buffer),
 		urlReplacer:      urlReplacer,
+		htmlURLReplacer:  htmlURLReplacer,
 		forwardProcessor: forwardProcessor,
 	}
 }
@@ -108,36 +110,51 @@ func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []
 		logrus.Errorf("error in writing base64 buffer, err=%s", err)
 		return "", nil
 	}
-
-	base64String := string(base64DecodedBytes)
-	checkedBase64String := &strings.Builder{}
 	allLinks := []string{}
-	bodyReader := strings.NewReader(base64String)
-	scanner := bufio.NewScanner(bodyReader)
-	scanner.Split(bufio.ScanLines)
-	for scanner.Scan() {
-		line := scanner
-		// if !b.forwardProcessor.IsForwarded() {
-		// 	b.forwardProcessor.CheckForwardedStartGmail(line.Text(), contentType)
-		// }
-
-		// if b.forwardProcessor.IsForwarded() {
-		// 	b.forwardProcessor.CheckForwardingFinishGmail(line.Text(), contentType)
-		// 	checkedBase64String.WriteString(line.Text())
-		// 	checkedBase64String.WriteString("\n")
-		// 	continue
-		// }
-
-		replacedLine, foundLinks, err := b.urlReplacer.Replace(line.Text())
+	switch contentType {
+	case processortypes.TextHTML:
+		decodedString := string(base64DecodedBytes)
+		replacedHTML, foundLinks, err := b.urlReplacer.Replace(decodedString)
 		if err != nil {
-			logrus.Errorf("error in writing base64 buffer, err=%s", err)
-			return "", nil
+			logrus.Errorf("error in replacing base64 buffer, err=%s", err)
 		}
 		allLinks = append(allLinks, foundLinks...)
-		checkedBase64String.WriteString(replacedLine)
-		checkedBase64String.WriteString("\n")
-	}
+		replacedHTML += "\n"
+		base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(replacedHTML))
+		return base64ReplacedString, allLinks
+	case processortypes.TextPlain:
+		base64String := string(base64DecodedBytes)
+		checkedBase64String := &strings.Builder{}
+		bodyReader := strings.NewReader(base64String)
+		scanner := bufio.NewScanner(bodyReader)
+		scanner.Split(bufio.ScanLines)
+		for scanner.Scan() {
+			line := scanner
+			// if !b.forwardProcessor.IsForwarded() {
+			// 	b.forwardProcessor.CheckForwardedStartGmail(line.Text(), contentType)
+			// }
 
-	base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(checkedBase64String.String()))
-	return base64ReplacedString, allLinks
+			// if b.forwardProcessor.IsForwarded() {
+			// 	b.forwardProcessor.CheckForwardingFinishGmail(line.Text(), contentType)
+			// 	checkedBase64String.WriteString(line.Text())
+			// 	checkedBase64String.WriteString("\n")
+			// 	continue
+			// }
+
+			replacedLine, foundLinks, err := b.urlReplacer.Replace(line.Text())
+			if err != nil {
+				logrus.Errorf("error in writing base64 buffer, err=%s", err)
+				return "", nil
+			}
+			allLinks = append(allLinks, foundLinks...)
+			checkedBase64String.WriteString(replacedLine)
+			checkedBase64String.WriteString("\n")
+		}
+
+		base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(checkedBase64String.String()))
+		return base64ReplacedString, allLinks
+	default:
+		logrus.Warnf("content type %s is not implemented, not checking urls inside base64", contentType)
+		return data, nil
+	}
 }

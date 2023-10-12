@@ -33,7 +33,7 @@ func (h *HTML) Replace(str string) (replaced string, links []string, err error) 
 						logrus.Error(err)
 						continue
 					}
-					logrus.Infof("replacing url=%s to url=%s", attr.Val, replaced)
+					logrus.Debugf("replacing url=%s to url=%s", attr.Val, replaced)
 					s.SetAttr(attr.Key, replaced)
 				}
 			}
@@ -46,7 +46,7 @@ func (h *HTML) Replace(str string) (replaced string, links []string, err error) 
 		return "", nil, err
 	}
 
-	newBody = strings.Replace(newBody, "<html><head></head><body>", "", -1)
-	newBody = strings.Replace(newBody, "</body></html>", "", -1)
+	newBody = strings.Replace(newBody, "<html><head></head><body>", "", 1)
+	newBody = strings.Replace(newBody, "</body></html>", "", 1)
 	return newBody, links, nil
 }

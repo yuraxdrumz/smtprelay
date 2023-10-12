@@ -54,7 +54,7 @@ func (q *quotedPrintable) writeLine(line string) {
 func (q *quotedPrintable) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string) {
 	logrus.Debug("flushing as quotedPrintable to rest of body")
 	q.writeNewLine()
-	qpBuf, foundLinks := q.parseQuotedPrintable()
+	qpBuf, foundLinks := q.parseQuotedPrintable(contentType)
 	q.writeLine(qpBuf)
 	q.writeNewLine()
 	q.buf.Reset()
@@ -169,13 +169,23 @@ func (q *quotedPrintable) Process(lineString string) {
 	// q.buf.WriteString("\n")
 }
 
-func (q *quotedPrintable) parseQuotedPrintable() (string, []string) {
-	rawHTML := q.buf.String()
-	replacedLine, foundLinks, err := q.urlReplacer.Replace(rawHTML)
-	if err != nil {
-		logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
-		return "", nil
+func (q *quotedPrintable) parseQuotedPrintable(contentType processortypes.ContentType) (string, []string) {
+	foundLinks := []string{}
+	replacedLine := ""
+	var err error
+	switch contentType {
+	case processortypes.TextHTML:
+		rawHTML := q.buf.String()
+		replacedLine, foundLinks, err = q.urlReplacer.Replace(rawHTML)
+		if err != nil {
+			logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+			return "", nil
+		}
+	default:
+		logrus.Warnf("content type %s is not implemented, not checking urls inside quoted printable", contentType)
+		replacedLine = q.buf.String()
 	}
+
 	qpBuf := new(bytes.Buffer)
 	qp := quotedprintable.NewWriter(qpBuf)
 	_, err = qp.Write([]byte(replacedLine))
