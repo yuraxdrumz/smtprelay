@@ -218,6 +218,9 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 }
 
 func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {
+	if !strings.HasPrefix(line, "Content-Transfer-Encoding:") {
+		return false
+	}
 	switch {
 	case strings.Contains(line, string(processortypes.Base64)):
 		// call base64 until end of boundary
@@ -250,6 +253,9 @@ func (b *bodyProcessor) setBoundaryFromLine(line string) bool {
 }
 
 func (b *bodyProcessor) setContentTypeFromLine(line string) bool {
+	if !strings.HasPrefix(line, "Content-Type:") {
+		return false
+	}
 	// handle current content type
 	switch {
 	case strings.Contains(line, string(processortypes.MultiPart)):
