@@ -20,15 +20,15 @@ type ContentTransferProcessor interface {
 }
 
 type bodyProcessor struct {
-	headersBuffer                   *strings.Builder
-	bodyProcessors                  map[processortypes.ContentTransferEncoding]ContentTransferProcessor
-	boundaries                      []string
-	currentBoundary                 string
-	currentBoundaryAppearanceNumber int
-	boundariesEncountered           int
-	boundariesProcessed             int
-	currentTransferEncoding         processortypes.ContentTransferEncoding
-	currentContentType              processortypes.ContentType
+	headersBuffer                 *strings.Builder
+	bodyProcessors                map[processortypes.ContentTransferEncoding]ContentTransferProcessor
+	boundaries                    []string
+	currentBoundary               string
+	totalBoundaryAppearanceNumber int
+	boundariesEncountered         int
+	boundariesProcessed           int
+	currentTransferEncoding       processortypes.ContentTransferEncoding
+	currentContentType            processortypes.ContentType
 }
 
 func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions) *bodyProcessor {
@@ -210,10 +210,10 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 	if shouldAddLastBoundaryLine {
 		section.Data += fmt.Sprintf("\n%s\n", line)
 	}
-	b.currentBoundaryAppearanceNumber += 1
+	b.totalBoundaryAppearanceNumber += 1
 	b.currentContentType = processortypes.DefaultContentType
 	b.currentTransferEncoding = processortypes.Default
-	logrus.Infof("hit boundary=%s, num=%d", b.currentBoundary, b.currentBoundaryAppearanceNumber)
+	logrus.Infof("hit boundary=%s, num=%d", b.currentBoundary, b.totalBoundaryAppearanceNumber)
 	return section, foundLinks, nil
 }
 
@@ -225,12 +225,12 @@ func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {
 	case strings.Contains(line, string(processortypes.Base64)):
 		// call base64 until end of boundary
 		b.currentTransferEncoding = processortypes.Base64
-		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.totalBoundaryAppearanceNumber)
 		return true
 	case strings.Contains(line, string(processortypes.Quotedprintable)):
 		// call quoted printable until end of boundary
 		b.currentTransferEncoding = processortypes.Quotedprintable
-		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit transfer_encoding=%s, num=%d", b.currentTransferEncoding, b.totalBoundaryAppearanceNumber)
 		return true
 	default:
 		logrus.Warnf("unknown transfer encoding, line=%s", line)
@@ -260,19 +260,19 @@ func (b *bodyProcessor) setContentTypeFromLine(line string) bool {
 	switch {
 	case strings.Contains(line, string(processortypes.MultiPart)):
 		b.currentContentType = processortypes.MultiPart
-		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
 		return true
 	case strings.Contains(line, string(processortypes.Image)):
 		b.currentContentType = processortypes.Image
-		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
 		return true
 	case strings.Contains(line, string(processortypes.TextPlain)):
 		b.currentContentType = processortypes.TextPlain
-		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
 		return true
 	case strings.Contains(line, string(processortypes.TextHTML)):
 		b.currentContentType = processortypes.TextHTML
-		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.currentBoundaryAppearanceNumber)
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
 		return true
 	default:
 		logrus.Warnf("unknown content type, line=%s", line)
