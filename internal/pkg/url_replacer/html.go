@@ -18,6 +18,15 @@ func NewHTMLReplacer(urlReplacer UrlReplacerActions) UrlReplacerActions {
 }
 
 func (h *HTML) Replace(str string) (replaced string, links []string, err error) {
+	// converter, err := iconv.NewConverter("koi8-r", "utf-8")
+	// if err != nil {
+	// 	return "", nil, err
+	// }
+	// defer converter.Close()
+	// output, err := converter.ConvertString(str)
+	// if err != nil {
+	// 	return "", nil, err
+	// }
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(str))
 	if err != nil {
 		return "", nil, err

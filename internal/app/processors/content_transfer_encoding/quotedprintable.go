@@ -13,10 +13,13 @@ import (
 )
 
 type quotedPrintable struct {
-	buf            *strings.Builder
-	lineWriter     *bytes.Buffer
-	contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions
-	headers        string
+	buf                     *strings.Builder
+	lineWriter              *bytes.Buffer
+	contentTypeMap          map[processortypes.ContentType]contenttype.ContentTypeActions
+	headers                 string
+	contentType             processortypes.ContentType
+	contentTransferEncoding processortypes.ContentTransferEncoding
+	charset                 string
 }
 
 func NewQuotedPrintableProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions) *quotedPrintable {
@@ -49,10 +52,10 @@ func (q *quotedPrintable) writeLine(line string) error {
 	return q.writeNewLine()
 }
 
-func (q *quotedPrintable) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string, err error) {
+func (q *quotedPrintable) Flush() (section *processortypes.Section, links []string, err error) {
 	logrus.Debug("flushing as quotedPrintable to rest of body")
 	q.writeNewLine()
-	qpBuf, foundLinks, err := q.parseQuotedPrintable(contentType)
+	qpBuf, foundLinks, err := q.parseQuotedPrintable()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -65,15 +68,26 @@ func (q *quotedPrintable) Flush(contentType processortypes.ContentType, contentT
 	q.headers = ""
 	return &processortypes.Section{
 		Name:                    string(q.Name()),
-		ContentType:             contentType,
-		ContentTransferEncoding: contentTransferEncoding,
+		ContentType:             q.contentType,
+		ContentTransferEncoding: q.contentTransferEncoding,
 		Data:                    data,
 		Headers:                 headerString,
+		Charset:                 q.charset,
 	}, foundLinks, nil
 }
 
 func (q *quotedPrintable) SetSectionHeaders(headers string) {
 	q.headers = headers
+}
+
+func (q *quotedPrintable) SetSectionContentType(contentType processortypes.ContentType) {
+	q.contentType = contentType
+}
+func (q *quotedPrintable) SetSectionContentTransferEncoding(contentTransferEncoding processortypes.ContentTransferEncoding) {
+	q.contentTransferEncoding = contentTransferEncoding
+}
+func (q *quotedPrintable) SetSectionCharset(charset string) {
+	q.charset = charset
 }
 
 func (q *quotedPrintable) Process(lineString string) error {
@@ -90,11 +104,11 @@ func (q *quotedPrintable) Process(lineString string) error {
 	return err
 }
 
-func (q *quotedPrintable) parseQuotedPrintable(contentType processortypes.ContentType) (string, []string, error) {
+func (q *quotedPrintable) parseQuotedPrintable() (string, []string, error) {
 	foundLinks := []string{}
 	replacedLine := ""
 	var err error
-	switch contentType {
+	switch q.contentType {
 	case processortypes.TextHTML:
 		rawHTML := q.buf.String()
 		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextHTML].Parse(rawHTML)
@@ -108,7 +122,7 @@ func (q *quotedPrintable) parseQuotedPrintable(contentType processortypes.Conten
 			return "", nil, err
 		}
 	default:
-		logrus.Warnf("content type %s is not implemented, not checking urls inside quoted printable", contentType)
+		logrus.Warnf("content type %s is not implemented, not checking urls inside quoted printable", q.contentType)
 		replacedLine = q.buf.String()
 	}
 

@@ -22,5 +22,6 @@ type Section struct {
 	Headers                 string
 	ContentType             ContentType
 	ContentTransferEncoding ContentTransferEncoding
+	Charset                 string
 	Data                    string
 }

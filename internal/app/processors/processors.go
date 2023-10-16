@@ -14,9 +14,12 @@ import (
 
 type ContentTransferProcessor interface {
 	Process(lineString string) error
-	Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string, err error)
+	Flush() (section *processortypes.Section, links []string, err error)
 	Name() processortypes.ContentTransferEncoding
 	SetSectionHeaders(headers string)
+	SetSectionContentType(contentType processortypes.ContentType)
+	SetSectionContentTransferEncoding(contentTransferEncoding processortypes.ContentTransferEncoding)
+	SetSectionCharset(charset string)
 }
 
 type bodyProcessor struct {
@@ -29,6 +32,7 @@ type bodyProcessor struct {
 	boundariesProcessed           int
 	currentTransferEncoding       processortypes.ContentTransferEncoding
 	currentContentType            processortypes.ContentType
+	currentCharset                string
 }
 
 func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions) *bodyProcessor {
@@ -145,6 +149,7 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 
 	// its possible to have nested boundaries, so we always look for them
 	b.setBoundaryFromLine(line)
+	b.setCharsetFromLine(line)
 	b.setContentTypeFromLine(line)
 	b.setContentTransferEncodingFromLine(line)
 
@@ -157,7 +162,10 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	case b.boundariesEncountered > b.boundariesProcessed && line == "":
 		b.boundariesProcessed = b.boundariesEncountered
 		headers := b.flushHeaders(line)
-		// by this point, content transfer encoding was already chosen
+		// by this point, all headers were parsed and we can set all section metadata from transfer encoding
+		b.bodyProcessors[b.currentTransferEncoding].SetSectionContentTransferEncoding(b.currentTransferEncoding)
+		b.bodyProcessors[b.currentTransferEncoding].SetSectionContentType(b.currentContentType)
+		b.bodyProcessors[b.currentTransferEncoding].SetSectionCharset(b.currentCharset)
 		b.bodyProcessors[b.currentTransferEncoding].SetSectionHeaders(headers)
 		err = b.processLine(line)
 		return nil, nil, err
@@ -203,7 +211,7 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 		b.boundariesProcessed = 0
 		shouldAddLastBoundaryLine = true
 	}
-	section, foundLinks, err = b.bodyProcessors[b.currentTransferEncoding].Flush(b.currentContentType, b.currentTransferEncoding)
+	section, foundLinks, err = b.bodyProcessors[b.currentTransferEncoding].Flush()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -236,6 +244,19 @@ func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {
 		logrus.Warnf("unknown transfer encoding, line=%s", line)
 		return false
 	}
+}
+
+func (b *bodyProcessor) setCharsetFromLine(line string) bool {
+	if !strings.Contains(line, `charset=`) {
+		return false
+	}
+	// add another boundary and set current boundary
+	splitBoundary := strings.Split(line, "charset=")
+	newBoundary := strings.ReplaceAll(splitBoundary[1], `"`, "")
+	newBoundary = strings.ReplaceAll(newBoundary, ";", "")
+	logrus.Infof("found new charset=%s", newBoundary)
+	b.currentCharset = newBoundary
+	return true
 }
 
 func (b *bodyProcessor) setBoundaryFromLine(line string) bool {

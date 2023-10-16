@@ -9,9 +9,12 @@ import (
 )
 
 type defaultBody struct {
-	lineWriter     *bytes.Buffer
-	headers        string
-	contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions
+	lineWriter              *bytes.Buffer
+	headers                 string
+	contentTypeMap          map[processortypes.ContentType]contenttype.ContentTypeActions
+	contentType             processortypes.ContentType
+	contentTransferEncoding processortypes.ContentTransferEncoding
+	charset                 string
 }
 
 func NewDefaultBodyProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions) *defaultBody {
@@ -47,7 +50,17 @@ func (d *defaultBody) SetSectionHeaders(headers string) {
 	d.headers = headers
 }
 
-func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string, err error) {
+func (d *defaultBody) SetSectionContentType(contentType processortypes.ContentType) {
+	d.contentType = contentType
+}
+func (d *defaultBody) SetSectionContentTransferEncoding(contentTransferEncoding processortypes.ContentTransferEncoding) {
+	d.contentTransferEncoding = contentTransferEncoding
+}
+func (d *defaultBody) SetSectionCharset(charset string) {
+	d.charset = charset
+}
+
+func (d *defaultBody) Flush() (section *processortypes.Section, links []string, err error) {
 	data := d.lineWriter.String()
 	d.lineWriter.Reset()
 	headerString := d.headers
@@ -59,10 +72,11 @@ func (d *defaultBody) Flush(contentType processortypes.ContentType, contentTrans
 	}
 	return &processortypes.Section{
 		Name:                    string(d.Name()),
-		ContentType:             contentType,
-		ContentTransferEncoding: contentTransferEncoding,
-		Headers:                 headerString,
+		ContentType:             d.contentType,
+		ContentTransferEncoding: d.contentTransferEncoding,
 		Data:                    replacedData,
+		Headers:                 headerString,
+		Charset:                 d.charset,
 	}, foundLinks, nil
 }
 

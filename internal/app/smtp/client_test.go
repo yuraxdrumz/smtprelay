@@ -279,6 +279,36 @@ func TestInjectHeaders(t *testing.T) {
 	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
 
+func TestEncodingParsed(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	setupLogger()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	body, err := os.ReadFile("../../../examples/encodings/koi8-r.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	*cynetActionHeader = "X-Cynet-Action"
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
+	sections, _, _, err := bodyProcessor.GetBodySections(str)
+	assert.NoError(t, err)
+	assert.Len(t, sections, 2)
+	for _, section := range sections {
+		assert.NotEmpty(t, section.Charset)
+		assert.Equal(t, section.Charset, "koi8-r")
+	}
+}
+
 func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})

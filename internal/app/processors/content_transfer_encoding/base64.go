@@ -13,11 +13,14 @@ import (
 )
 
 type base64 struct {
-	buf             *strings.Builder
-	gotToBase64Body bool
-	lineWriter      *bytes.Buffer
-	contentTypeMap  map[processortypes.ContentType]contenttype.ContentTypeActions
-	headers         string
+	buf                     *strings.Builder
+	gotToBase64Body         bool
+	lineWriter              *bytes.Buffer
+	contentTypeMap          map[processortypes.ContentType]contenttype.ContentTypeActions
+	headers                 string
+	contentType             processortypes.ContentType
+	contentTransferEncoding processortypes.ContentTransferEncoding
+	charset                 string
 }
 
 func NewBase64Processor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions) *base64 {
@@ -51,8 +54,8 @@ func (b *base64) writeLine(line string) error {
 	return b.writeNewLine()
 }
 
-func (b *base64) Flush(contentType processortypes.ContentType, contentTransferEncoding processortypes.ContentTransferEncoding) (section *processortypes.Section, links []string, err error) {
-	qpBuf, foundLinks, err := b.parseBase64(contentType)
+func (b *base64) Flush() (section *processortypes.Section, links []string, err error) {
+	qpBuf, foundLinks, err := b.parseBase64()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -66,15 +69,26 @@ func (b *base64) Flush(contentType processortypes.ContentType, contentTransferEn
 	b.headers = ""
 	return &processortypes.Section{
 		Name:                    string(b.Name()),
-		ContentType:             contentType,
-		ContentTransferEncoding: contentTransferEncoding,
+		ContentType:             b.contentType,
+		ContentTransferEncoding: b.contentTransferEncoding,
 		Data:                    data,
 		Headers:                 headerString,
+		Charset:                 b.charset,
 	}, foundLinks, nil
 }
 
 func (b *base64) SetSectionHeaders(headers string) {
 	b.headers = headers
+}
+
+func (b *base64) SetSectionContentType(contentType processortypes.ContentType) {
+	b.contentType = contentType
+}
+func (b *base64) SetSectionContentTransferEncoding(contentTransferEncoding processortypes.ContentTransferEncoding) {
+	b.contentTransferEncoding = contentTransferEncoding
+}
+func (b *base64) SetSectionCharset(charset string) {
+	b.charset = charset
 }
 
 func (b *base64) insertNth(s string, n int) string {
@@ -108,14 +122,14 @@ func (b *base64) Process(lineString string) error {
 	return nil
 }
 
-func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []string, error) {
+func (b *base64) parseBase64() (string, []string, error) {
 	data := b.buf.String()
 	base64DecodedBytes, err := b64Enc.StdEncoding.DecodeString(data)
 	if err != nil {
 		logrus.Errorf("error in writing base64 buffer, err=%s", err)
 		return "", nil, err
 	}
-	switch contentType {
+	switch b.contentType {
 	case processortypes.TextHTML:
 		replacedHTML, foundLinks, err := b.contentTypeMap[processortypes.TextHTML].Parse(string(base64DecodedBytes))
 		if err != nil {
@@ -146,7 +160,7 @@ func (b *base64) parseBase64(contentType processortypes.ContentType) (string, []
 		base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(checkedBase64String.String()))
 		return base64ReplacedString, allLinks, nil
 	default:
-		logrus.Warnf("content type %s is not implemented, not checking urls inside base64", contentType)
+		logrus.Warnf("content type %s is not implemented, not checking urls inside base64", b.contentType)
 		return data, nil, nil
 	}
 }
