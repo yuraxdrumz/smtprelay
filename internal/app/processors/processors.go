@@ -156,6 +156,10 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 	b.setContentTypeFromLine(line)
 	b.setContentTransferEncodingFromLine(line)
 
+	if strings.Contains(line, "&nbsp;") {
+		line = strings.ReplaceAll(line, "&nbsp;", " ")
+	}
+
 	switch {
 	// when we are still reading headers, add to headers buffer
 	case b.boundariesEncountered > b.boundariesProcessed && line != "":
