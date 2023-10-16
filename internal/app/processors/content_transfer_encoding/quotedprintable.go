@@ -7,6 +7,7 @@ import (
 	"mime/quotedprintable"
 	"strings"
 
+	"github.com/decke/smtprelay/internal/app/processors/charset"
 	contenttype "github.com/decke/smtprelay/internal/app/processors/content_type"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	"github.com/sirupsen/logrus"
@@ -20,13 +21,15 @@ type quotedPrintable struct {
 	contentType             processortypes.ContentType
 	contentTransferEncoding processortypes.ContentTransferEncoding
 	charset                 string
+	charsetActions          charset.CharsetActions
 }
 
-func NewQuotedPrintableProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions) *quotedPrintable {
+func NewQuotedPrintableProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions, charsetActions charset.CharsetActions) *quotedPrintable {
 	return &quotedPrintable{
 		buf:            &strings.Builder{},
 		lineWriter:     new(bytes.Buffer),
 		contentTypeMap: contentTypeMap,
+		charsetActions: charsetActions,
 	}
 }
 
@@ -108,16 +111,19 @@ func (q *quotedPrintable) parseQuotedPrintable() (string, []string, error) {
 	foundLinks := []string{}
 	replacedLine := ""
 	var err error
+	data := q.buf.String()
+	converted, err := q.charsetActions.ConvertFromEncToUTF8(data, q.charset)
+	if err != nil {
+		return "", nil, err
+	}
 	switch q.contentType {
 	case processortypes.TextHTML:
-		rawHTML := q.buf.String()
-		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextHTML].Parse(rawHTML)
+		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextHTML].Parse(converted)
 		if err != nil {
 			return "", nil, err
 		}
 	case processortypes.TextPlain:
-		str := q.buf.String()
-		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextPlain].Parse(str)
+		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextPlain].Parse(converted)
 		if err != nil {
 			return "", nil, err
 		}
@@ -138,5 +144,12 @@ func (q *quotedPrintable) parseQuotedPrintable() (string, []string, error) {
 		logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
 		return "", nil, err
 	}
-	return qpBuf.String(), foundLinks, nil
+
+	convertedBack, err := q.charsetActions.ConvertFromUTF8ToEnc(qpBuf.String(), q.charset)
+	if err != nil {
+		logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+		return "", nil, err
+	}
+
+	return convertedBack, foundLinks, nil
 }

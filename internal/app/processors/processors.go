@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/decke/smtprelay/internal/app/processors/charset"
 	contenttransferencoding "github.com/decke/smtprelay/internal/app/processors/content_transfer_encoding"
 	contenttype "github.com/decke/smtprelay/internal/app/processors/content_type"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
@@ -43,13 +44,15 @@ func NewBodyProcessor(urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplace
 	textPlain := contenttype.NewTextPlain(urlReplacer)
 	defaultContentType := contenttype.NewDefault(urlReplacer)
 
+	charsetActions := charset.NewCharset()
+
 	contentTypeMap[processortypes.TextHTML] = textHTML
 	contentTypeMap[processortypes.TextPlain] = textPlain
 	contentTypeMap[processortypes.DefaultContentType] = defaultContentType
 
-	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(contentTypeMap)
-	base64Processor := contenttransferencoding.NewBase64Processor(contentTypeMap)
-	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(contentTypeMap)
+	defaultProcessor := contenttransferencoding.NewDefaultBodyProcessor(contentTypeMap, charsetActions)
+	base64Processor := contenttransferencoding.NewBase64Processor(contentTypeMap, charsetActions)
+	quotedPrintableProcessor := contenttransferencoding.NewQuotedPrintableProcessor(contentTypeMap, charsetActions)
 
 	processorMap[defaultProcessor.Name()] = defaultProcessor
 	processorMap[base64Processor.Name()] = base64Processor
@@ -221,6 +224,7 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 	b.totalBoundaryAppearanceNumber += 1
 	b.currentContentType = processortypes.DefaultContentType
 	b.currentTransferEncoding = processortypes.Default
+	b.currentCharset = ""
 	logrus.Infof("hit boundary=%s, num=%d", b.currentBoundary, b.totalBoundaryAppearanceNumber)
 	return section, foundLinks, nil
 }

@@ -3,6 +3,7 @@ package contenttransferencoding
 import (
 	"bytes"
 
+	"github.com/decke/smtprelay/internal/app/processors/charset"
 	contenttype "github.com/decke/smtprelay/internal/app/processors/content_type"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	"github.com/sirupsen/logrus"
@@ -15,12 +16,14 @@ type defaultBody struct {
 	contentType             processortypes.ContentType
 	contentTransferEncoding processortypes.ContentTransferEncoding
 	charset                 string
+	charsetActions          charset.CharsetActions
 }
 
-func NewDefaultBodyProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions) *defaultBody {
+func NewDefaultBodyProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions, charsetActions charset.CharsetActions) *defaultBody {
 	return &defaultBody{
 		lineWriter:     new(bytes.Buffer),
 		contentTypeMap: contentTypeMap,
+		charsetActions: charsetActions,
 	}
 }
 
@@ -65,11 +68,13 @@ func (d *defaultBody) Flush() (section *processortypes.Section, links []string, 
 	d.lineWriter.Reset()
 	headerString := d.headers
 	d.headers = ""
+
 	replacedData, foundLinks, err := d.contentTypeMap[processortypes.DefaultContentType].Parse(data)
 	if err != nil {
 		logrus.Errorf("error in writing line=%s, err=%s", data, err)
 		return nil, nil, err
 	}
+
 	return &processortypes.Section{
 		Name:                    string(d.Name()),
 		ContentType:             d.contentType,
