@@ -112,18 +112,18 @@ func (q *quotedPrintable) parseQuotedPrintable() (string, []string, error) {
 	replacedLine := ""
 	var err error
 	data := q.buf.String()
-	converted, err := q.charsetActions.ConvertFromEncToUTF8(data, q.charset)
-	if err != nil {
-		return "", nil, err
-	}
+	// converted, err := q.charsetActions.ConvertFromEncToUTF8(data, q.charset)
+	// if err != nil {
+	// 	return "", nil, err
+	// }
 	switch q.contentType {
 	case processortypes.TextHTML:
-		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextHTML].Parse(converted)
+		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextHTML].Parse(data)
 		if err != nil {
 			return "", nil, err
 		}
 	case processortypes.TextPlain:
-		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextPlain].Parse(converted)
+		replacedLine, foundLinks, err = q.contentTypeMap[processortypes.TextPlain].Parse(data)
 		if err != nil {
 			return "", nil, err
 		}
@@ -145,11 +145,11 @@ func (q *quotedPrintable) parseQuotedPrintable() (string, []string, error) {
 		return "", nil, err
 	}
 
-	convertedBack, err := q.charsetActions.ConvertFromUTF8ToEnc(qpBuf.String(), q.charset)
-	if err != nil {
-		logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
-		return "", nil, err
-	}
+	// convertedBack, err := q.charsetActions.ConvertFromUTF8ToEnc(qpBuf.String(), q.charset)
+	// if err != nil {
+	// 	logrus.Errorf("error in writing quoted prinatable buffer, err=%s", err)
+	// 	return "", nil, err
+	// }
 
-	return convertedBack, foundLinks, nil
+	return qpBuf.String(), foundLinks, nil
 }

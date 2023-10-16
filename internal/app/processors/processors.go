@@ -233,6 +233,11 @@ func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {
 	if !strings.HasPrefix(line, "Content-Transfer-Encoding:") {
 		return false
 	}
+
+	if b.currentTransferEncoding != processortypes.Default {
+		return false
+	}
+
 	switch {
 	case strings.Contains(line, string(processortypes.Base64)):
 		// call base64 until end of boundary
@@ -254,6 +259,11 @@ func (b *bodyProcessor) setCharsetFromLine(line string) bool {
 	if !strings.Contains(line, `charset=`) {
 		return false
 	}
+
+	if b.currentCharset != "" {
+		return false
+	}
+
 	// add another boundary and set current boundary
 	splitBoundary := strings.Split(line, "charset=")
 	newBoundary := strings.ReplaceAll(splitBoundary[1], `"`, "")
@@ -281,6 +291,11 @@ func (b *bodyProcessor) setContentTypeFromLine(line string) bool {
 	if !strings.HasPrefix(line, "Content-Type:") {
 		return false
 	}
+
+	if b.currentContentType != processortypes.DefaultContentType {
+		return false
+	}
+
 	// handle current content type
 	switch {
 	case strings.Contains(line, string(processortypes.MultiPart)):

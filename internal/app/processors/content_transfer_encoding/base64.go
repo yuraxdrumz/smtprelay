@@ -135,32 +135,32 @@ func (b *base64) parseBase64() (string, []string, error) {
 
 	switch b.contentType {
 	case processortypes.TextHTML:
-		converted, err := b.charsetActions.ConvertFromEncToUTF8(string(base64DecodedBytes), b.charset)
-		if err != nil {
-			return "", nil, err
-		}
+		// converted, err := b.charsetActions.ConvertFromEncToUTF8(string(base64DecodedBytes), b.charset)
+		// if err != nil {
+		// 	return "", nil, err
+		// }
 
-		replacedHTML, foundLinks, err := b.contentTypeMap[processortypes.TextHTML].Parse(converted)
+		replacedHTML, foundLinks, err := b.contentTypeMap[processortypes.TextHTML].Parse(string(base64DecodedBytes))
 		if err != nil {
 			logrus.Errorf("error in replacing base64 buffer, err=%s", err)
 			return "", nil, err
 		}
 
-		convertedBack, err := b.charsetActions.ConvertFromUTF8ToEnc(replacedHTML, b.charset)
-		if err != nil {
-			logrus.Errorf("error in writing base64 buffer, err=%s", err)
-			return "", nil, err
-		}
+		// convertedBack, err := b.charsetActions.ConvertFromUTF8ToEnc(replacedHTML, b.charset)
+		// if err != nil {
+		// 	logrus.Errorf("error in writing base64 buffer, err=%s", err)
+		// 	return "", nil, err
+		// }
 
-		base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(convertedBack))
+		base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(replacedHTML))
 		return base64ReplacedString, foundLinks, nil
 	case processortypes.TextPlain:
-		converted, err := b.charsetActions.ConvertFromEncToUTF8(string(base64DecodedBytes), b.charset)
-		if err != nil {
-			return "", nil, err
-		}
+		// converted, err := b.charsetActions.ConvertFromEncToUTF8(string(base64DecodedBytes), b.charset)
+		// if err != nil {
+		// 	return "", nil, err
+		// }
 		checkedBase64String := &strings.Builder{}
-		bodyReader := strings.NewReader(converted)
+		bodyReader := strings.NewReader(string(base64DecodedBytes))
 		scanner := bufio.NewScanner(bodyReader)
 		scanner.Split(bufio.ScanLines)
 		allLinks := []string{}
@@ -176,13 +176,13 @@ func (b *base64) parseBase64() (string, []string, error) {
 			checkedBase64String.WriteString("\n")
 		}
 
-		convertedBack, err := b.charsetActions.ConvertFromUTF8ToEnc(checkedBase64String.String(), b.charset)
-		if err != nil {
-			logrus.Errorf("error in writing base64 buffer, err=%s", err)
-			return "", nil, err
-		}
+		// convertedBack, err := b.charsetActions.ConvertFromUTF8ToEnc(checkedBase64String.String(), b.charset)
+		// if err != nil {
+		// 	logrus.Errorf("error in writing base64 buffer, err=%s", err)
+		// 	return "", nil, err
+		// }
 
-		base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(convertedBack))
+		base64ReplacedString := b64Enc.StdEncoding.EncodeToString([]byte(checkedBase64String.String()))
 		return base64ReplacedString, allLinks, nil
 	default:
 		logrus.Warnf("content type %s is not implemented, not checking urls inside base64", b.contentType)
