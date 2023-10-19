@@ -131,7 +131,7 @@ func TestGetLinksDeduplicated(t *testing.T) {
 	assert.Len(t, links, 59)
 }
 
-func TestGetAttachments(t *testing.T) {
+func TestFindAttachmentInMail(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
@@ -150,6 +150,28 @@ func TestGetAttachments(t *testing.T) {
 		}
 	}
 	assert.NotEqual(t, 0, sectionsWithAttachments)
+}
+
+func TestFindMultipleAttachmentInMail(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/attachments/multiple.msg")
+	assert.NoError(t, err)
+	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
+	sections, _, _, err := bodyProcessor.GetBodySections(string(body))
+	assert.NoError(t, err)
+	sectionsWithAttachments := 0
+	for _, section := range sections {
+		if section.IsAttachment {
+			sectionsWithAttachments += 1
+			assert.NotEmpty(t, section.AttachmentFileName)
+		}
+	}
+	assert.Equal(t, 7, sectionsWithAttachments)
 }
 
 func TestBase64InnerBoundary(t *testing.T) {

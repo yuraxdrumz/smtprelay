@@ -4,7 +4,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/amalfra/maildir/v3 v3.0.0
 	github.com/chrj/smtpd v0.3.1
-	github.com/djimenez/iconv-go v0.0.0-20160305225143-8960e66bd3da
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.1
 	github.com/peterbourgon/ff/v3 v3.4.0
