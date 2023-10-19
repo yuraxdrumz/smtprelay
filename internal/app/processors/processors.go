@@ -93,8 +93,7 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 
 		section, links, err := b.ProcessBody(lineString)
 		if err != nil {
-			logrus.Error(err)
-			continue
+			return nil, nil, nil, err
 		}
 		if section != nil {
 			sections = append(sections, section)
@@ -214,8 +213,8 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 			b.currentBoundary = b.boundaries[len(b.boundaries)-1]
 			logrus.Infof("setting boundary to=%s", b.currentBoundary)
 		}
-		b.boundariesEncountered = 0
-		b.boundariesProcessed = 0
+		// b.boundariesEncountered = 0
+		// b.boundariesProcessed = 0
 		shouldAddLastBoundaryLine = true
 	}
 	section, foundLinks, err = b.bodyProcessors[b.currentTransferEncoding].Flush()
@@ -272,7 +271,7 @@ func (b *bodyProcessor) setCharsetFromLine(line string) bool {
 	splitBoundary := strings.Split(line, "charset=")
 	newBoundary := strings.ReplaceAll(splitBoundary[1], `"`, "")
 	newBoundary = strings.ReplaceAll(newBoundary, ";", "")
-	logrus.Infof("found new charset=%s", newBoundary)
+	logrus.Infof("hit charset=%s", newBoundary)
 	b.currentCharset = newBoundary
 	return true
 }
@@ -302,8 +301,28 @@ func (b *bodyProcessor) setContentTypeFromLine(line string) bool {
 
 	// handle current content type
 	switch {
-	case strings.Contains(line, string(processortypes.MultiPart)):
-		b.currentContentType = processortypes.MultiPart
+	case strings.Contains(line, string(processortypes.Word)) && strings.Contains(line, string(processortypes.GenericApplication)):
+		b.currentContentType = processortypes.Word
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
+		return true
+	case strings.Contains(line, string(processortypes.SevenZip)) && strings.Contains(line, string(processortypes.GenericApplication)):
+		b.currentContentType = processortypes.SevenZip
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
+		return true
+	case strings.Contains(line, string(processortypes.PowerPoint)) && strings.Contains(line, string(processortypes.GenericApplication)):
+		b.currentContentType = processortypes.PowerPoint
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
+		return true
+	case strings.Contains(line, string(processortypes.Excel)) && strings.Contains(line, string(processortypes.GenericApplication)):
+		b.currentContentType = processortypes.Excel
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
+		return true
+	case strings.Contains(line, string(processortypes.Rar)):
+		b.currentContentType = processortypes.Rar
+		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
+		return true
+	case strings.Contains(line, string(processortypes.Pdf)):
+		b.currentContentType = processortypes.Pdf
 		logrus.Infof("hit content_type=%s, num=%d", b.currentContentType, b.totalBoundaryAppearanceNumber)
 		return true
 	case strings.Contains(line, string(processortypes.Image)):
