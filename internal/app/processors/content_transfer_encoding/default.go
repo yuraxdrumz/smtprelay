@@ -17,6 +17,8 @@ type defaultBody struct {
 	contentTransferEncoding processortypes.ContentTransferEncoding
 	charset                 string
 	charsetActions          charset.CharsetActions
+	isAttachment            bool
+	attachmentFileName      string
 }
 
 func NewDefaultBodyProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions, charsetActions charset.CharsetActions) *defaultBody {
@@ -63,6 +65,11 @@ func (d *defaultBody) SetSectionCharset(charset string) {
 	d.charset = charset
 }
 
+func (d *defaultBody) SetIsAttachment(isAttachment bool, fileName string) {
+	d.isAttachment = isAttachment
+	d.attachmentFileName = fileName
+}
+
 func (d *defaultBody) Flush() (section *processortypes.Section, links []string, err error) {
 	data := d.lineWriter.String()
 	d.lineWriter.Reset()
@@ -82,6 +89,8 @@ func (d *defaultBody) Flush() (section *processortypes.Section, links []string, 
 		Data:                    replacedData,
 		Headers:                 headerString,
 		Charset:                 d.charset,
+		IsAttachment:            d.isAttachment,
+		AttachmentFileName:      d.attachmentFileName,
 	}, foundLinks, nil
 }
 

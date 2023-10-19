@@ -23,6 +23,8 @@ type base64 struct {
 	contentTransferEncoding processortypes.ContentTransferEncoding
 	charset                 string
 	charsetActions          charset.CharsetActions
+	isAttachment            bool
+	attachmentFileName      string
 }
 
 func NewBase64Processor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions, charsetActions charset.CharsetActions) *base64 {
@@ -77,6 +79,8 @@ func (b *base64) Flush() (section *processortypes.Section, links []string, err e
 		Data:                    data,
 		Headers:                 headerString,
 		Charset:                 b.charset,
+		IsAttachment:            b.isAttachment,
+		AttachmentFileName:      b.attachmentFileName,
 	}, foundLinks, nil
 }
 
@@ -92,6 +96,11 @@ func (b *base64) SetSectionContentTransferEncoding(contentTransferEncoding proce
 }
 func (b *base64) SetSectionCharset(charset string) {
 	b.charset = charset
+}
+
+func (b *base64) SetIsAttachment(isAttachment bool, fileName string) {
+	b.isAttachment = isAttachment
+	b.attachmentFileName = fileName
 }
 
 func (b *base64) insertNth(s string, n int) string {

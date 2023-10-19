@@ -22,6 +22,8 @@ type quotedPrintable struct {
 	contentTransferEncoding processortypes.ContentTransferEncoding
 	charset                 string
 	charsetActions          charset.CharsetActions
+	isAttachment            bool
+	attachmentFileName      string
 }
 
 func NewQuotedPrintableProcessor(contentTypeMap map[processortypes.ContentType]contenttype.ContentTypeActions, charsetActions charset.CharsetActions) *quotedPrintable {
@@ -76,6 +78,8 @@ func (q *quotedPrintable) Flush() (section *processortypes.Section, links []stri
 		Data:                    data,
 		Headers:                 headerString,
 		Charset:                 q.charset,
+		IsAttachment:            q.isAttachment,
+		AttachmentFileName:      q.attachmentFileName,
 	}, foundLinks, nil
 }
 
@@ -91,6 +95,10 @@ func (q *quotedPrintable) SetSectionContentTransferEncoding(contentTransferEncod
 }
 func (q *quotedPrintable) SetSectionCharset(charset string) {
 	q.charset = charset
+}
+func (q *quotedPrintable) SetIsAttachment(isAttachment bool, fileName string) {
+	q.isAttachment = isAttachment
+	q.attachmentFileName = fileName
 }
 
 func (q *quotedPrintable) Process(lineString string) error {

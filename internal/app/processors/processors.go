@@ -3,6 +3,7 @@ package processors
 import (
 	"bufio"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/decke/smtprelay/internal/app/processors/charset"
@@ -21,6 +22,7 @@ type ContentTransferProcessor interface {
 	SetSectionContentType(contentType processortypes.ContentType)
 	SetSectionContentTransferEncoding(contentTransferEncoding processortypes.ContentTransferEncoding)
 	SetSectionCharset(charset string)
+	SetIsAttachment(isAttachment bool, fileName string)
 }
 
 type bodyProcessor struct {
@@ -173,6 +175,10 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 		b.bodyProcessors[b.currentTransferEncoding].SetSectionContentType(b.currentContentType)
 		b.bodyProcessors[b.currentTransferEncoding].SetSectionCharset(b.currentCharset)
 		b.bodyProcessors[b.currentTransferEncoding].SetSectionHeaders(headers)
+		isAttachment, fileName := b.checkIfAttachment(headers)
+		if isAttachment {
+			b.bodyProcessors[b.currentTransferEncoding].SetIsAttachment(true, fileName)
+		}
 		err = b.processLine(line)
 		return nil, nil, err
 	default:
@@ -213,8 +219,6 @@ func (b *bodyProcessor) handleHitBoundary(line string, boundaryEnd string) (sect
 			b.currentBoundary = b.boundaries[len(b.boundaries)-1]
 			logrus.Infof("setting boundary to=%s", b.currentBoundary)
 		}
-		// b.boundariesEncountered = 0
-		// b.boundariesProcessed = 0
 		shouldAddLastBoundaryLine = true
 	}
 	section, foundLinks, err = b.bodyProcessors[b.currentTransferEncoding].Flush()
@@ -256,6 +260,27 @@ func (b *bodyProcessor) setContentTransferEncodingFromLine(line string) bool {
 		logrus.Warnf("unknown transfer encoding, line=%s", line)
 		return false
 	}
+}
+
+func (b *bodyProcessor) checkIfAttachment(headers string) (bool, string) {
+	if !strings.Contains(headers, "Content-Disposition:") {
+		return false, ""
+	}
+	r := regexp.MustCompile(`filename="(.*)"`)
+	matches := r.FindAllStringSubmatch(headers, -1)
+	fileName := ""
+	if len(matches) == 0 {
+		logrus.Warnf("failed to find filename inside headers=%s", headers)
+		return false, ""
+	}
+	for _, v := range matches {
+		logrus.Debugf("found value=%v", v)
+		if v[1] != "" {
+			fileName = v[1]
+		}
+	}
+
+	return true, fileName
 }
 
 func (b *bodyProcessor) setCharsetFromLine(line string) bool {

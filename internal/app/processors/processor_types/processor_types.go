@@ -31,4 +31,6 @@ type Section struct {
 	ContentTransferEncoding ContentTransferEncoding
 	Charset                 string
 	Data                    string
+	IsAttachment            bool
+	AttachmentFileName      string
 }
