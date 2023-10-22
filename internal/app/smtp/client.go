@@ -538,6 +538,7 @@ func (c *Client) handleSectionAttachment(section *processortypes.Section) ([]byt
 			// use sha256 of file
 			section.AttachmentFileName = fmt.Sprintf("%x", fileSha256)
 		}
+		// TODO: do we need to save the file to fs?
 		// fileName := fmt.Sprintf("../../../attachments/%s.txt", section.AttachmentFileName)
 		// err = os.WriteFile(fileName, buf.Bytes(), 0666)
 		// if err != nil {
@@ -585,6 +586,8 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 				if err != nil {
 					return "", nil
 				}
+				// TODO: do we need to mark 1 file only or per file?
+				// TODO: do we need to even check files if we have malicious links?
 				if fullScanResult.Status == filescanner.Malicious {
 					headers = c.addHeader(headers, *cynetActionHeader, "block")
 				}

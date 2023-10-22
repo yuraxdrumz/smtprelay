@@ -211,6 +211,95 @@ func TestBase64InnerBoundary(t *testing.T) {
 	assert.Contains(t, newBody, "--000000000000d40a3f0606f64016--")
 }
 
+func TestBase64AttachmentUnknown(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	*cynetActionHeader = "X-Cynet-Action"
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Unknown}, nil).Times(3)
+	fileScanner.EXPECT().ScanFile(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).Times(3)
+	setupLogger()
+
+	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	assert.NoError(t, err)
+	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+}
+
+func TestBase64AttachmentMalicious(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	*cynetActionHeader = "X-Cynet-Action"
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Unknown}, nil).Times(3)
+	fileScanner.EXPECT().ScanFile(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Malicious}, nil).Times(3)
+	setupLogger()
+
+	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	assert.NoError(t, err)
+	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+}
+
+func TestBase64AttachmentFileHashMalicious(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	*cynetActionHeader = "X-Cynet-Action"
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Malicious}, nil).Times(3)
+	setupLogger()
+
+	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	assert.NoError(t, err)
+	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+}
+
 func TestBase64Equals76Chars(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
