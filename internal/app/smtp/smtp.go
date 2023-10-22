@@ -17,6 +17,7 @@ import (
 	"github.com/amalfra/maildir/v3"
 	"github.com/chrj/smtpd"
 	"github.com/decke/smtprelay/internal/pkg/encoder"
+	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
 	"github.com/decke/smtprelay/internal/pkg/httpgetter"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
@@ -160,7 +161,7 @@ func authChecker(peer smtpd.Peer, username string, password string) error {
 	return nil
 }
 
-func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions, md *maildir.Maildir) func(peer smtpd.Peer, env smtpd.Envelope) error {
+func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, fileScanner filescanner.Scanner, urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions, md *maildir.Maildir) func(peer smtpd.Peer, env smtpd.Envelope) error {
 	return func(peer smtpd.Peer, env smtpd.Envelope) error {
 		peerIP := ""
 		if addr, ok := peer.Addr.(*net.TCPAddr); ok {
@@ -264,6 +265,7 @@ func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, urlRe
 			env.Data,
 			metrics,
 			scanner,
+			fileScanner,
 			urlReplacer,
 			htmlURLReplacer,
 			md,
@@ -371,6 +373,8 @@ func Smtp() {
 	md := maildir.NewMaildir(*mailDir)
 	// scanner := scanner.NewNimbusScanner(httpGetter, env.ENVVARS.ScannerURL, env.ENVVARS.ScannerClientID)
 	scanner := scanner.NewWebFilter(httpGetter, *scannerUrl, *scannerClientID)
+	// FIXME: replace with implementation
+	fileScanner := filescanner.NewMockScanner(nil)
 	var servers []*smtpd.Server
 
 	// Create a server for each desired listen address
@@ -389,7 +393,7 @@ func Smtp() {
 			ConnectionChecker: connectionChecker,
 			SenderChecker:     senderChecker,
 			RecipientChecker:  recipientChecker,
-			Handler:           mailHandlerWrapper(metrics, scanner, urlReplacer, htmlUrlReplacer, md),
+			Handler:           mailHandlerWrapper(metrics, scanner, fileScanner, urlReplacer, htmlUrlReplacer, md),
 		}
 
 		if localAuthRequired() {

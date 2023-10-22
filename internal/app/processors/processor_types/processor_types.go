@@ -10,12 +10,12 @@ const (
 	Image              ContentType = "Content-Type: image"
 	MultiPart          ContentType = "Content-Type: multipart"
 	GenericApplication ContentType = "Content-Type: application"
-	SevenZip           ContentType = ".7z"
 	Rar                ContentType = "Content-Type: application/rar"
+	Pdf                ContentType = "Content-Type: application/pdf"
+	SevenZip           ContentType = ".7z"
 	Word               ContentType = ".doc"
 	PowerPoint         ContentType = ".pptx"
 	Excel              ContentType = ".xlsx"
-	Pdf                ContentType = "Content-Type: application/pdf"
 )
 
 const (

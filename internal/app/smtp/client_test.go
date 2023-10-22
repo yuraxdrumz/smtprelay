@@ -11,6 +11,7 @@ import (
 	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
 	"github.com/decke/smtprelay/internal/pkg/encoder"
+	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/golang/mock/gomock"
@@ -41,7 +42,8 @@ func TestSaveMailToMailDir(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
-
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -53,7 +55,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	_, err = c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	_, err = c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	m, _ := md.Add(str)
 	assert.NotEmpty(t, m.Key())
@@ -68,6 +70,8 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -79,7 +83,7 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/forward/double_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	split := strings.Split(rewrittenBody, "\n")
 	timesSeenForwarded := 0
@@ -100,6 +104,8 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -111,7 +117,7 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/forward/forward_with_images.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, `src=3D"https://a.travel-assets.com`)
 }
@@ -182,6 +188,8 @@ func TestBase64InnerBoundary(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -189,12 +197,13 @@ func TestBase64InnerBoundary(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).AnyTimes()
 	setupLogger()
 
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018")
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018--")
@@ -233,7 +242,8 @@ func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
-
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -245,7 +255,7 @@ func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/forward/text_before_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.NotContains(t, rewrittenBody, "dnsCache.host")
 	assert.NotContains(t, rewrittenBody, "scpxth.xyz")
@@ -259,7 +269,8 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
-
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    1,
@@ -273,7 +284,7 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	assert.NoError(t, err)
 	str := string(body)
 	*cynetActionHeader = "X-Cynet-Action"
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
@@ -309,6 +320,8 @@ func TestInjectHeaders(t *testing.T) {
 	str := string(body)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	*cynetActionHeader = "X-Cynet-Action"
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
@@ -317,7 +330,7 @@ func TestInjectHeaders(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
@@ -365,6 +378,8 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 	*cynetActionHeader = "X-Cynet-Action"
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -372,7 +387,7 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
@@ -385,6 +400,9 @@ func TestBoundaryMultiline(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).AnyTimes()
 
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
@@ -398,7 +416,7 @@ func TestBoundaryMultiline(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/images/outlook.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_")
 	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_--")
@@ -414,6 +432,10 @@ func TestWriteAllEmails(t *testing.T) {
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).AnyTimes()
+
 	setupLogger()
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
@@ -436,7 +458,7 @@ func TestWriteAllEmails(t *testing.T) {
 					body, err := os.ReadFile(emailToCheck)
 					assert.NoError(t, err)
 					str := string(body)
-					rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc)
+					rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 					assert.NoError(t, err)
 					os.WriteFile(fmt.Sprintf("../../../examples/test_results/%s", subitem.Name()), []byte(rewrittenBody), 0666)
 				}

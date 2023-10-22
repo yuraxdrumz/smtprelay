@@ -28,7 +28,6 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -36,6 +35,7 @@ import (
 	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
+	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
@@ -347,6 +347,7 @@ func SendMail(
 	msg []byte,
 	metrics *metrics.Metrics,
 	scanner scanner.Scanner,
+	fileScanner filescanner.Scanner,
 	urlReplacer urlreplacer.UrlReplacerActions,
 	htmlURLReplacer urlreplacer.UrlReplacerActions,
 	md *maildir.Maildir,
@@ -442,7 +443,7 @@ func SendMail(
 		"key":  beforeMsg.Key(),
 	}).Info("saved before msg")
 
-	newBodyString, err := c.rewriteEmail(string(msg), urlReplacer, htmlURLReplacer, scanner)
+	newBodyString, err := c.rewriteEmail(string(msg), urlReplacer, htmlURLReplacer, scanner, fileScanner)
 	if err != nil {
 		log.Warnf("failed to process body, err=%s", err)
 		return err
@@ -471,6 +472,7 @@ func SendMail(
 	return c.Quit()
 }
 
+// FIXME: make scan batched
 func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[string]bool) bool {
 	shouldMarkEmail := false
 	for link := range links {
@@ -509,7 +511,11 @@ func (c *Client) cleanUpData(data string) string {
 	return data
 }
 
-func (c *Client) handleSectionAttachment(section *processortypes.Section) (string, string, error) {
+// decode to binary.
+// calculate file hash
+// if attachment filename doesnt exist, take file hash
+// save attachment with txt ending to file system to not allow executables on fs
+func (c *Client) handleSectionAttachment(section *processortypes.Section) ([]byte, string, string, error) {
 	switch section.ContentTransferEncoding {
 	case processortypes.Base64:
 		cleanedSectionData := c.cleanUpData(section.Data)
@@ -517,13 +523,13 @@ func (c *Client) handleSectionAttachment(section *processortypes.Section) (strin
 		buf := &bytes.Buffer{}
 		_, err := io.Copy(buf, dec)
 		if err != nil {
-			return "", "", err
+			return nil, "", "", err
 		}
 
 		hash := sha256.New()
 		_, err = hash.Write(buf.Bytes())
 		if err != nil {
-			return "", "", err
+			return nil, "", "", err
 		}
 
 		fileSha256 := hash.Sum(nil)
@@ -532,20 +538,20 @@ func (c *Client) handleSectionAttachment(section *processortypes.Section) (strin
 			// use sha256 of file
 			section.AttachmentFileName = fmt.Sprintf("%x", fileSha256)
 		}
-		fileName := fmt.Sprintf("../../../attachments/%s.txt", section.AttachmentFileName)
-		err = os.WriteFile(fileName, buf.Bytes(), 0666)
-		if err != nil {
-			return "", "", err
-		}
+		// fileName := fmt.Sprintf("../../../attachments/%s.txt", section.AttachmentFileName)
+		// err = os.WriteFile(fileName, buf.Bytes(), 0666)
+		// if err != nil {
+		// 	return "", "", err
+		// }
 
-		return fileName, fmt.Sprintf("%x", fileSha256), nil
+		return buf.Bytes(), section.AttachmentFileName, fmt.Sprintf("%x", fileSha256), nil
 	default:
 		logrus.Warnf("content transfer encoding for attachments is not implemented, skipping processing, encoding=%s", section.ContentTransferEncoding)
 	}
-	return "", "", nil
+	return []byte(section.Data), "", "", nil
 }
 
-func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerActions, htmlUrlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner) (string, error) {
+func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerActions, htmlUrlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner, fileScanner filescanner.Scanner) (string, error) {
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlUrlReplacer)
 	sections, headers, links, err := bodyProcessor.GetBodySections(msg)
 	if err != nil {
@@ -561,21 +567,30 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 
 	for _, section := range sections {
 		if section.IsAttachment {
-			// save attachment to file system with attachment file name
-			// save as binary
-			// save with txt ending to not allow executables on fs
-			// calculate file hash
-			// if attachment filename doesnt exist, take file hash
-			fileName, fileSha256, err := c.handleSectionAttachment(section)
+			fileBytes, fileName, fileSha256, err := c.handleSectionAttachment(section)
 			if err != nil {
 				return "", nil
 			}
 			logrus.Infof("fileName=%s", fileName)
 			logrus.Infof("fileSha256=%s", fileSha256)
 			// send file hash for check
-			// if file hash not recognized
-			// upload file for check
-			// if file is malicious mark email with header
+			scanResult, err := fileScanner.ScanFileHash(fileSha256)
+			if err != nil {
+				return "", nil
+			}
+
+			switch scanResult.Status {
+			case filescanner.Unknown:
+				fullScanResult, err := fileScanner.ScanFile(fileBytes)
+				if err != nil {
+					return "", nil
+				}
+				if fullScanResult.Status == filescanner.Malicious {
+					headers = c.addHeader(headers, *cynetActionHeader, "block")
+				}
+			case filescanner.Malicious:
+				headers = c.addHeader(headers, *cynetActionHeader, "block")
+			}
 		}
 	}
 
