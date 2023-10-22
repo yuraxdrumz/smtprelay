@@ -374,7 +374,7 @@ func Smtp() {
 	// scanner := scanner.NewNimbusScanner(httpGetter, env.ENVVARS.ScannerURL, env.ENVVARS.ScannerClientID)
 	scanner := scanner.NewWebFilter(httpGetter, *scannerUrl, *scannerClientID)
 	// FIXME: replace with implementation
-	fileScanner := filescanner.NewMockScanner(nil)
+	fileScanner := filescanner.NewNoOPFileScanner()
 	var servers []*smtpd.Server
 
 	// Create a server for each desired listen address
