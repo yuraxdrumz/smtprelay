@@ -495,6 +495,8 @@ func (c *Client) addHeader(headers *strings.Builder, key string, value string) *
 	return headers
 }
 
+// currently all attachments can only have newlines and boundary end when email has multiple boundaries
+// we clean them up to get the raw data
 func (c *Client) cleanUpData(data string) string {
 	data = strings.TrimPrefix(data, "\n")
 	data = strings.TrimSuffix(data, "\n")
@@ -508,9 +510,9 @@ func (c *Client) cleanUpData(data string) string {
 }
 
 func (c *Client) handleSectionAttachment(section *processortypes.Section) (string, string, error) {
-	cleanedSectionData := c.cleanUpData(section.Data)
 	switch section.ContentTransferEncoding {
 	case processortypes.Base64:
+		cleanedSectionData := c.cleanUpData(section.Data)
 		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(cleanedSectionData))
 		buf := &bytes.Buffer{}
 		_, err := io.Copy(buf, dec)
@@ -562,8 +564,8 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 			// save attachment to file system with attachment file name
 			// save as binary
 			// save with txt ending to not allow executables on fs
-			// if attachment filename doesnt exist, create random one
 			// calculate file hash
+			// if attachment filename doesnt exist, take file hash
 			fileName, fileSha256, err := c.handleSectionAttachment(section)
 			if err != nil {
 				return "", nil
