@@ -19,6 +19,7 @@ package smtp
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"crypto/tls"
 	"encoding/base64"
 	"errors"
@@ -27,11 +28,14 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
+	"os"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
+	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
@@ -491,6 +495,54 @@ func (c *Client) addHeader(headers *strings.Builder, key string, value string) *
 	return headers
 }
 
+func (c *Client) cleanUpData(data string) string {
+	data = strings.TrimPrefix(data, "\n")
+	data = strings.TrimSuffix(data, "\n")
+	re := regexp.MustCompile("--.*--")
+	boundary := re.Find([]byte(data))
+	data = strings.Replace(data, string(boundary), "", 1)
+	data = strings.TrimSuffix(data, "\n")
+	data = strings.TrimSuffix(data, "\n")
+	// os.WriteFile("./attachments/5.txt", []byte(data), 0666)
+	return data
+}
+
+func (c *Client) handleSectionAttachment(section *processortypes.Section) (string, string, error) {
+	cleanedSectionData := c.cleanUpData(section.Data)
+	switch section.ContentTransferEncoding {
+	case processortypes.Base64:
+		dec := base64.NewDecoder(base64.StdEncoding, strings.NewReader(cleanedSectionData))
+		buf := &bytes.Buffer{}
+		_, err := io.Copy(buf, dec)
+		if err != nil {
+			return "", "", err
+		}
+
+		hash := sha256.New()
+		_, err = hash.Write(buf.Bytes())
+		if err != nil {
+			return "", "", err
+		}
+
+		fileSha256 := hash.Sum(nil)
+
+		if section.AttachmentFileName == "" {
+			// use sha256 of file
+			section.AttachmentFileName = fmt.Sprintf("%x", fileSha256)
+		}
+		fileName := fmt.Sprintf("../../../attachments/%s.txt", section.AttachmentFileName)
+		err = os.WriteFile(fileName, buf.Bytes(), 0666)
+		if err != nil {
+			return "", "", err
+		}
+
+		return fileName, fmt.Sprintf("%x", fileSha256), nil
+	default:
+		logrus.Warnf("content transfer encoding for attachments is not implemented, skipping processing, encoding=%s", section.ContentTransferEncoding)
+	}
+	return "", "", nil
+}
+
 func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerActions, htmlUrlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner) (string, error) {
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlUrlReplacer)
 	sections, headers, links, err := bodyProcessor.GetBodySections(msg)
@@ -504,8 +556,30 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 	if shouldMark {
 		headers = c.addHeader(headers, *cynetActionHeader, "junk")
 	}
+
+	for _, section := range sections {
+		if section.IsAttachment {
+			// save attachment to file system with attachment file name
+			// save as binary
+			// save with txt ending to not allow executables on fs
+			// if attachment filename doesnt exist, create random one
+			// calculate file hash
+			fileName, fileSha256, err := c.handleSectionAttachment(section)
+			if err != nil {
+				return "", nil
+			}
+			logrus.Infof("fileName=%s", fileName)
+			logrus.Infof("fileSha256=%s", fileSha256)
+			// send file hash for check
+			// if file hash not recognized
+			// upload file for check
+			// if file is malicious mark email with header
+		}
+	}
+
 	newBody.WriteString(headers.String())
 	newBody.WriteString("\n")
+
 	for _, section := range sections {
 		newBody.WriteString(fmt.Sprintf("%s\n", section.Headers))
 		newBody.WriteString(section.Data)
