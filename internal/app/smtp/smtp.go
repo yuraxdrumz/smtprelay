@@ -245,7 +245,7 @@ func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, fileS
 		}
 
 		cynetID := ""
-		cynetTenantIDHeaderRegex := regexp.MustCompile(fmt.Sprintf(`.*%s:(.*)`, *cynetTenantHeader))
+		cynetTenantIDHeaderRegex := regexp.MustCompile(fmt.Sprintf(`.*%s: (.*)`, *cynetTenantHeader))
 		cynetIDMatchList := cynetTenantIDHeaderRegex.FindAllStringSubmatch(string(env.Data), 1)
 		if len(cynetIDMatchList) > 0 {
 			matchGroup := cynetIDMatchList[0]

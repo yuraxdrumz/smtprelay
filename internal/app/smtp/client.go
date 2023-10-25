@@ -559,7 +559,6 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 		return "", err
 	}
 
-	newBody := &strings.Builder{}
 	log.Debugf("found the following links=%+v", links)
 	shouldMark := c.shouldMarkEmailByLinks(scanner, links)
 	if shouldMark {
@@ -597,11 +596,12 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 		}
 	}
 
+	newBody := &strings.Builder{}
 	newBody.WriteString(headers.String())
 	newBody.WriteString("\n")
-
 	for _, section := range sections {
-		newBody.WriteString(fmt.Sprintf("%s\n", section.Headers))
+		newBody.WriteString(section.Headers)
+		newBody.WriteString("\n")
 		newBody.WriteString(section.Data)
 	}
 	return newBody.String(), nil
