@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -18,6 +19,37 @@ func NewHTTPGetter(httpClient *http.Client) *HTTPGetter {
 	return &HTTPGetter{
 		HTTP: httpClient,
 	}
+}
+
+func (h *HTTPGetter) PostFile(URL string, file []byte, fileName string) ([]byte, error) {
+	bodyBuf := &bytes.Buffer{}
+	bodyWriter := multipart.NewWriter(bodyBuf)
+	// this step is very important
+	fileWriter, err := bodyWriter.CreateFormFile("file", fileName)
+	if err != nil {
+		fmt.Println("error writing to buffer")
+		return nil, err
+	}
+
+	fileWriter.Write(file)
+	contentType := bodyWriter.FormDataContentType()
+	bodyWriter.Close()
+
+	res, err := http.Post(URL, contentType, bodyBuf)
+	if err != nil {
+		return nil, err
+	}
+	logrus.Debugf("received status %s", res.Status)
+
+	if res.Status != "200 OK" {
+		return nil, fmt.Errorf("received a non 200 error, status=%s", res.Status)
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
 }
 
 func (h *HTTPGetter) GetBatch(URL string, method string, requestBody string, headers map[string]string, additionalQueryParams map[string]string) ([]byte, error) {

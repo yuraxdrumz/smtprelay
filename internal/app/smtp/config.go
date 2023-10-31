@@ -51,6 +51,7 @@ var (
 	cynetTenantHeader  = flagset.String("cynet_tenant_header", "", "header to check tenant id")
 	cynetActionHeader  = flagset.String("cynet_action_header", "", "header to inject when malicious email found")
 	cynetProtectionUrl = flagset.String("cynet_protection_url", "", "url to inject when replacing links")
+	file_scanner_url   = flagset.String("file_scanner_url", "", "url to send files for checks")
 	// additional flags
 	_           = flagset.String("config", "", "Path to config file (ini format)")
 	versionInfo = flagset.Bool("version", false, "Show version information")

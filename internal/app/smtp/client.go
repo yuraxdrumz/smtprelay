@@ -36,6 +36,7 @@ import (
 	"github.com/decke/smtprelay/internal/app/processors"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
+	filescannertypes "github.com/decke/smtprelay/internal/pkg/file_scanner/types"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
@@ -490,7 +491,7 @@ out:
 
 			fileLogger.Debugf("checking file sha256")
 			// send file hash for check
-			scanResult, err := fileScanner.ScanFileHash(fileSha256)
+			scanResult, err := fileScanner.ScanFileHash(fileName, fileSha256)
 			if err != nil {
 				fileLogger.Errorf("errored while checking file hash, err=%s", err)
 				continue
@@ -498,20 +499,20 @@ out:
 
 			fileLogger.Debugf("scan result for file sha256=%+v", scanResult)
 			switch scanResult.Status {
-			case filescanner.Unknown:
+			case filescannertypes.Unknown:
 				fileLogger.Debug("received status unknown, checking file bytes")
-				fullScanResult, err := fileScanner.ScanFile(fileBytes)
+				fullScanResult, err := fileScanner.ScanFile(fileName, fileBytes)
 				if err != nil {
 					fileLogger.Errorf("errored while checking file bytes, err=%s", err)
 					continue
 				}
 
 				fileLogger.Debugf("scan result for file bytes=%+v", fullScanResult)
-				if fullScanResult.Status == filescanner.Malicious {
+				if fullScanResult.Status == filescannertypes.Malicious {
 					shouldMarkEmail = true
 					break out
 				}
-			case filescanner.Malicious:
+			case filescannertypes.Malicious:
 				shouldMarkEmail = true
 				break out
 			}

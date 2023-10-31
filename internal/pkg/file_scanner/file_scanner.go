@@ -1,18 +1,8 @@
 package filescanner
 
+import filescannertypes "github.com/decke/smtprelay/internal/pkg/file_scanner/types"
+
 type Scanner interface {
-	ScanFileHash(fileHash string) (*ScanResult, error)
-	ScanFile(file []byte) (*ScanResult, error)
+	ScanFileHash(fileName string, fileHash string) (*filescannertypes.Response, error)
+	ScanFile(fileName string, file []byte) (*filescannertypes.Response, error)
 }
-
-type ScanResult struct {
-	Status Status
-}
-
-type Status string
-
-const (
-	Malicious Status = "malicious"
-	Unknown   Status = "unknown"
-	Clean     Status = "clean"
-)

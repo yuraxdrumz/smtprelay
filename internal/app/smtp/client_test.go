@@ -12,6 +12,7 @@ import (
 	"github.com/decke/smtprelay/internal/app/processors"
 	"github.com/decke/smtprelay/internal/pkg/encoder"
 	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
+	filescannertypes "github.com/decke/smtprelay/internal/pkg/file_scanner/types"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/golang/mock/gomock"
@@ -197,7 +198,7 @@ func TestBase64InnerBoundary(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
 	setupLogger()
 
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
@@ -229,8 +230,8 @@ func TestBase64AttachmentUnknown(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Unknown}, nil).Times(3)
-	fileScanner.EXPECT().ScanFile(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).Times(3)
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Unknown}, nil).Times(3)
+	fileScanner.EXPECT().ScanFile(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).Times(3)
 	setupLogger()
 
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
@@ -259,8 +260,8 @@ func TestBase64AttachmentMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Unknown}, nil).Times(1)
-	fileScanner.EXPECT().ScanFile(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Malicious}, nil).Times(1)
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Unknown}, nil).Times(1)
+	fileScanner.EXPECT().ScanFile(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Malicious}, nil).Times(1)
 	setupLogger()
 
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
@@ -289,7 +290,7 @@ func TestBase64AttachmentFileHashMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Malicious}, nil).Times(1)
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Malicious}, nil).Times(1)
 	setupLogger()
 
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
@@ -491,7 +492,7 @@ func TestBoundaryMultiline(t *testing.T) {
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
 	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
-	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
 
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
@@ -523,7 +524,7 @@ func TestWriteAllEmails(t *testing.T) {
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
 	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
-	fileScanner.EXPECT().ScanFileHash(gomock.Any()).Return(&filescanner.ScanResult{Status: filescanner.Clean}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
 
 	setupLogger()
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
