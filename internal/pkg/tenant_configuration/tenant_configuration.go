@@ -1,16 +1,29 @@
 package tenantconfiguration
 
-// Junk folder / Delete folder / drop email
-// Senders email White list / Black list
-// Recipients email White list
-// IP (Server mail) email whitelist / blacklist
-// URLs - White list / Black list
-// File Hash - White list / Black list
-// File types White list / Black list
-// Rewrite URLs to Cynet URL Safe – Yes / No
-// Show continue button – Yes / No
-// Check for malicious files – Yes / No
-// Check for malicious URLs – Yes / No
+type Action string
 
-type Actions interface {
+const (
+	Junk   Action = "junk"
+	Delete Action = "delete"
+	Drop   Action = "drop"
+)
+
+type TenantConfiguration interface {
+	GetEmailAction(tenantID string) Action
+	GetSendersWhitelist(tenantID string) []string
+	GetSendersBlacklist(tenantID string) []string
+	GetRecipientsWhiteist(tenantID string) []string
+	GetRecipientsBlacklist(tenantID string) []string
+	GetServerMailWhitelistlist(tenantID string) []string
+	GetServerMailBlacklistlist(tenantID string) []string
+	GetURLWhitelist(tenantID string) []string
+	GetURLBlacklist(tenantID string) []string
+	GetFileHashWhitelist(tenantID string) []string
+	GetFileHashBlacklist(tenantID string) []string
+	GetFileTypeWhitelist(tenantID string) []string
+	GetFileTypeBlacklist(tenantID string) []string
+	GetUrlRewriteToCynetProtection(tenantID string) bool
+	GetShouldShowContinueButton(tenantID string) bool
+	GetCheckForMaliciousFiles(tenantID string) bool
+	GetCheckForMaliciousURLS(tenantID string) bool
 }

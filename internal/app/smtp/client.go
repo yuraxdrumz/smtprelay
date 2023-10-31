@@ -445,6 +445,7 @@ func SendMail(
 
 	newBodyString, err := c.rewriteEmail(string(msg), urlReplacer, htmlURLReplacer, scanner, fileScanner)
 	if err != nil {
+		// TODO: check how error handling should work case by case
 		log.Warnf("failed to process body, err=%s", err)
 		return err
 	}
@@ -470,6 +471,53 @@ func SendMail(
 		return err
 	}
 	return c.Quit()
+}
+
+func (c *Client) shouldMarkEmailByAttachments(fileScanner filescanner.Scanner, sections []*processortypes.Section) bool {
+	shouldMarkEmail := false
+out:
+	for _, section := range sections {
+		if section.IsAttachment {
+			fileBytes, fileName, fileSha256, err := c.handleSectionAttachment(section)
+			if err != nil {
+				logrus.Errorf("errored while handling section attachment, err=%s", err)
+				continue
+			}
+			fileLogger := logrus.WithFields(logrus.Fields{
+				"fileName":   fileName,
+				"fileSha256": fileSha256,
+			})
+
+			fileLogger.Debugf("checking file sha256")
+			// send file hash for check
+			scanResult, err := fileScanner.ScanFileHash(fileSha256)
+			if err != nil {
+				fileLogger.Errorf("errored while checking file hash, err=%s", err)
+				continue
+			}
+
+			fileLogger.Debugf("scan result for file sha256=%+v", scanResult)
+			switch scanResult.Status {
+			case filescanner.Unknown:
+				fileLogger.Debug("received status unknown, checking file bytes")
+				fullScanResult, err := fileScanner.ScanFile(fileBytes)
+				if err != nil {
+					fileLogger.Errorf("errored while checking file bytes, err=%s", err)
+					continue
+				}
+
+				fileLogger.Debugf("scan result for file bytes=%+v", fullScanResult)
+				if fullScanResult.Status == filescanner.Malicious {
+					shouldMarkEmail = true
+					break out
+				}
+			case filescanner.Malicious:
+				shouldMarkEmail = true
+				break out
+			}
+		}
+	}
+	return shouldMarkEmail
 }
 
 // FIXME: make scan batched
@@ -538,12 +586,6 @@ func (c *Client) handleSectionAttachment(section *processortypes.Section) ([]byt
 			// use sha256 of file
 			section.AttachmentFileName = fmt.Sprintf("%x", fileSha256)
 		}
-		// TODO: do we need to save the file to fs?
-		// fileName := fmt.Sprintf("../../../attachments/%s.txt", section.AttachmentFileName)
-		// err = os.WriteFile(fileName, buf.Bytes(), 0666)
-		// if err != nil {
-		// 	return "", "", err
-		// }
 
 		return buf.Bytes(), section.AttachmentFileName, fmt.Sprintf("%x", fileSha256), nil
 	default:
@@ -559,41 +601,15 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 		return "", err
 	}
 
-	log.Debugf("found the following links=%+v", links)
-	shouldMark := c.shouldMarkEmailByLinks(scanner, links)
-	if shouldMark {
-		headers = c.addHeader(headers, *cynetActionHeader, "junk")
+	shouldMarkByAttachments := c.shouldMarkEmailByAttachments(fileScanner, sections)
+	if shouldMarkByAttachments {
+		headers = c.addHeader(headers, *cynetActionHeader, "block")
 	}
 
-	for _, section := range sections {
-		if section.IsAttachment {
-			fileBytes, fileName, fileSha256, err := c.handleSectionAttachment(section)
-			if err != nil {
-				return "", nil
-			}
-			logrus.Infof("fileName=%s", fileName)
-			logrus.Infof("fileSha256=%s", fileSha256)
-			// send file hash for check
-			scanResult, err := fileScanner.ScanFileHash(fileSha256)
-			if err != nil {
-				return "", nil
-			}
-
-			switch scanResult.Status {
-			case filescanner.Unknown:
-				fullScanResult, err := fileScanner.ScanFile(fileBytes)
-				if err != nil {
-					return "", nil
-				}
-				// TODO: do we need to mark 1 file only or per file?
-				// TODO: do we need to even check files if we have malicious links?
-				if fullScanResult.Status == filescanner.Malicious {
-					headers = c.addHeader(headers, *cynetActionHeader, "block")
-				}
-			case filescanner.Malicious:
-				headers = c.addHeader(headers, *cynetActionHeader, "block")
-			}
-		}
+	log.Debugf("found the following links=%+v", links)
+	shouldMarkByLinks := c.shouldMarkEmailByLinks(scanner, links)
+	if shouldMarkByLinks {
+		headers = c.addHeader(headers, *cynetActionHeader, "junk")
 	}
 
 	newBody := &strings.Builder{}
