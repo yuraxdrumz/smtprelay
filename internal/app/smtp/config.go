@@ -39,7 +39,7 @@ var (
 	maxConnections     = flagset.Int("max_connections", 100, "Max concurrent connections, use -1 to disable")
 	maxMessageSize     = flagset.Int("max_message_size", 10240000, "Max message size in bytes")
 	maxRecipients      = flagset.Int("max_recipients", 100, "Max RCPT TO calls for each envelope")
-	allowedNetsStr     = flagset.String("allowed_nets", "127.0.0.0/8 ::1/128", "Networks allowed to send mails")
+	allowedNetsStr     = flagset.String("allowed_nets", "", "Networks allowed to send mails")
 	allowedSenderStr   = flagset.String("allowed_sender", "", "Regular expression for valid FROM EMail addresses")
 	allowedRecipStr    = flagset.String("allowed_recipients", "", "Regular expression for valid TO EMail addresses")
 	allowedUsers       = flagset.String("allowed_users", "", "Path to file with valid users/passwords")
@@ -203,7 +203,7 @@ func ConfigLoad() {
 	// use .env file if it exists
 	if _, err := os.Stat(".env"); err == nil {
 		if err := ff.Parse(flagset, os.Args[1:],
-			ff.WithEnvVarPrefix("smtprelay"),
+			ff.WithEnvVarPrefix(""),
 			ff.WithConfigFile(".env"),
 			ff.WithConfigFileParser(ff.EnvParser),
 		); err != nil {
@@ -213,7 +213,7 @@ func ConfigLoad() {
 	} else {
 		// use env variables and smtprelay.ini file
 		if err := ff.Parse(flagset, os.Args[1:],
-			ff.WithEnvVarPrefix("smtprelay"),
+			ff.WithEnvVarPrefix(""),
 			ff.WithConfigFileFlag("config"),
 			ff.WithConfigFileParser(IniParser),
 		); err != nil {
