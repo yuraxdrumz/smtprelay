@@ -479,12 +479,13 @@ func (c *Client) shouldMarkEmailByAttachments(fileScanner filescanner.Scanner, s
 out:
 	for _, section := range sections {
 		if section.IsAttachment {
+			log.Infof("found attachment=%s", section.AttachmentFileName)
 			fileBytes, fileName, fileSha256, err := c.handleSectionAttachment(section)
 			if err != nil {
-				logrus.Errorf("errored while handling section attachment, err=%s", err)
+				log.Errorf("errored while handling section attachment, err=%s", err)
 				continue
 			}
-			fileLogger := logrus.WithFields(logrus.Fields{
+			fileLogger := log.WithFields(logrus.Fields{
 				"fileName":   fileName,
 				"fileSha256": fileSha256,
 			})
@@ -590,7 +591,7 @@ func (c *Client) handleSectionAttachment(section *processortypes.Section) ([]byt
 
 		return buf.Bytes(), section.AttachmentFileName, fmt.Sprintf("%x", fileSha256), nil
 	default:
-		logrus.Warnf("content transfer encoding for attachments is not implemented, skipping processing, encoding=%s", section.ContentTransferEncoding)
+		log.Warnf("content transfer encoding for attachments is not implemented, skipping processing, encoding=%s", section.ContentTransferEncoding)
 	}
 	return []byte(section.Data), "", "", nil
 }
