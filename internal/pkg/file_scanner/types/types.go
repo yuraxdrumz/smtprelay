@@ -3,19 +3,19 @@ package filescannertypes
 type Status string
 
 const (
-	Clean     Status = "clean"
-	Malicious Status = "malicious"
-	Unknown   Status = "unknown"
+	Clean     Status = "Clean"
+	Malicious Status = "Malicious"
+	Unknown   Status = "Unknown"
 )
 
 type Engine string
 
-const (
-	Avira Engine = "avira"
-)
-
 type ShaResponse struct {
 	Verdict Status `json:"verdict"`
+}
+
+type FileResponse struct {
+	Verdict Response `json:"verdict"`
 }
 
 type Response struct {

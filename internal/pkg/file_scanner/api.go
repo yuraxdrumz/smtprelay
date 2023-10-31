@@ -44,12 +44,16 @@ func (a *api) ScanFile(fileName string, file []byte) (*filescannertypes.Response
 		return nil, err
 	}
 
-	var scanFileResponse *filescannertypes.Response
+	var scanFileResponse *filescannertypes.FileResponse
 	err = json.Unmarshal(resp, &scanFileResponse)
 	if err != nil {
 		return nil, err
 	}
 
 	logger.Debugf("received response from scan file, resp=%+v", scanFileResponse)
-	return scanFileResponse, nil
+	return &filescannertypes.Response{
+		Status:         scanFileResponse.Verdict.Status,
+		EnginesChecked: scanFileResponse.Verdict.EnginesChecked,
+		FileName:       fileName,
+	}, nil
 }

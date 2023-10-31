@@ -479,7 +479,7 @@ func (c *Client) shouldMarkEmailByAttachments(fileScanner filescanner.Scanner, s
 out:
 	for _, section := range sections {
 		if section.IsAttachment {
-			log.Infof("found attachment=%s", section.AttachmentFileName)
+			log.Debugf("found attachment=%s", section.AttachmentFileName)
 			fileBytes, fileName, fileSha256, err := c.handleSectionAttachment(section)
 			if err != nil {
 				log.Errorf("errored while handling section attachment, err=%s", err)
