@@ -19,6 +19,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	*logLevel = "debug"
+}
+
 func TestImagesShouldNotBeProcessed(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
@@ -121,6 +125,34 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, `src=3D"https://a.travel-assets.com`)
+}
+
+func TestRemoveIncomingCynetHeaders(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	*cynetActionHeader = "X-Cynet-Action"
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
+	setupLogger()
+	body, err := os.ReadFile("../../../examples/images/cynet_headers.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	assert.NoError(t, err)
+	assert.NotContains(t, rewrittenBody, *cynetActionHeader)
 }
 
 func TestGetLinksDeduplicated(t *testing.T) {

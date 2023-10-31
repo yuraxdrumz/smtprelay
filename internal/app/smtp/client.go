@@ -221,7 +221,11 @@ func (c *Client) Auth(a smtp.Auth) error {
 		return err
 	}
 	encoding := base64.StdEncoding
-	mech, resp, err := a.Start(&smtp.ServerInfo{c.serverName, c.tls, c.auth})
+	mech, resp, err := a.Start(&smtp.ServerInfo{
+		Name: c.serverName,
+		TLS:  c.tls,
+		Auth: c.auth,
+	})
 	if err != nil {
 		c.Quit()
 		return err
@@ -474,6 +478,7 @@ func SendMail(
 	return c.Quit()
 }
 
+// FIXME make scan batched
 func (c *Client) shouldMarkEmailByAttachments(fileScanner filescanner.Scanner, sections []*processortypes.Section) bool {
 	shouldMarkEmail := false
 out:
@@ -495,6 +500,11 @@ out:
 			scanResult, err := fileScanner.ScanFileHash(fileName, fileSha256)
 			if err != nil {
 				fileLogger.Errorf("errored while checking file hash, err=%s", err)
+				continue
+			}
+
+			if scanResult == nil {
+				fileLogger.Errorf("empty response from checking file hash")
 				continue
 			}
 
@@ -529,6 +539,11 @@ func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[strin
 		res, err := scanner.ScanURL(link)
 		if err != nil {
 			log.Errorf("errored while scanning url=%s, err=%s", link, err)
+			continue
+		}
+		if res == nil {
+			log.Errorf("empty response from scan link=%s", link)
+			continue
 		}
 		log.Debugf("received response for link=%s, resp=%+v", link, res[0])
 		if res[0].StatusCode != 0 {
@@ -596,12 +611,27 @@ func (c *Client) handleSectionAttachment(section *processortypes.Section) ([]byt
 	return []byte(section.Data), "", "", nil
 }
 
+func (c *Client) cleanHeadersFromKey(headers *strings.Builder, key string) *strings.Builder {
+	str := headers.String()
+	re := regexp.MustCompile(fmt.Sprintf(`\n.*%s:.*`, key))
+	removedStr := re.ReplaceAllString(str, "")
+	newHeadersStr := strings.Builder{}
+	_, err := newHeadersStr.WriteString(removedStr)
+	if err != nil {
+		log.Errorf("failed writing cleaned heaers to strings.Builder, err=%s", err)
+		return headers
+	}
+	return &newHeadersStr
+}
+
 func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerActions, htmlUrlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner, fileScanner filescanner.Scanner) (string, error) {
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlUrlReplacer)
 	sections, headers, links, err := bodyProcessor.GetBodySections(msg)
 	if err != nil {
 		return "", err
 	}
+
+	headers = c.cleanHeadersFromKey(headers, *cynetActionHeader)
 
 	shouldMarkByAttachments := c.shouldMarkEmailByAttachments(fileScanner, sections)
 	if shouldMarkByAttachments {
@@ -702,7 +732,7 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 		case "Password:":
 			return []byte(a.password), nil
 		default:
-			return nil, errors.New("Unknown fromServer")
+			return nil, errors.New("unknown fromServer")
 		}
 	}
 	return nil, nil
