@@ -514,6 +514,34 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
 }
 
+func TestCheckAttachmentsIfLinkNotMalicious(t *testing.T) {
+	c := Client{}
+	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	setupLogger()
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	body, err := os.ReadFile("../../../examples/attachments/multiple.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	*cynetActionHeader = "X-Cynet-Action"
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
+	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	assert.NoError(t, err)
+	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
+}
+
 func TestBoundaryMultiline(t *testing.T) {
 	c := Client{}
 	c.tmpBuffer = bytes.NewBuffer([]byte{})
