@@ -555,11 +555,10 @@ func (c *Client) shouldMarkEmailByLinks(scanner scanner.Scanner, links map[strin
 	return shouldMarkEmail
 }
 
-func (c *Client) addHeader(headers *strings.Builder, key string, value string) *strings.Builder {
+func (c *Client) addHeader(headers *strings.Builder, key string, value string) {
 	headers.WriteString(fmt.Sprintf("%s: %s", key, value))
 	headers.WriteString("\n")
 	log.Debugf("adding header %s: %s", key, value)
-	return headers
 }
 
 // currently all attachments can only have newlines and boundary end when email has multiple boundaries
@@ -635,13 +634,13 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 
 	shouldMarkByAttachments := c.shouldMarkEmailByAttachments(fileScanner, sections)
 	if shouldMarkByAttachments {
-		headers = c.addHeader(headers, *cynetActionHeader, "block")
+		c.addHeader(headers, *cynetActionHeader, "block")
 	}
 
 	log.Debugf("found the following links=%+v", links)
 	shouldMarkByLinks := c.shouldMarkEmailByLinks(scanner, links)
 	if shouldMarkByLinks {
-		headers = c.addHeader(headers, *cynetActionHeader, "junk")
+		c.addHeader(headers, *cynetActionHeader, "junk")
 	}
 
 	newBody := &strings.Builder{}
