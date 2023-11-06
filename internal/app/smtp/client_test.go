@@ -408,7 +408,7 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	*cynetActionHeader = "X-Cynet-Action"
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
-	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
+	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
 }
 
 func TestQuotedStringWithReplaceInlineNoLinkDedup(t *testing.T) {
@@ -454,7 +454,7 @@ func TestInjectHeaders(t *testing.T) {
 	}, nil)
 	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
 	assert.NoError(t, err)
-	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
+	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
 }
 
 func TestEncodingParsed(t *testing.T) {

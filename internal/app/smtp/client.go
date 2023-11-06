@@ -633,7 +633,7 @@ func (c *Client) rewriteEmail(msg string, urlReplacer urlreplacer.UrlReplacerAct
 	headers = c.cleanHeadersFromKey(headers, *cynetActionHeader)
 	shouldMarkByLinks := c.shouldMarkEmailByLinks(scanner, links)
 	if shouldMarkByLinks {
-		c.addHeader(headers, *cynetActionHeader, "junk")
+		c.addHeader(headers, *cynetActionHeader, "block")
 	}
 	if !shouldMarkByLinks {
 		shouldMarkByAttachments := c.shouldMarkEmailByAttachments(fileScanner, sections)
