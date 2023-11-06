@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/chrj/smtpd"
-	"github.com/decke/smtprelay/internal/app/client"
-	"github.com/decke/smtprelay/internal/app/remotes"
 	"github.com/decke/smtprelay/internal/app/sendmail"
+	"github.com/decke/smtprelay/internal/pkg/client"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
+	"github.com/decke/smtprelay/internal/pkg/remotes"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )

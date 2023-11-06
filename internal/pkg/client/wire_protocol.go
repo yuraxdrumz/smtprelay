@@ -30,7 +30,7 @@ import (
 	"strings"
 	"time"
 
-	config "github.com/decke/smtprelay/configs"
+	"github.com/decke/smtprelay/internal/pkg/env"
 	"github.com/decke/smtprelay/internal/pkg/utils"
 )
 
@@ -79,7 +79,7 @@ func NewClient(conn net.Conn, host string) (*Client, error) {
 		Text:       text,
 		conn:       conn,
 		serverName: host,
-		localName:  *config.HostName,
+		localName:  env.ENVVARS.HostName,
 		TmpBuffer:  bytes.NewBuffer([]byte{}),
 	}
 	_, c.tls = conn.(*tls.Conn)

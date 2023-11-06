@@ -11,7 +11,6 @@ import (
 
 	"github.com/amalfra/maildir/v3"
 	"github.com/chrj/smtpd"
-	config "github.com/decke/smtprelay/configs"
 	"github.com/decke/smtprelay/internal/app/sendmail"
 	"github.com/decke/smtprelay/internal/app/smtp"
 	"github.com/decke/smtprelay/internal/pkg/encoder"
@@ -56,13 +55,13 @@ func main() {
 	metrics := metrics.NewPrometheusMetrics(prometheus.DefaultRegisterer)
 	httpGetter := httpgetter.NewHTTPGetter(&http.Client{})
 	aes256Encoder := encoder.NewAES256Encoder()
-	urlReplacer := urlreplacer.NewRegexUrlReplacer(*config.CynetProtectionUrl, aes256Encoder)
+	urlReplacer := urlreplacer.NewRegexUrlReplacer(env.ENVVARS.CynetProtectionURL, aes256Encoder)
 	htmlUrlReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	md := maildir.NewMaildir(*config.MailDir)
-	scanner := scanner.NewWebFilter(httpGetter, *config.ScannerUrl, *config.ScannerClientID)
-	fileScanner := filescanner.NewAPIFileScanner(httpGetter, *config.FileScannerUrl)
-	sendMail := sendmail.NewSendMail(metrics, urlReplacer, htmlUrlReplacer, scanner, fileScanner, md, *config.CynetActionHeader)
-	smtpHandlers := smtp.NewSMTPHandlers(metrics, env.ENVVARS.AllowedNets, (*regexp.Regexp)(&env.ENVVARS.AllowedSender), (*regexp.Regexp)(&env.ENVVARS.AllowedRecipients), *config.CynetTenantHeader, sendMail)
+	md := maildir.NewMaildir(env.ENVVARS.MailDir)
+	scanner := scanner.NewWebFilter(httpGetter, env.ENVVARS.ScannerURL, env.ENVVARS.ScannerClientID)
+	fileScanner := filescanner.NewAPIFileScanner(httpGetter, env.ENVVARS.FileScannerURL)
+	sendMail := sendmail.NewSendMail(metrics, urlReplacer, htmlUrlReplacer, scanner, fileScanner, md, env.ENVVARS.CynetActionHeader)
+	smtpHandlers := smtp.NewSMTPHandlers(metrics, env.ENVVARS.AllowedNets, (*regexp.Regexp)(&env.ENVVARS.AllowedSender), (*regexp.Regexp)(&env.ENVVARS.AllowedRecipients), env.ENVVARS.CynetTenantHeader, sendMail)
 
 	var servers []*smtpd.Server
 	// Create a server for each desired listen address
@@ -94,7 +93,7 @@ func main() {
 
 		case "starttls":
 			server.TLSConfig = GetTLSConfig(env.ENVVARS.LocalCert, env.ENVVARS.LocalKey)
-			server.ForceTLS = *config.LocalForceTLS
+			server.ForceTLS = env.ENVVARS.LocalForceTLS
 
 			logger.Info("listening on address (STARTTLS)")
 			lsnr, err = net.Listen("tcp4", listen.Address)

@@ -9,9 +9,8 @@ import (
 	"testing"
 
 	"github.com/amalfra/maildir/v3"
-	config "github.com/decke/smtprelay/configs"
-	"github.com/decke/smtprelay/internal/app/client"
 	"github.com/decke/smtprelay/internal/app/processors"
+	"github.com/decke/smtprelay/internal/pkg/client"
 	"github.com/decke/smtprelay/internal/pkg/encoder"
 	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
 	filescannertypes "github.com/decke/smtprelay/internal/pkg/file_scanner/types"
@@ -21,19 +20,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	*config.LogLevel = "debug"
-	*config.CynetActionHeader = "X-Cynet-Action"
-	config.SetupLogger()
-}
-
 func TestImagesShouldNotBeProcessed(t *testing.T) {
 	c := client.Client{}
 	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	config.SetupLogger()
 	body, err := os.ReadFile("../../../examples/images/multiple.msg")
 	assert.NoError(t, err)
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
@@ -61,7 +53,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, md, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, md, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
@@ -89,7 +81,7 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/forward/double_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
@@ -123,7 +115,7 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/forward/forward_with_images.msg")
 	assert.NoError(t, err)
 	str := string(body)
@@ -150,13 +142,13 @@ func TestRemoveIncomingCynetHeaders(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/images/cynet_headers.msg")
 	assert.NoError(t, err)
 	str := string(body)
 	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, rewrittenBody, *config.CynetActionHeader)
+	assert.NotContains(t, rewrittenBody, "X-Cynet-Action")
 }
 
 func TestGetLinksDeduplicated(t *testing.T) {
@@ -232,7 +224,7 @@ func TestBase64InnerBoundary(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
@@ -263,13 +255,13 @@ func TestBase64AttachmentUnknown(t *testing.T) {
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Unknown}, nil).Times(3)
 	fileScanner.EXPECT().ScanFile(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).Times(3)
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
 	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
+	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
 }
 
 func TestBase64AttachmentMalicious(t *testing.T) {
@@ -291,13 +283,13 @@ func TestBase64AttachmentMalicious(t *testing.T) {
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Unknown}, nil).Times(1)
 	fileScanner.EXPECT().ScanFile(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Malicious}, nil).Times(1)
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
 	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
+	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
 }
 
 func TestBase64AttachmentFileHashMalicious(t *testing.T) {
@@ -318,13 +310,13 @@ func TestBase64AttachmentFileHashMalicious(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Malicious}, nil).Times(1)
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
 	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
+	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
 }
 
 func TestBase64Equals76Chars(t *testing.T) {
@@ -366,7 +358,7 @@ func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/forward/text_before_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
@@ -397,10 +389,10 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/base64/basic.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
+	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
 }
 
 func TestQuotedStringWithReplaceInlineNoLinkDedup(t *testing.T) {
@@ -441,10 +433,10 @@ func TestInjectHeaders(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil)
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
+	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
 }
 
 func TestEncodingParsed(t *testing.T) {
@@ -495,10 +487,10 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "junk"))
+	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "junk"))
 }
 
 func TestCheckAttachmentsIfLinkNotMalicious(t *testing.T) {
@@ -521,11 +513,11 @@ func TestCheckAttachmentsIfLinkNotMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
 	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "junk"))
+	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "junk"))
 }
 
 func TestBoundaryMultiline(t *testing.T) {
@@ -550,7 +542,7 @@ func TestBoundaryMultiline(t *testing.T) {
 	body, err := os.ReadFile("../../../examples/images/outlook.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 
 	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
@@ -580,7 +572,7 @@ func TestWriteAllEmails(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
 
 	items, _ := os.ReadDir("../../../examples")
 	for _, item := range items {

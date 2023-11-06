@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/decke/smtprelay/internal/app/remotes"
+	"github.com/decke/smtprelay/internal/pkg/remotes"
 )
 
 func NewRemoteClientConnection(r *remotes.Remote) (*Client, error) {

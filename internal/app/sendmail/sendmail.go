@@ -11,13 +11,13 @@ import (
 	"strings"
 
 	"github.com/amalfra/maildir/v3"
-	"github.com/decke/smtprelay/internal/app/client"
 	"github.com/decke/smtprelay/internal/app/processors"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
-	"github.com/decke/smtprelay/internal/app/remotes"
+	"github.com/decke/smtprelay/internal/pkg/client"
 	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
 	filescannertypes "github.com/decke/smtprelay/internal/pkg/file_scanner/types"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
+	"github.com/decke/smtprelay/internal/pkg/remotes"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/decke/smtprelay/internal/pkg/utils"
@@ -103,7 +103,6 @@ func (s *SendMail) SendMail(
 
 	newBodyString, err := s.rewriteEmail(string(msg))
 	if err != nil {
-		// TODO: check how error handling should work case by case
 		logrus.Warnf("failed to process body, err=%s", err)
 		return err
 	}
