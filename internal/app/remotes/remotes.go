@@ -1,4 +1,4 @@
-package smtp
+package remotes
 
 import (
 	"fmt"
@@ -54,21 +54,6 @@ func ParseRemote(remoteURL string) (*Remote, error) {
 		Hostname: hostname,
 		Port:     port,
 		Addr:     fmt.Sprintf("%s:%s", hostname, port),
-	}
-
-	if u.User != nil {
-		pass, _ := u.User.Password()
-		user := u.User.Username()
-
-		if hasAuth, authVal := q.Has("auth"), q.Get("auth"); hasAuth {
-			if authVal != "login" {
-				return nil, fmt.Errorf("Auth must be login or not present, received '%s'", authVal)
-			}
-
-			r.Auth = LoginAuth(user, pass)
-		} else {
-			r.Auth = smtp.PlainAuth("", user, pass, u.Hostname())
-		}
 	}
 
 	if hasVal, skipVerify := q.Has("skipVerify"), q.Get("skipVerify"); hasVal && skipVerify != "false" {

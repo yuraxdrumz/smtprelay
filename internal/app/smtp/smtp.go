@@ -1,48 +1,51 @@
 package smtp
 
 import (
-	"bytes"
-	"crypto/tls"
 	"fmt"
 	"net"
-	"net/http"
 	"net/textproto"
-	"os"
-	"os/exec"
-	"os/signal"
 	"regexp"
 	"strings"
-	"syscall"
 
-	"github.com/amalfra/maildir/v3"
 	"github.com/chrj/smtpd"
-	"github.com/decke/smtprelay/internal/pkg/encoder"
-	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
-	"github.com/decke/smtprelay/internal/pkg/httpgetter"
+	"github.com/decke/smtprelay/internal/app/client"
+	"github.com/decke/smtprelay/internal/app/remotes"
+	"github.com/decke/smtprelay/internal/app/sendmail"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
-	"github.com/decke/smtprelay/internal/pkg/scanner"
-	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/google/uuid"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
 
-func connectionChecker(peer smtpd.Peer) error {
+type SMTPHandlers struct {
+	metrics           *metrics.Metrics
+	allowedNets       []net.IPNet
+	allowedSender     *regexp.Regexp
+	allowedRecipients *regexp.Regexp
+	cynetTenantHeader string
+	sendMail          *sendmail.SendMail
+}
+
+func NewSMTPHandlers(metrics *metrics.Metrics, allowedNets []net.IPNet, allowedSender *regexp.Regexp, allowedRecipients *regexp.Regexp, cynetTenantHeader string, sendMail *sendmail.SendMail) *SMTPHandlers {
+	return &SMTPHandlers{
+		metrics:           metrics,
+		allowedNets:       allowedNets,
+		allowedSender:     allowedSender,
+		allowedRecipients: allowedRecipients,
+		cynetTenantHeader: cynetTenantHeader,
+		sendMail:          sendMail,
+	}
+}
+
+func (s *SMTPHandlers) ConnectionChecker(peer smtpd.Peer) error {
 	// This can't panic because we only have TCP listeners
 	peerIP := peer.Addr.(*net.TCPAddr).IP
-
-	if len(allowedNets) == 0 {
-		// Special case: empty string means allow everything
-		return nil
-	}
-
-	for _, allowedNet := range allowedNets {
+	for _, allowedNet := range s.allowedNets {
 		if allowedNet.Contains(peerIP) {
 			return nil
 		}
 	}
 
-	log.WithFields(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"ip": peerIP,
 	}).Warn("Connection refused from address outside of allowed_nets")
 	return smtpd.Error{Code: 421, Message: "Denied"}
@@ -91,384 +94,139 @@ func addrAllowed(addr string, allowedAddrs []string) bool {
 	return false
 }
 
-func senderChecker(peer smtpd.Peer, addr string) error {
-	// check sender address from auth file if user is authenticated
-	if localAuthRequired() && peer.Username != "" {
-		user, err := AuthFetch(peer.Username)
-		if err != nil {
-			// Shouldn't happen: authChecker already validated username+password
-			log.WithFields(logrus.Fields{
-				"peer":     peer.Addr,
-				"username": peer.Username,
-			}).WithError(err).Warn("could not fetch auth user")
-			return smtpd.Error{Code: 451, Message: "Bad sender address"}
-		}
-
-		if !addrAllowed(addr, user.allowedAddresses) {
-			log.WithFields(logrus.Fields{
-				"peer":           peer.Addr,
-				"username":       peer.Username,
-				"sender_address": addr,
-			}).Warn("sender address not allowed for authenticated user")
-			return smtpd.Error{Code: 451, Message: "Bad sender address"}
-		}
-	}
-
-	if allowedSender == nil {
+func (s *SMTPHandlers) SenderChecker(peer smtpd.Peer, addr string) error {
+	if s.allowedSender == nil {
 		// Any sender is permitted
 		return nil
 	}
 
-	if allowedSender.MatchString(addr) {
+	if s.allowedSender.MatchString(addr) {
 		// Permitted by regex
 		return nil
 	}
 
-	log.WithFields(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"sender_address": addr,
 		"peer":           peer.Addr,
 	}).Warn("sender address not allowed by allowed_sender pattern")
 	return smtpd.Error{Code: 451, Message: "Bad sender address"}
 }
 
-func recipientChecker(peer smtpd.Peer, addr string) error {
-	if allowedRecipients == nil {
+func (s *SMTPHandlers) RecipientChecker(peer smtpd.Peer, addr string) error {
+	if s.allowedRecipients == nil {
 		// Any recipient is permitted
 		return nil
 	}
 
-	if allowedRecipients.MatchString(addr) {
+	if s.allowedRecipients.MatchString(addr) {
 		// Permitted by regex
 		return nil
 	}
 
-	log.WithFields(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"peer":              peer.Addr,
 		"recipient_address": addr,
 	}).Warn("recipient address not allowed by allowed_recipients pattern")
 	return smtpd.Error{Code: 451, Message: "Bad recipient address"}
 }
 
-func authChecker(peer smtpd.Peer, username string, password string) error {
-	err := AuthCheckPassword(username, password)
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"peer":     peer.Addr,
-			"username": username,
-		}).WithError(err).Warn("auth error")
-		return smtpd.Error{Code: 535, Message: "Authentication credentials invalid"}
+func (s *SMTPHandlers) MailHandler(peer smtpd.Peer, env smtpd.Envelope) error {
+	peerIP := ""
+	if addr, ok := peer.Addr.(*net.TCPAddr); ok {
+		peerIP = addr.IP.String()
 	}
+
+	logger := logrus.WithFields(logrus.Fields{
+		"from": env.Sender,
+		"to":   env.Recipients,
+		"peer": peerIP,
+		"uuid": s.generateUUID(),
+	})
+
+	env.AddReceivedLine(peer)
+
+	logger.Debug("taking first recipient email")
+	firstRecipientEmail := env.Recipients[0]
+	logger.Debugf("extracting domain from: %s", firstRecipientEmail)
+	domain := strings.Split(firstRecipientEmail, "@")[1]
+	logger.Debugf("searching MX records for domain: %s", domain)
+	mxrecords, err := net.LookupMX(domain)
+	if err != nil {
+		return smtpd.Error{Code: 554, Message: fmt.Sprintf("lookup MX failed: %s", err.Error())}
+	}
+
+	for _, mx := range mxrecords {
+		logger.Debugf("found MX record: %s, Pref=%d", mx.Host, mx.Pref)
+	}
+	firstMXRecord := mxrecords[0]
+	remoteStr := fmt.Sprintf("smtp://%s", firstMXRecord.Host)
+	logger.Debugf("using first MX record: %s, Pref=%d to forward mail", firstMXRecord.Host, firstMXRecord.Pref)
+	remote, err := remotes.ParseRemote(remoteStr)
+	if err != nil {
+		return smtpd.Error{Code: 554, Message: fmt.Sprintf("parsing remote failed: %s", err.Error())}
+	}
+
+	cynetID := ""
+	cynetTenantIDHeaderRegex := regexp.MustCompile(fmt.Sprintf(`.*%s: (.*)`, s.cynetTenantHeader))
+	cynetIDMatchList := cynetTenantIDHeaderRegex.FindAllStringSubmatch(string(env.Data), 1)
+	if len(cynetIDMatchList) > 0 {
+		matchGroup := cynetIDMatchList[0]
+		if len(matchGroup) == 2 {
+			// usually matches look like ["x-cynet-tenant-token: ea0859f9-f30a-4a54-beaf-669eb9eff12e", "ea0859f9-f30a-4a54-beaf-669eb9eff12e"]
+			cynetID = matchGroup[1]
+		}
+	}
+
+	logger.WithField(s.cynetTenantHeader, cynetID).Debug("extracted cynet tenant header")
+	// for _, remote := range envRemotes {
+	logger = logger.WithField("host", remote.Addr)
+	client, err := client.NewRemoteClientConnection(remote)
+	if err != nil {
+		return smtpd.Error{Code: 554, Message: fmt.Sprintf("creating client failed: %s", err.Error())}
+	}
+
+	err = s.sendMail.SendMail(
+		remote,
+		client,
+		env.Sender,
+		env.Recipients,
+		env.Data,
+	)
+	if err != nil {
+		var smtpError smtpd.Error
+
+		switch err := err.(type) {
+		case *textproto.Error:
+			smtpError = smtpd.Error{Code: err.Code, Message: err.Msg}
+
+			logger.WithFields(logrus.Fields{
+				"err_code": err.Code,
+				"err_msg":  err.Msg,
+			}).Error("delivery failed")
+		default:
+			smtpError = smtpd.Error{Code: 554, Message: "Forwarding failed"}
+
+			logger.WithError(err).
+				Error("delivery failed")
+		}
+
+		return smtpError
+	}
+
+	logger.Debug("delivery successful")
+
 	return nil
 }
 
-func mailHandlerWrapper(metrics *metrics.Metrics, scanner scanner.Scanner, fileScanner filescanner.Scanner, urlReplacer urlreplacer.UrlReplacerActions, htmlURLReplacer urlreplacer.UrlReplacerActions, md *maildir.Maildir) func(peer smtpd.Peer, env smtpd.Envelope) error {
-	return func(peer smtpd.Peer, env smtpd.Envelope) error {
-		peerIP := ""
-		if addr, ok := peer.Addr.(*net.TCPAddr); ok {
-			peerIP = addr.IP.String()
-		}
-
-		logger := log.WithFields(logrus.Fields{
-			"from": env.Sender,
-			"to":   env.Recipients,
-			"peer": peerIP,
-			"uuid": generateUUID(),
-		})
-
-		// var envRemotes []*Remote
-
-		// if *strictSender {
-		// 	for _, remote := range remotes {
-		// 		if remote.Sender == env.Sender {
-		// 			envRemotes = append(envRemotes, remote)
-		// 		}
-		// 	}
-		// } else {
-		// 	envRemotes = remotes
-		// }
-
-		// if len(envRemotes) == 0 && *command == "" {
-		// 	logger.Warning("no remote_host or command set; discarding mail")
-		// 	return smtpd.Error{Code: 554, Message: "There are no appropriate remote_host or command"}
-		// }
-
-		env.AddReceivedLine(peer)
-
-		if *command != "" {
-			cmdLogger := logger.WithField("command", *command)
-
-			var stdout bytes.Buffer
-			var stderr bytes.Buffer
-
-			environ := os.Environ()
-			environ = append(environ, fmt.Sprintf("%s=%s", "SMTPRELAY_FROM", env.Sender))
-			environ = append(environ, fmt.Sprintf("%s=%s", "SMTPRELAY_TO", env.Recipients))
-			environ = append(environ, fmt.Sprintf("%s=%s", "SMTPRELAY_PEER", peerIP))
-
-			cmd := exec.Cmd{
-				Env:  environ,
-				Path: *command,
-			}
-
-			cmd.Stdin = bytes.NewReader(env.Data)
-			cmd.Stdout = &stdout
-			cmd.Stderr = &stderr
-
-			err := cmd.Run()
-			if err != nil {
-				cmdLogger.WithError(err).Error(stderr.String())
-				return smtpd.Error{Code: 554, Message: "External command failed"}
-			}
-
-			cmdLogger.Info("pipe command successful: " + stdout.String())
-		}
-
-		logger.Debug("taking first recipient email")
-		firstRecipientEmail := env.Recipients[0]
-		logger.Debugf("extracting domain from: %s", firstRecipientEmail)
-		domain := strings.Split(firstRecipientEmail, "@")[1]
-		logger.Debugf("searching MX records for domain: %s", domain)
-		mxrecords, err := net.LookupMX(domain)
-		if err != nil {
-			return smtpd.Error{Code: 554, Message: fmt.Sprintf("lookup MX failed: %s", err.Error())}
-		}
-
-		for _, mx := range mxrecords {
-			logger.Debugf("found MX record: %s, Pref=%d", mx.Host, mx.Pref)
-		}
-		firstMXRecord := mxrecords[0]
-		remoteStr := fmt.Sprintf("smtp://%s", firstMXRecord.Host)
-		logger.Debugf("using first MX record: %s, Pref=%d to forward mail", firstMXRecord.Host, firstMXRecord.Pref)
-		remote, err := ParseRemote(remoteStr)
-		if err != nil {
-			return smtpd.Error{Code: 554, Message: fmt.Sprintf("parsing remote failed: %s", err.Error())}
-		}
-
-		cynetID := ""
-		cynetTenantIDHeaderRegex := regexp.MustCompile(fmt.Sprintf(`.*%s: (.*)`, *cynetTenantHeader))
-		cynetIDMatchList := cynetTenantIDHeaderRegex.FindAllStringSubmatch(string(env.Data), 1)
-		if len(cynetIDMatchList) > 0 {
-			matchGroup := cynetIDMatchList[0]
-			if len(matchGroup) == 2 {
-				// usually matches look like ["x-cynet-tenant-token: ea0859f9-f30a-4a54-beaf-669eb9eff12e", "ea0859f9-f30a-4a54-beaf-669eb9eff12e"]
-				cynetID = matchGroup[1]
-			}
-		}
-
-		logger.WithField(*cynetTenantHeader, cynetID).Debug("extracted cynet tenant header")
-		// for _, remote := range envRemotes {
-		logger = logger.WithField("host", remote.Addr)
-		err = SendMail(
-			remote,
-			env.Sender,
-			env.Recipients,
-			env.Data,
-			metrics,
-			scanner,
-			fileScanner,
-			urlReplacer,
-			htmlURLReplacer,
-			md,
-		)
-		if err != nil {
-			var smtpError smtpd.Error
-
-			switch err := err.(type) {
-			case *textproto.Error:
-				smtpError = smtpd.Error{Code: err.Code, Message: err.Msg}
-
-				logger.WithFields(logrus.Fields{
-					"err_code": err.Code,
-					"err_msg":  err.Msg,
-				}).Error("delivery failed")
-			default:
-				smtpError = smtpd.Error{Code: 554, Message: "Forwarding failed"}
-
-				logger.WithError(err).
-					Error("delivery failed")
-			}
-
-			return smtpError
-		}
-
-		logger.Debug("delivery successful")
-		// }
-
-		return nil
-	}
-}
-
-func generateUUID() string {
+func (s *SMTPHandlers) generateUUID() string {
 	uniqueID, err := uuid.NewRandom()
 
 	if err != nil {
-		log.WithError(err).
+		logrus.WithError(err).
 			Error("could not generate UUIDv4")
 
 		return ""
 	}
 
 	return uniqueID.String()
-}
-
-func getTLSConfig() *tls.Config {
-	// Ciphersuites as defined in stock Go but without 3DES and RC4
-	// https://golang.org/src/crypto/tls/cipher_suites.go
-	var tlsCipherSuites = []uint16{
-		tls.TLS_AES_128_GCM_SHA256,
-		tls.TLS_AES_256_GCM_SHA384,
-		tls.TLS_CHACHA20_POLY1305_SHA256,
-		tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
-		tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
-		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-		tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-		tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-		tls.TLS_RSA_WITH_AES_128_GCM_SHA256, // does not provide PFS
-		tls.TLS_RSA_WITH_AES_256_GCM_SHA384, // does not provide PFS
-	}
-
-	if *localCert == "" || *localKey == "" {
-		log.WithFields(logrus.Fields{
-			"cert_file": *localCert,
-			"key_file":  *localKey,
-		}).Fatal("TLS certificate/key file not defined in config")
-	}
-
-	cert, err := tls.LoadX509KeyPair(*localCert, *localKey)
-	if err != nil {
-		log.WithField("error", err).
-			Fatal("cannot load X509 keypair")
-	}
-
-	return &tls.Config{
-		PreferServerCipherSuites: true,
-		MinVersion:               tls.VersionTLS12,
-		CipherSuites:             tlsCipherSuites,
-		Certificates:             []tls.Certificate{cert},
-	}
-}
-
-func Smtp() {
-	ConfigLoad()
-
-	log.WithField("version", appVersion).
-		Debug("starting smtprelay")
-
-	// Load allowed users file
-	if localAuthRequired() {
-		err := AuthLoadFile(*allowedUsers)
-		if err != nil {
-			log.WithField("file", *allowedUsers).
-				WithError(err).
-				Fatal("cannot load allowed users file")
-		}
-	}
-
-	metrics := metrics.NewPrometheusMetrics(prometheus.DefaultRegisterer)
-	httpGetter := httpgetter.NewHTTPGetter(&http.Client{})
-	aes256Encoder := encoder.NewAES256Encoder()
-	urlReplacer := urlreplacer.NewRegexUrlReplacer(*cynetProtectionUrl, aes256Encoder)
-	htmlUrlReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	md := maildir.NewMaildir(*mailDir)
-	// scanner := scanner.NewNimbusScanner(httpGetter, env.ENVVARS.ScannerURL, env.ENVVARS.ScannerClientID)
-	scanner := scanner.NewWebFilter(httpGetter, *scannerUrl, *scannerClientID)
-	// FIXME: replace with implementation
-	fileScanner := filescanner.NewAPIFileScanner(httpGetter, *file_scanner_url)
-	var servers []*smtpd.Server
-
-	// Create a server for each desired listen address
-	for _, listen := range listenAddrs {
-		logger := log.WithField("address", listen.address)
-
-		server := &smtpd.Server{
-			Hostname:          *hostName,
-			WelcomeMessage:    *welcomeMsg,
-			ReadTimeout:       readTimeout,
-			WriteTimeout:      writeTimeout,
-			DataTimeout:       dataTimeout,
-			MaxConnections:    *maxConnections,
-			MaxMessageSize:    *maxMessageSize,
-			MaxRecipients:     *maxRecipients,
-			ConnectionChecker: connectionChecker,
-			SenderChecker:     senderChecker,
-			RecipientChecker:  recipientChecker,
-			Handler:           mailHandlerWrapper(metrics, scanner, fileScanner, urlReplacer, htmlUrlReplacer, md),
-		}
-
-		if localAuthRequired() {
-			server.Authenticator = authChecker
-		}
-
-		var lsnr net.Listener
-		var err error
-
-		switch listen.protocol {
-		case "":
-			logger.Info("listening on address")
-			lsnr, err = net.Listen("tcp4", listen.address)
-
-		case "starttls":
-			server.TLSConfig = getTLSConfig()
-			server.ForceTLS = *localForceTLS
-
-			logger.Info("listening on address (STARTTLS)")
-			lsnr, err = net.Listen("tcp4", listen.address)
-
-		case "tls":
-			server.TLSConfig = getTLSConfig()
-
-			logger.Info("listening on address (TLS)")
-			lsnr, err = tls.Listen("tcp4", listen.address, server.TLSConfig)
-
-		default:
-			logger.WithField("protocol", listen.protocol).
-				Fatal("unknown protocol in listen address")
-		}
-
-		if err != nil {
-			logger.WithError(err).Fatal("error starting listener")
-		}
-		servers = append(servers, server)
-
-		go func() {
-			server.Serve(lsnr)
-		}()
-	}
-
-	handleSignals()
-
-	// First close the listeners
-	for _, server := range servers {
-		logger := log.WithField("address", server.Address())
-		logger.Debug("Shutting down server")
-		err := server.Shutdown(false)
-		if err != nil {
-			logger.WithError(err).
-				Warning("Shutdown failed")
-		}
-	}
-
-	// Then wait for the clients to exit
-	for _, server := range servers {
-		logger := log.WithField("address", server.Address())
-		logger.Debug("Waiting for server")
-		err := server.Wait()
-		if err != nil {
-			logger.WithError(err).
-				Warning("Wait failed")
-		}
-	}
-
-	log.Debug("done")
-}
-
-func handleSignals() {
-	// Wait for SIGINT, SIGQUIT, or SIGTERM
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
-	sig := <-sigs
-
-	log.WithField("signal", sig).
-		Info("shutting down in response to received signal")
 }

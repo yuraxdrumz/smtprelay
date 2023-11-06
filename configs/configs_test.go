@@ -1,7 +1,9 @@
-package smtp
+package config
 
 import (
 	"testing"
+
+	"github.com/decke/smtprelay/internal/pkg/utils"
 )
 
 func TestSplitProto(t *testing.T) {
@@ -30,14 +32,14 @@ func TestSplitProto(t *testing.T) {
 	for i, test := range tests {
 		testName := test.input
 		t.Run(testName, func(t *testing.T) {
-			pa := splitProto(test.input)
-			if pa.protocol != test.proto {
+			pa := utils.SplitProto(test.input)
+			if pa.Protocol != test.proto {
 				t.Errorf("Testcase %d: Incorrect proto: expected %v, got %v",
-					i, test.proto, pa.protocol)
+					i, test.proto, pa.Protocol)
 			}
-			if pa.address != test.addr {
+			if pa.Address != test.addr {
 				t.Errorf("Testcase %d: Incorrect addr: expected %v, got %v",
-					i, test.addr, pa.address)
+					i, test.addr, pa.Address)
 			}
 		})
 	}

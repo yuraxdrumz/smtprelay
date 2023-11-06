@@ -1,4 +1,4 @@
-package smtp
+package sendmail
 
 import (
 	"bytes"
@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/amalfra/maildir/v3"
+	config "github.com/decke/smtprelay/configs"
+	"github.com/decke/smtprelay/internal/app/client"
 	"github.com/decke/smtprelay/internal/app/processors"
 	"github.com/decke/smtprelay/internal/pkg/encoder"
 	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
@@ -20,16 +22,18 @@ import (
 )
 
 func init() {
-	*logLevel = "debug"
+	*config.LogLevel = "debug"
+	*config.CynetActionHeader = "X-Cynet-Action"
+	config.SetupLogger()
 }
 
 func TestImagesShouldNotBeProcessed(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	setupLogger()
+	config.SetupLogger()
 	body, err := os.ReadFile("../../../examples/images/multiple.msg")
 	assert.NoError(t, err)
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
@@ -39,9 +43,9 @@ func TestImagesShouldNotBeProcessed(t *testing.T) {
 }
 
 func TestSaveMailToMailDir(t *testing.T) {
-	c := Client{}
+	c := client.Client{}
 	md := maildir.NewMaildir("../../../examples/maildir")
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -56,11 +60,12 @@ func TestSaveMailToMailDir(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	setupLogger()
+
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, md, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	_, err = c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	_, err = sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
 	m, _ := md.Add(str)
 	assert.NotEmpty(t, m.Key())
@@ -68,8 +73,8 @@ func TestSaveMailToMailDir(t *testing.T) {
 	os.RemoveAll("../../../examples/maildir")
 }
 func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -84,11 +89,11 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	setupLogger()
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/forward/double_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
 	split := strings.Split(rewrittenBody, "\n")
 	timesSeenForwarded := 0
@@ -102,8 +107,8 @@ func TestForwardShouldAppearLikeInOriginal(t *testing.T) {
 }
 
 func TestDoNotReplaceImageSrcs(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -118,19 +123,18 @@ func TestDoNotReplaceImageSrcs(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	setupLogger()
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/forward/forward_with_images.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, `src=3D"https://a.travel-assets.com`)
 }
 
 func TestRemoveIncomingCynetHeaders(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	*cynetActionHeader = "X-Cynet-Action"
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -146,22 +150,21 @@ func TestRemoveIncomingCynetHeaders(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
-	setupLogger()
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/images/cynet_headers.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, rewrittenBody, *cynetActionHeader)
+	assert.NotContains(t, rewrittenBody, *config.CynetActionHeader)
 }
 
 func TestGetLinksDeduplicated(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	setupLogger()
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
@@ -171,12 +174,11 @@ func TestGetLinksDeduplicated(t *testing.T) {
 }
 
 func TestFindAttachmentInMail(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	setupLogger()
 	body, err := os.ReadFile("../../../examples/attachments/pdf.msg")
 	assert.NoError(t, err)
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
@@ -192,12 +194,11 @@ func TestFindAttachmentInMail(t *testing.T) {
 }
 
 func TestFindMultipleAttachmentInMail(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	setupLogger()
 	body, err := os.ReadFile("../../../examples/attachments/multiple.msg")
 	assert.NoError(t, err)
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
@@ -214,8 +215,8 @@ func TestFindMultipleAttachmentInMail(t *testing.T) {
 }
 
 func TestBase64InnerBoundary(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -231,12 +232,11 @@ func TestBase64InnerBoundary(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
-	setupLogger()
-
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018")
 	assert.Contains(t, newBody, "--000000000000d40a410606f64018--")
@@ -245,12 +245,11 @@ func TestBase64InnerBoundary(t *testing.T) {
 }
 
 func TestBase64AttachmentUnknown(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	*cynetActionHeader = "X-Cynet-Action"
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
@@ -264,23 +263,21 @@ func TestBase64AttachmentUnknown(t *testing.T) {
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Unknown}, nil).Times(3)
 	fileScanner.EXPECT().ScanFile(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).Times(3)
-	setupLogger()
-
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
 }
 
 func TestBase64AttachmentMalicious(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	*cynetActionHeader = "X-Cynet-Action"
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
@@ -294,23 +291,21 @@ func TestBase64AttachmentMalicious(t *testing.T) {
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Unknown}, nil).Times(1)
 	fileScanner.EXPECT().ScanFile(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Malicious}, nil).Times(1)
-	setupLogger()
-
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
 }
 
 func TestBase64AttachmentFileHashMalicious(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	*cynetActionHeader = "X-Cynet-Action"
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
@@ -323,23 +318,21 @@ func TestBase64AttachmentFileHashMalicious(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Malicious}, nil).Times(1)
-	setupLogger()
-
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	newBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+	assert.Contains(t, newBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
 }
 
 func TestBase64Equals76Chars(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	setupLogger()
 	body, err := os.ReadFile("../../../examples/base64/multi_boundary.msg")
 	assert.NoError(t, err)
 	bodyProcessor := processors.NewBodyProcessor(urlReplacer, htmlURLReplacer)
@@ -357,8 +350,8 @@ func TestBase64Equals76Chars(t *testing.T) {
 
 func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 	t.Skip()
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -373,19 +366,19 @@ func TestBeforeForwardedShouldBeUrlChecked(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	setupLogger()
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	body, err := os.ReadFile("../../../examples/forward/text_before_forward.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
 	assert.NotContains(t, rewrittenBody, "dnsCache.host")
 	assert.NotContains(t, rewrittenBody, "scpxth.xyz")
 }
 
 func TestEmailBase64WithMaliciousLink(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -401,22 +394,20 @@ func TestEmailBase64WithMaliciousLink(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 
-	setupLogger()
 	body, err := os.ReadFile("../../../examples/base64/basic.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	*cynetActionHeader = "X-Cynet-Action"
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
 }
 
 func TestQuotedStringWithReplaceInlineNoLinkDedup(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
-	setupLogger()
 	str := `<div dir="ltr">look look<div><br></div><div><a href="http://google.com">http://google.com</a></div><div><br></div><div><a href="http://google.com">http://google.com</a><br></div><div><a href="http://google.com">http://google.com</a> <a href="http://google.com">http://google.com</a> <br></div><div><a href="http://google.com">http://google.com</a><br></div><div><a href="http://google.com">http://google.com</a><br></div><div><a href="http://google.com">http://google.com</a><br></div></div>`
 	replacedLine, links, err := urlReplacer.Replace(str)
 	assert.NoError(t, err)
@@ -431,9 +422,8 @@ func TestQuotedStringWithReplaceInlineNoLinkDedup(t *testing.T) {
 }
 
 func TestInjectHeaders(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	setupLogger()
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -444,7 +434,6 @@ func TestInjectHeaders(t *testing.T) {
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
 	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
-	*cynetActionHeader = "X-Cynet-Action"
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    1,
@@ -452,15 +441,15 @@ func TestInjectHeaders(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "block"))
+	assert.Contains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "block"))
 }
 
 func TestEncodingParsed(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	setupLogger()
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -469,7 +458,6 @@ func TestEncodingParsed(t *testing.T) {
 	str := string(body)
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
-	*cynetActionHeader = "X-Cynet-Action"
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -488,16 +476,14 @@ func TestEncodingParsed(t *testing.T) {
 }
 
 func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	setupLogger()
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	*cynetActionHeader = "X-Cynet-Action"
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
@@ -509,22 +495,21 @@ func TestDoNotInjectHeadersWhenLinkNotMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
+	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "junk"))
 }
 
 func TestCheckAttachmentsIfLinkNotMalicious(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
-	setupLogger()
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
 	body, err := os.ReadFile("../../../examples/attachments/multiple.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	*cynetActionHeader = "X-Cynet-Action"
 	ctrl := gomock.NewController(t)
 	sc := scanner.NewMockScanner(ctrl)
 	fileScannerCtrl := gomock.NewController(t)
@@ -536,15 +521,16 @@ func TestCheckAttachmentsIfLinkNotMalicious(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *cynetActionHeader, "junk"))
+	assert.NotContains(t, rewrittenBody, fmt.Sprintf("%s: %s", *config.CynetActionHeader, "junk"))
 }
 
 func TestBoundaryMultiline(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -561,12 +547,12 @@ func TestBoundaryMultiline(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
-
-	setupLogger()
 	body, err := os.ReadFile("../../../examples/images/outlook.msg")
 	assert.NoError(t, err)
 	str := string(body)
-	rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+
+	rewrittenBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
 	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_")
 	assert.Contains(t, rewrittenBody, "--_010_DB9PR01MB7323E328D53CE6245A91D453ACCEADB9PR01MB7323eurp_--")
@@ -575,8 +561,8 @@ func TestBoundaryMultiline(t *testing.T) {
 }
 
 func TestWriteAllEmails(t *testing.T) {
-	c := Client{}
-	c.tmpBuffer = bytes.NewBuffer([]byte{})
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
 	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
@@ -586,7 +572,6 @@ func TestWriteAllEmails(t *testing.T) {
 	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
 	fileScanner.EXPECT().ScanFileHash(gomock.Any(), gomock.Any()).Return(&filescannertypes.Response{Status: filescannertypes.Clean}, nil).AnyTimes()
 
-	setupLogger()
 	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
 		{
 			StatusCode:    0,
@@ -594,6 +579,9 @@ func TestWriteAllEmails(t *testing.T) {
 			StatusMessage: []string{},
 		},
 	}, nil).AnyTimes()
+
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, *config.CynetActionHeader)
+
 	items, _ := os.ReadDir("../../../examples")
 	for _, item := range items {
 		if item.Name() == "test_results" {
@@ -608,7 +596,7 @@ func TestWriteAllEmails(t *testing.T) {
 					body, err := os.ReadFile(emailToCheck)
 					assert.NoError(t, err)
 					str := string(body)
-					rewrittenBody, err := c.rewriteEmail(str, urlReplacer, htmlURLReplacer, sc, fileScanner)
+					rewrittenBody, err := sendMail.rewriteEmail(str)
 					assert.NoError(t, err)
 					os.WriteFile(fmt.Sprintf("../../../examples/test_results/%s", subitem.Name()), []byte(rewrittenBody), 0666)
 				}

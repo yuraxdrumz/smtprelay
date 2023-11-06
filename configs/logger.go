@@ -1,4 +1,4 @@
-package smtp
+package config
 
 import (
 	"fmt"
@@ -12,14 +12,14 @@ var (
 	log *logrus.Logger
 )
 
-func setupLogger() {
+func SetupLogger() {
 	log = logrus.New()
 
 	// Handle logfile
-	if *logFile == "" {
+	if *LogFile == "" {
 		log.SetOutput(os.Stderr)
 	} else {
-		writer, err := os.OpenFile(*logFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
+		writer, err := os.OpenFile(*LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
 		if err != nil {
 			fmt.Printf("cannot open log file: %s\n", err)
 			os.Exit(1)
@@ -29,7 +29,7 @@ func setupLogger() {
 	}
 
 	// Handle log_format
-	switch *logFormat {
+	switch *LogFormat {
 	case "json":
 		log.SetFormatter(&logrus.JSONFormatter{
 			TimestampFormat:   time.RFC3339Nano,
@@ -44,16 +44,16 @@ func setupLogger() {
 			FullTimestamp: true,
 		})
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid log_format: %s\n", *logFormat)
+		fmt.Fprintf(os.Stderr, "Invalid log_format: %s\n", *LogFormat)
 		os.Exit(1)
 	}
 
 	// Handle log_level
-	level, err := logrus.ParseLevel(*logLevel)
+	level, err := logrus.ParseLevel(*LogLevel)
 	if err != nil {
 		level = logrus.InfoLevel
 
-		log.WithField("given_level", *logLevel).
+		log.WithField("given_level", *LogLevel).
 			Warn("could not parse log level, defaulting to 'info'")
 	}
 	log.SetLevel(level)
