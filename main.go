@@ -18,6 +18,7 @@ import (
 	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
 	"github.com/decke/smtprelay/internal/pkg/httpgetter"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
+	saveemail "github.com/decke/smtprelay/internal/pkg/save_email"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/prometheus/client_golang/prometheus"
@@ -57,10 +58,11 @@ func main() {
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer(env.ENVVARS.CynetProtectionURL, aes256Encoder)
 	htmlUrlReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
-	md := maildir.NewMaildir(env.ENVVARS.MailDir)
 	scanner := scanner.NewWebFilter(httpGetter, env.ENVVARS.ScannerURL, env.ENVVARS.ScannerClientID)
 	fileScanner := filescanner.NewAPIFileScanner(httpGetter, env.ENVVARS.FileScannerURL)
-	sendMail := sendmail.NewSendMail(metrics, urlReplacer, htmlUrlReplacer, scanner, fileScanner, md, env.ENVVARS.CynetActionHeader)
+	md := maildir.NewMaildir(env.ENVVARS.MailDir)
+	saveEmail := saveemail.NewMailDir(md)
+	sendMail := sendmail.NewSendMail(metrics, urlReplacer, htmlUrlReplacer, scanner, fileScanner, saveEmail, env.ENVVARS.CynetActionHeader)
 	smtpHandlers := smtp.NewSMTPHandlers(metrics, env.ENVVARS.AllowedNets, (*regexp.Regexp)(&env.ENVVARS.AllowedSender), (*regexp.Regexp)(&env.ENVVARS.AllowedRecipients), env.ENVVARS.CynetTenantHeader, sendMail)
 
 	var servers []*smtpd.Server

@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/amalfra/maildir/v3"
 	"github.com/decke/smtprelay/internal/app/processors"
 	processortypes "github.com/decke/smtprelay/internal/app/processors/processor_types"
 	"github.com/decke/smtprelay/internal/pkg/client"
@@ -18,6 +17,7 @@ import (
 	filescannertypes "github.com/decke/smtprelay/internal/pkg/file_scanner/types"
 	"github.com/decke/smtprelay/internal/pkg/metrics"
 	"github.com/decke/smtprelay/internal/pkg/remotes"
+	saveemail "github.com/decke/smtprelay/internal/pkg/save_email"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/decke/smtprelay/internal/pkg/utils"
@@ -30,18 +30,18 @@ type SendMail struct {
 	htmlUrlReplacer   urlreplacer.UrlReplacerActions
 	scanner           scanner.Scanner
 	fileScanner       filescanner.Scanner
-	md                *maildir.Maildir
+	saveEmail         saveemail.SaveEmail
 	cynetActionHeader string
 }
 
-func NewSendMail(metrics *metrics.Metrics, urlReplacer urlreplacer.UrlReplacerActions, htmlUrlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner, fileScanner filescanner.Scanner, md *maildir.Maildir, cynetActionHeader string) *SendMail {
+func NewSendMail(metrics *metrics.Metrics, urlReplacer urlreplacer.UrlReplacerActions, htmlUrlReplacer urlreplacer.UrlReplacerActions, scanner scanner.Scanner, fileScanner filescanner.Scanner, saveEmail saveemail.SaveEmail, cynetActionHeader string) *SendMail {
 	return &SendMail{
 		metrics:           metrics,
 		urlReplacer:       urlReplacer,
 		htmlUrlReplacer:   htmlUrlReplacer,
 		scanner:           scanner,
 		fileScanner:       fileScanner,
-		md:                md,
+		saveEmail:         saveEmail,
 		cynetActionHeader: cynetActionHeader,
 	}
 }
@@ -88,7 +88,7 @@ func (s *SendMail) SendMail(
 	}
 
 	// before
-	beforeMsg, err := s.md.Add(string(msg))
+	beforeMsg, err := s.saveEmail.SaveEmail(string(msg))
 	if err != nil {
 		logrus.Warnf("failed to save message before processing, err=%s", err)
 		return err
@@ -98,7 +98,7 @@ func (s *SendMail) SendMail(
 		"from": from,
 		"to":   to,
 		"addr": r.Addr,
-		"key":  beforeMsg.Key(),
+		"key":  beforeMsg.Name,
 	}).Info("saved before msg")
 
 	newBodyString, err := s.rewriteEmail(string(msg))
@@ -107,7 +107,7 @@ func (s *SendMail) SendMail(
 		return err
 	}
 
-	afterMsg, err := s.md.Add(newBodyString)
+	afterMsg, err := s.saveEmail.SaveEmail(newBodyString)
 	if err != nil {
 		logrus.Warnf("failed to save message after processing, err=%s", err)
 		return err
@@ -116,7 +116,7 @@ func (s *SendMail) SendMail(
 		"from": from,
 		"to":   to,
 		"addr": r.Addr,
-		"key":  afterMsg.Key(),
+		"key":  afterMsg.Name,
 	}).Info("saved before msg")
 
 	_, err = w.Write([]byte(newBodyString))

@@ -14,6 +14,7 @@ import (
 	"github.com/decke/smtprelay/internal/pkg/encoder"
 	filescanner "github.com/decke/smtprelay/internal/pkg/file_scanner"
 	filescannertypes "github.com/decke/smtprelay/internal/pkg/file_scanner/types"
+	saveemail "github.com/decke/smtprelay/internal/pkg/save_email"
 	"github.com/decke/smtprelay/internal/pkg/scanner"
 	urlreplacer "github.com/decke/smtprelay/internal/pkg/url_replacer"
 	"github.com/golang/mock/gomock"
@@ -37,6 +38,7 @@ func TestImagesShouldNotBeProcessed(t *testing.T) {
 func TestSaveMailToMailDir(t *testing.T) {
 	c := client.Client{}
 	md := maildir.NewMaildir("../../../examples/maildir")
+	saveEmail := saveemail.NewMailDir(md)
 	c.TmpBuffer = bytes.NewBuffer([]byte{})
 	aes256Encoder := encoder.NewAES256Encoder()
 	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
@@ -53,7 +55,7 @@ func TestSaveMailToMailDir(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 
-	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, md, "X-Cynet-Action")
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, saveEmail, "X-Cynet-Action")
 	body, err := os.ReadFile("../../../examples/links/links.msg")
 	assert.NoError(t, err)
 	str := string(body)
