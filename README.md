@@ -1,32 +1,29 @@
 # smtprelay
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/decke/smtprelay)](https://goreportcard.com/report/github.com/decke/smtprelay)
+## Mime Issues
 
-Simple Golang based SMTP relay/proxy server that accepts mail via SMTP
-and forwards it directly to another SMTP server.
+https://github.com/Supme/smtpSender/blob/master/builder.go
 
+## Open Issues
 
-## Why another SMTP server?
+[-] - body is accumulated in memory
 
-Outgoing mails are usually send via SMTP to an MTA (Mail Transfer Agent)
-which is one of Postfix, Exim, Sendmail or OpenSMTPD on UNIX/Linux in most
-cases. You really don't want to setup and maintain any of those full blown
-kitchensinks yourself because they are complex, fragile and hard to
-configure.
+[X] - `Content-Transfer-Encoding: base64` needs accumulating until next boundary
 
-My use case is simple. I need to send automatically generated mails from
-cron via msmtp/sSMTP/dma, mails from various services and network printers
-via a remote SMTP server without giving away my mail credentials to each
-device which produces mail.
+[X] - Dont replace emails
 
+[-] - forwarding should be handled as passthrough, after seeing, from, to and subject, we can start checking urls
 
-## Main features
+[X] - Attachments names get rewritten
 
-* Simple configuration with ini file .env file or environment variables
-* Supports SMTPS/TLS (465), STARTTLS (587) and unencrypted SMTP (25)
-* Checks for sender, receiver, client IP
-* Authentication support with file (LOGIN, PLAIN)
-* Enforce encryption for authentication
-* Forwards all mail to a smarthost (any SMTP server)
-* Small codebase
-* IPv6 support
+[X] - Images srcs in outlook get cid referenced from attachments
+
+[X] - Sections are written without their headers
+
+[X] - Add html parser to replace hrefs
+
+[X] - handle content type text/html in a more generic way
+
+[X] - ignore replacing links in base64 when content type is not text
+
+[-] - handle encodings
