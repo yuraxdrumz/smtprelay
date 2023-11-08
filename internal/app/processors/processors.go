@@ -77,10 +77,9 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 	linksMap := map[string]bool{}
 	headers := &strings.Builder{}
 	sections := []*processortypes.Section{}
-
-	setContentTransferFromHeaders := false
-
-	for scanner.Scan() {
+	for {
+		canProcess := scanner.Scan()
+		atEOF := !canProcess
 		line := scanner
 		lineString := line.Text()
 		if lineString == "" && !reachedBody {
@@ -93,35 +92,24 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 			headers.WriteString(lineString)
 			headers.WriteString("\n")
 			b.setBoundaryFromLine(lineString)
-			if !setContentTransferFromHeaders {
-				setContentTransferFromHeaders = b.setContentTransferEncodingFromLine(lineString)
-			}
+			b.setContentTransferEncodingFromLine(lineString)
 			b.setContentTypeFromLine(lineString)
+			b.setCharsetFromLine(lineString)
 			continue
 		}
 
-		section, links, err := b.ProcessBody(lineString)
+		section, links, err := b.ProcessBody(lineString, atEOF)
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		if section != nil {
+		if section != nil && section.Data != "" {
 			sections = append(sections, section)
 		}
 		for _, link := range links {
 			linksMap[link] = true
 		}
-	}
-
-	if setContentTransferFromHeaders {
-		section, links, err := b.handleHitBoundary("", "no_boundary")
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		if section != nil {
-			sections = append(sections, section)
-		}
-		for _, link := range links {
-			linksMap[link] = true
+		if atEOF {
+			break
 		}
 	}
 
@@ -144,13 +132,13 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 // content transfer encoding
 // headers
 // data
-func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Section, links []string, err error) {
+func (b *bodyProcessor) ProcessBody(line string, lastLine bool) (section *processortypes.Section, links []string, err error) {
 	links = []string{}
 	boundaryStart := fmt.Sprintf("--%s", b.currentBoundary)
 	boundaryEnd := fmt.Sprintf("--%s--", b.currentBoundary)
 	didHitBoundaryStart := line == boundaryStart
 	didHitBoundaryEnd := line == boundaryEnd
-	if didHitBoundaryStart || didHitBoundaryEnd {
+	if didHitBoundaryStart || didHitBoundaryEnd || lastLine {
 		if didHitBoundaryStart {
 			b.boundariesEncountered += 1
 			err := b.writeHeaderToBuffer(line)
@@ -177,20 +165,20 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 		line = strings.ReplaceAll(line, "&nbsp;", " ")
 	}
 
+	stillInHeaders := b.boundariesEncountered > b.boundariesProcessed && line != ""
+	finishedHeaders := b.boundariesEncountered > b.boundariesProcessed && line == ""
+
 	switch {
 	// when we are still reading headers, add to headers buffer
-	case b.boundariesEncountered > b.boundariesProcessed && line != "":
+	case stillInHeaders:
 		err := b.writeHeaderToBuffer(line)
 		return nil, nil, err
 		// when we reached end of headers in boundary, flush them to appropriate content transfer encoding processor
-	case b.boundariesEncountered > b.boundariesProcessed && line == "":
+	case finishedHeaders:
 		b.boundariesProcessed = b.boundariesEncountered
 		headers := b.flushHeaders(line)
 		// by this point, all headers were parsed and we can set all section metadata from transfer encoding
-		b.bodyProcessors[b.currentTransferEncoding].SetSectionContentTransferEncoding(b.currentTransferEncoding)
-		b.bodyProcessors[b.currentTransferEncoding].SetSectionContentType(b.currentContentType)
-		b.bodyProcessors[b.currentTransferEncoding].SetSectionCharset(b.currentCharset)
-		b.bodyProcessors[b.currentTransferEncoding].SetSectionHeaders(headers)
+		b.setSectionMetadata(headers)
 		isAttachment, fileName := b.checkIfAttachment(headers)
 		if isAttachment {
 			b.bodyProcessors[b.currentTransferEncoding].SetIsAttachment(true, fileName)
@@ -202,6 +190,13 @@ func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Sectio
 		err = b.processLine(line)
 		return nil, nil, err
 	}
+}
+
+func (b *bodyProcessor) setSectionMetadata(headers string) {
+	b.bodyProcessors[b.currentTransferEncoding].SetSectionContentTransferEncoding(b.currentTransferEncoding)
+	b.bodyProcessors[b.currentTransferEncoding].SetSectionContentType(b.currentContentType)
+	b.bodyProcessors[b.currentTransferEncoding].SetSectionCharset(b.currentCharset)
+	b.bodyProcessors[b.currentTransferEncoding].SetSectionHeaders(headers)
 }
 
 func (b *bodyProcessor) writeHeaderToBuffer(line string) error {

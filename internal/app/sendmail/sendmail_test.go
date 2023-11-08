@@ -289,7 +289,7 @@ func TestContentEncodingInMainHeaders(t *testing.T) {
 	str := string(body)
 	newBody, err := sendMail.rewriteEmail(str)
 	assert.NoError(t, err)
-	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
+	assert.Contains(t, newBody, "[cy]654a3c94a62df5081715a6a7,7,0[cy]")
 }
 
 func TestBase64AttachmentMalicious(t *testing.T) {

@@ -65,7 +65,6 @@ func (q *quotedPrintable) Flush() (section *processortypes.Section, links []stri
 		return nil, nil, err
 	}
 	q.writeLine(qpBuf)
-	q.writeNewLine()
 	q.buf.Reset()
 	data := q.lineWriter.String()
 	q.lineWriter.Reset()

@@ -298,8 +298,10 @@ func (s *SendMail) rewriteEmail(msg string) (string, error) {
 	newBody.WriteString(headers.String())
 	newBody.WriteString("\n")
 	for _, section := range sections {
-		newBody.WriteString(section.Headers)
-		newBody.WriteString("\n")
+		if section.Headers != "" {
+			newBody.WriteString(section.Headers)
+			newBody.WriteString("\n")
+		}
 		newBody.WriteString(section.Data)
 	}
 	return newBody.String(), nil
