@@ -103,8 +103,16 @@ func (s *SendMail) SendMail(
 
 	newBodyString, err := s.rewriteEmail(string(msg))
 	if err != nil {
-		logrus.Warnf("failed to process body, err=%s", err)
-		return err
+		logrus.Warnf("failed to process body with err=%s, delivering original email for dev purposes, should be removed for PROD", err)
+		_, err = w.Write(msg)
+		if err != nil {
+			return err
+		}
+		err = w.Close()
+		if err != nil {
+			return err
+		}
+		return c.Quit()
 	}
 
 	afterMsg, err := s.saveEmail.SaveEmail(newBodyString)
