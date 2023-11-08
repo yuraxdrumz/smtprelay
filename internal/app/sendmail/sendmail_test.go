@@ -266,6 +266,32 @@ func TestBase64AttachmentUnknown(t *testing.T) {
 	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
 }
 
+func TestContentEncodingInMainHeaders(t *testing.T) {
+	c := client.Client{}
+	c.TmpBuffer = bytes.NewBuffer([]byte{})
+	aes256Encoder := encoder.NewAES256Encoder()
+	urlReplacer := urlreplacer.NewRegexUrlReplacer("localhost:1333", aes256Encoder)
+	htmlURLReplacer := urlreplacer.NewHTMLReplacer(urlReplacer)
+	ctrl := gomock.NewController(t)
+	sc := scanner.NewMockScanner(ctrl)
+	fileScannerCtrl := gomock.NewController(t)
+	fileScanner := filescanner.NewMockScanner(fileScannerCtrl)
+	sc.EXPECT().ScanURL(gomock.Any()).Return([]*scanner.ScanResult{
+		{
+			StatusCode:    0,
+			DomainGrey:    false,
+			StatusMessage: []string{},
+		},
+	}, nil).AnyTimes()
+	sendMail := NewSendMail(nil, urlReplacer, htmlURLReplacer, sc, fileScanner, nil, "X-Cynet-Action")
+	body, err := os.ReadFile("../../../examples/no-boundary/no-boundary.msg")
+	assert.NoError(t, err)
+	str := string(body)
+	newBody, err := sendMail.rewriteEmail(str)
+	assert.NoError(t, err)
+	assert.NotContains(t, newBody, fmt.Sprintf("%s: %s", "X-Cynet-Action", "block"))
+}
+
 func TestBase64AttachmentMalicious(t *testing.T) {
 	c := client.Client{}
 	c.TmpBuffer = bytes.NewBuffer([]byte{})

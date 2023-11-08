@@ -77,6 +77,9 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 	linksMap := map[string]bool{}
 	headers := &strings.Builder{}
 	sections := []*processortypes.Section{}
+
+	setContentTransferFromHeaders := false
+
 	for scanner.Scan() {
 		line := scanner
 		lineString := line.Text()
@@ -90,10 +93,27 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 			headers.WriteString(lineString)
 			headers.WriteString("\n")
 			b.setBoundaryFromLine(lineString)
+			if !setContentTransferFromHeaders {
+				setContentTransferFromHeaders = b.setContentTransferEncodingFromLine(lineString)
+			}
+			b.setContentTypeFromLine(lineString)
 			continue
 		}
 
 		section, links, err := b.ProcessBody(lineString)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		if section != nil {
+			sections = append(sections, section)
+		}
+		for _, link := range links {
+			linksMap[link] = true
+		}
+	}
+
+	if setContentTransferFromHeaders {
+		section, links, err := b.handleHitBoundary("", "no_boundary")
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -126,10 +146,6 @@ func (b *bodyProcessor) GetBodySections(body string) ([]*processortypes.Section,
 // data
 func (b *bodyProcessor) ProcessBody(line string) (section *processortypes.Section, links []string, err error) {
 	links = []string{}
-	if len(b.boundaries) == 0 {
-		return nil, nil, fmt.Errorf("boundary should be set before processing body")
-	}
-
 	boundaryStart := fmt.Sprintf("--%s", b.currentBoundary)
 	boundaryEnd := fmt.Sprintf("--%s--", b.currentBoundary)
 	didHitBoundaryStart := line == boundaryStart
